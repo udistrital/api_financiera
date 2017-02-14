@@ -34,6 +34,7 @@ func init() {
 // last inserted Id on success.
 func AddCompromiso(m *Compromiso) (id int64, err error) {
 	o := orm.NewOrm()
+	m.FechaModificacion = time.Now()
 	id, err = o.Insert(m)
 	return
 }
