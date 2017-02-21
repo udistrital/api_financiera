@@ -41,6 +41,146 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:AnulacionReservaController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["api_financiera/controllers:ArbolConceptosController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ArbolConceptosController"],
 		beego.ControllerComments{
 			Method: "MakeTree",
@@ -363,6 +503,76 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["api_financiera/controllers:EntidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EntidadController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -392,6 +602,41 @@ func init() {
 			Params: nil})
 
 	beego.GlobalControllerRouter["api_financiera/controllers:EntidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EntidadController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoApropiacionController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
@@ -433,6 +678,41 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoDisponibilidadController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["api_financiera/controllers:EstadoIngresoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoIngresoController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -497,6 +777,76 @@ func init() {
 			Params: nil})
 
 	beego.GlobalControllerRouter["api_financiera/controllers:EstadoOrdenPagoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoOrdenPagoController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstadoReservaPresupuestalController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
@@ -637,6 +987,41 @@ func init() {
 			Params: nil})
 
 	beego.GlobalControllerRouter["api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IngresoController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ModificacionPresupuestalController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
@@ -882,6 +1267,216 @@ func init() {
 			Params: nil})
 
 	beego.GlobalControllerRouter["api_financiera/controllers:PlanCuentasController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:PlanCuentasController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RegistroPresupuestalDisponibilidadApropiacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:ReservaPresupuestalController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:RubroRubroController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,

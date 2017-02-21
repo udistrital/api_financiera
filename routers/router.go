@@ -11,6 +11,7 @@ import (
 	"api_financiera/controllers"
 
 	"github.com/astaxie/beego"
+
 	"github.com/astaxie/beego/plugins/cors"
 )
 
@@ -26,27 +27,93 @@ func init() {
 
 	ns := beego.NewNamespace("/v1",
 
-		beego.NSNamespace("/forma_ingreso",
+		beego.NSNamespace("/anulacion_disponibilidad",
 			beego.NSInclude(
-				&controllers.FormaIngresoController{},
+				&controllers.AnulacionDisponibilidadController{},
 			),
 		),
 
-		beego.NSNamespace("/estado_ingreso",
+		beego.NSNamespace("/anulacion_disponibilidad_apropiacion",
 			beego.NSInclude(
-				&controllers.EstadoIngresoController{},
+				&controllers.AnulacionDisponibilidadApropiacionController{},
 			),
 		),
 
-		beego.NSNamespace("/ingreso_concepto",
+		beego.NSNamespace("/anulacion_reserva",
 			beego.NSInclude(
-				&controllers.IngresoConceptoController{},
+				&controllers.AnulacionReservaController{},
 			),
 		),
 
-		beego.NSNamespace("/ingreso",
+		beego.NSNamespace("/estado_apropiacion",
 			beego.NSInclude(
-				&controllers.IngresoController{},
+				&controllers.EstadoApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_disponibilidad",
+			beego.NSInclude(
+				&controllers.EstadoDisponibilidadController{},
+			),
+		),
+
+		beego.NSNamespace("/disponibilidad",
+			beego.NSInclude(
+				&controllers.DisponibilidadController{},
+			),
+		),
+
+		beego.NSNamespace("/apropiacion",
+			beego.NSInclude(
+				&controllers.ApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/modificacion_presupuestal",
+			beego.NSInclude(
+				&controllers.ModificacionPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_registro_presupuestal",
+			beego.NSInclude(
+				&controllers.EstadoRegistroPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/disponibilidad_apropiacion",
+			beego.NSInclude(
+				&controllers.DisponibilidadApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/registro_presupuestal_disponibilidad_apropiacion",
+			beego.NSInclude(
+				&controllers.RegistroPresupuestalDisponibilidadApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_reserva_presupuestal",
+			beego.NSInclude(
+				&controllers.EstadoReservaPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/reserva_presupuestal",
+			beego.NSInclude(
+				&controllers.ReservaPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/rubro_homologado",
+			beego.NSInclude(
+				&controllers.RubroHomologadoController{},
+			),
+		),
+
+		beego.NSNamespace("/rubro_rubro",
+			beego.NSInclude(
+				&controllers.RubroRubroController{},
 			),
 		),
 
@@ -206,6 +273,36 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/rubro",
+			beego.NSInclude(
+				&controllers.RubroController{},
+			),
+		),
+
+		beego.NSNamespace("/forma_ingreso",
+			beego.NSInclude(
+				&controllers.FormaIngresoController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_ingreso",
+			beego.NSInclude(
+				&controllers.EstadoIngresoController{},
+			),
+		),
+
+		beego.NSNamespace("/ingreso",
+			beego.NSInclude(
+				&controllers.IngresoController{},
+			),
+		),
+
+		beego.NSNamespace("/ingreso_concepto",
+			beego.NSInclude(
+				&controllers.IngresoConceptoController{},
+			),
+		),
+
 		beego.NSNamespace("/unidad_ejecutora",
 			beego.NSInclude(
 				&controllers.UnidadEjecutoraController{},
@@ -221,6 +318,12 @@ func init() {
 		beego.NSNamespace("/tipo_orden_pago",
 			beego.NSInclude(
 				&controllers.TipoOrdenPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/registro_presupuestal",
+			beego.NSInclude(
+				&controllers.RegistroPresupuestalController{},
 			),
 		),
 
