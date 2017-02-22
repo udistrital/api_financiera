@@ -16,7 +16,7 @@ type ConceptoArbol struct {
 	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
 	Descripcion     string        `orm:"column(descripcion);null"`
 	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto);rel(fk)"`
-	Rubro           int           `orm:"column(rubro);null"`
+	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null;"`
 	Hijos           *[]ConceptoArbol
 }
 
@@ -43,6 +43,7 @@ func MakeTreeConcepto() (a []ConceptoArbol) {
 			var l Concepto
 			o.QueryTable(&l).Filter("Id", arbol[i].Id).RelatedSel().All(&l)
 			arbol[i].TipoConcepto = l.TipoConcepto
+			arbol[i].Rubro = l.Rubro
 			//fmt.Print(l.TipoConcepto)
 
 			//Me verifica que los Id tengan hijos

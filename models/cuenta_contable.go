@@ -17,7 +17,7 @@ type CuentaContable struct {
 	Descripcion        string              `orm:"column(descripcion);null"`
 	Codigo             string              `orm:"column(codigo)"`
 	NivelClasificacion *NivelClasificacion `orm:"column(nivel_clasificacion);rel(fk)"`
-	CuentaBancaria     *CuentaBancaria     `orm:"column(cuenta_bancaria);rel(fk)"`
+	CuentaBancaria     *CuentaBancaria     `orm:"column(cuenta_bancaria);rel(fk);null"`
 }
 
 func (t *CuentaContable) TableName() string {
