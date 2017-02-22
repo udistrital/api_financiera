@@ -888,6 +888,41 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:EstructuraNivelesClasificacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["api_financiera/controllers:FormaIngresoController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:FormaIngresoController"],
 		beego.ControllerComments{
 			Method: "Post",

@@ -345,6 +345,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/estructura_niveles_clasificacion",
+			beego.NSInclude(
+				&controllers.EstructuraNivelesClasificacionController{},
+			),
+		),
+
 		beego.NSNamespace("/arbol_conceptos",
 			beego.NSInclude(
 				&controllers.ArbolConceptosController{},
