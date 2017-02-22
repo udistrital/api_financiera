@@ -19,7 +19,7 @@ type Concepto struct {
 	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
 	Descripcion     string        `orm:"column(descripcion);null"`
 	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto);rel(fk)"`
-	Rubro           int           `orm:"column(rubro);null"`
+	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null"`
 }
 
 func (t *Concepto) TableName() string {

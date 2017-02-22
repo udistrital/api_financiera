@@ -46,6 +46,7 @@ func AddTransaccionConcepto(m *TrConcepto) (id int64, err error) {
 		}
 		err = o.Commit()
 	} else {
+		fmt.Println(err)
 		err = o.Rollback()
 	}
 	return

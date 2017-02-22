@@ -10,7 +10,7 @@ import (
 )
 
 type EstructuraNivelesClasificacion struct {
-	Id         int                 `orm:"column(id);pk"`
+	Id         int                 `orm:"column(id);pk;auto"`
 	NivelPadre *NivelClasificacion `orm:"column(nivel_padre);rel(fk)"`
 	NivelHijo  *NivelClasificacion `orm:"column(nivel_hijo);rel(fk)"`
 }
@@ -47,7 +47,7 @@ func GetEstructuraNivelesClasificacionById(id int) (v *EstructuraNivelesClasific
 func GetAllEstructuraNivelesClasificacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(EstructuraNivelesClasificacion))
+	qs := o.QueryTable(new(EstructuraNivelesClasificacion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute

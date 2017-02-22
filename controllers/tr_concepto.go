@@ -3,6 +3,7 @@ package controllers
 import (
 	"api_financiera/models"
 	"encoding/json"
+	"fmt"
 
 	"github.com/astaxie/beego"
 )
@@ -29,6 +30,7 @@ func (c *TrConceptoController) Post() {
 			c.Data["json"] = err.Error()
 		}
 	} else {
+		fmt.Println(err)
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
