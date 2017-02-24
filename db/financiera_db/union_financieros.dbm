@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.7.2" last-position="657,0" last-zoom="0.8">
+<dbmodel pgmodeler-ver="0.7.2" last-position="720,1345" last-zoom="0.8">
 <database name="union_financiera" encoding="UTF8" lc-collate="es_CO" lc-ctype="es_CO">
 	<role name="postgres"/>
 	<tablespace name="pg_default"/>
@@ -1101,7 +1101,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="concepto_cuenta_contable" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="50" y="1302.4"/>
+	<position x="1163.75" y="1519.9"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_cuenta_contable_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla concepto_cuenta_contable]]></comment>
@@ -1491,7 +1491,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla en la que se registran las versiones para el control de transacciones de un tipo de transaccion]]></comment>
-	<position x="421.667" y="1702.87"/>
+	<position x="174.167" y="1657.87"/>
 	<column name="id" not-null="true" default-value="nextval('version_tipo_transaccion_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla version_tipo_transaccion]]></comment>
@@ -1537,7 +1537,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla en la que se registran los tipos de transacciones ubicados en una clase de transaccion]]></comment>
-	<position x="860.333" y="1742.87"/>
+	<position x="929.083" y="1732.87"/>
 	<column name="id" not-null="true" default-value="nextval('tipo_transaccion_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla tipo_transaccion]]></comment>
@@ -1571,7 +1571,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla en la que se registran las clases de transacciones disponibles para cada modulo]]></comment>
-	<position x="1480.67" y="1666.2"/>
+	<position x="1490.67" y="1574.95"/>
 	<column name="id" not-null="true" default-value="nextval('clase_transaccion_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla clase_transaccion]]></comment>
@@ -1771,7 +1771,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla que soporta el manejo de conceptos tanto de ingresos como de gastos]]></comment>
-	<position x="1681" y="1937.6"/>
+	<position x="1749.75" y="1883.85"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_id_seq1'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla concepto]]></comment>
@@ -1976,7 +1976,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="1164.33" y="2120.33"/>
+	<position x="1183.08" y="2074.08"/>
 	<column name="id" not-null="true" default-value="nextval('orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -2007,6 +2007,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="estado_orden_pago" not-null="true">
 		<type name="integer"/>
 	</column>
+	<column name="iva" not-null="true">
+		<type name="integer"/>
+	</column>
 	<constraint name="orden_pago_pk" type="pk-constr" factor="100" table="financiera.orden_pago">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
@@ -2023,7 +2026,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="concepto_orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="1705" y="2303.07"/>
+	<position x="1677.5" y="2290.57"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -2052,7 +2055,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="tipo_orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="497.333" y="2579.73"/>
+	<position x="758.583" y="2388.48"/>
 	<column name="id" not-null="true" default-value="nextval('tipo_orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -2081,7 +2084,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="estado_orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="1312.67" y="2483.07"/>
+	<position x="1136.42" y="2396.82"/>
 	<column name="id" not-null="true" default-value="nextval('estado_orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -2097,6 +2100,37 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<constraint name="estado_orden_pago_pk" type="pk-constr" factor="100" table="financiera.estado_orden_pago">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
+</table>
+
+<table name="iva">
+	<schema name="financiera"/>
+	<position x="1620" y="2461.25"/>
+	<column name="id" not-null="true">
+		<type name="serial"/>
+	</column>
+	<column name="categoria" not-null="true">
+		<type name="integer"/>
+	</column>
+	<column name="valor" not-null="true">
+		<type name="numeric" length="2"/>
+	</column>
+	<column name="estado_activo" not-null="true">
+		<type name="boolean"/>
+	</column>
+</table>
+
+<table name="categoria_iva">
+	<schema name="financiera"/>
+	<position x="2042.5" y="2466.25"/>
+	<column name="id" not-null="true">
+		<type name="serial"/>
+	</column>
+	<column name="nombre">
+		<type name="varchar"/>
+	</column>
+	<column name="estado_activo" not-null="true">
+		<type name="boolean"/>
+	</column>
 </table>
 
 <constraint name="fk_anulacion" type="fk-constr" comparison-type="MATCH FULL"
@@ -2394,6 +2428,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="registro_presupuestal" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
+<constraint name="iva_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.iva" table="financiera.orden_pago">
+	<columns names="iva" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
 <constraint name="orden_de_pago_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.orden_pago" table="financiera.concepto_orden_pago">
 	<columns names="orden_de_pago" ref-type="src-columns"/>
@@ -2402,6 +2441,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <constraint name="concepto_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.concepto" table="financiera.concepto_orden_pago">
 	<columns names="concepto" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+<constraint name="categoria_iva" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.categoria_iva" table="financiera.iva">
+	<columns names="categoria" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 <relationship name="rel_anulacion_disponibilidad_apropiacion_anulacion_disponibilid" type="relfk"
@@ -2692,6 +2736,16 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <relationship name="rel_orden_pago_registo_presupuestal" type="relfk"
 	 src-table="financiera.orden_pago"
 	 dst-table="financiera.registro_presupuestal"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_iva_categoria_iva" type="relfk"
+	 src-table="financiera.iva"
+	 dst-table="financiera.categoria_iva"
+	 src-required="true" dst-required="true"/>
+
+<relationship name="rel_orden_pago_iva" type="relfk"
+	 src-table="financiera.orden_pago"
+	 dst-table="financiera.iva"
 	 src-required="true" dst-required="true"/>
 
 </dbmodel>
