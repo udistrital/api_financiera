@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.7.2" last-position="720,1345" last-zoom="0.8">
+<dbmodel pgmodeler-ver="0.7.2" last-position="296,1342" last-zoom="0.8">
 <database name="union_financiera" encoding="UTF8" lc-collate="es_CO" lc-ctype="es_CO">
 	<role name="postgres"/>
 	<tablespace name="pg_default"/>
@@ -774,7 +774,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla en la que se registran las cuentas contables ]]></comment>
-	<position x="698" y="931.6"/>
+	<position x="728" y="932.85"/>
 	<column name="id" not-null="true" default-value="nextval('cuenta_contable_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla cuenta_contable]]></comment>
@@ -1771,7 +1771,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla que soporta el manejo de conceptos tanto de ingresos como de gastos]]></comment>
-	<position x="1749.75" y="1883.85"/>
+	<position x="1747.25" y="1883.85"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_id_seq1'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla concepto]]></comment>
@@ -1989,7 +1989,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="registro_presupuestal" not-null="true">
 		<type name="integer"/>
 	</column>
-	<column name="valor_total" not-null="true">
+	<column name="valor_base" not-null="true">
 		<type name="numeric"/>
 	</column>
 	<column name="persona_elaboro" not-null="true">
@@ -2026,7 +2026,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="concepto_orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="1677.5" y="2290.57"/>
+	<position x="1626.25" y="2148.07"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
