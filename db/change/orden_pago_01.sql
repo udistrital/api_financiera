@@ -1,4 +1,5 @@
 ALTER TABLE financiera.orden_pago ADD COLUMN iva integer NOT NULL;
+ALTER TABLE financiera.orden_pago RENAME COLUMN valor_total TO valor_base;
 
 -- object: financiera.iva | type: TABLE --
 -- DROP TABLE financiera.iva;
