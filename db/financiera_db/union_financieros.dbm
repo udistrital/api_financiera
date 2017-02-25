@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.7.2" last-position="296,1342" last-zoom="0.8">
+<dbmodel pgmodeler-ver="0.7.2" last-position="670,1624" last-zoom="0.8">
 <database name="union_financiera" encoding="UTF8" lc-collate="es_CO" lc-ctype="es_CO">
 	<role name="postgres"/>
 	<tablespace name="pg_default"/>
@@ -2104,11 +2104,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <table name="iva">
 	<schema name="financiera"/>
-	<position x="1620" y="2461.25"/>
+	<position x="1618.75" y="2457.5"/>
 	<column name="id" not-null="true">
 		<type name="serial"/>
 	</column>
-	<column name="categoria" not-null="true">
+	<column name="categoria_iva" not-null="true">
 		<type name="integer"/>
 	</column>
 	<column name="valor" not-null="true">
@@ -2117,11 +2117,14 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="estado_activo" not-null="true">
 		<type name="boolean"/>
 	</column>
+	<constraint name="iva_pk" type="pk-constr" factor="100" table="financiera.iva">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
 </table>
 
 <table name="categoria_iva">
 	<schema name="financiera"/>
-	<position x="2042.5" y="2466.25"/>
+	<position x="2042.5" y="2461.25"/>
 	<column name="id" not-null="true">
 		<type name="serial"/>
 	</column>
@@ -2131,6 +2134,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="estado_activo" not-null="true">
 		<type name="boolean"/>
 	</column>
+	<constraint name="categoria_iva_pk" type="pk-constr" factor="100" table="financiera.categoria_iva">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
 </table>
 
 <constraint name="fk_anulacion" type="fk-constr" comparison-type="MATCH FULL"
@@ -2445,7 +2451,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 </constraint>
 <constraint name="categoria_iva" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.categoria_iva" table="financiera.iva">
-	<columns names="categoria" ref-type="src-columns"/>
+	<columns names="categoria_iva" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
 <relationship name="rel_anulacion_disponibilidad_apropiacion_anulacion_disponibilid" type="relfk"

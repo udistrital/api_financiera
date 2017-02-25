@@ -7,7 +7,8 @@ CREATE TABLE financiera.iva(
     id serial NOT NULL,
     categoria_iva integer NOT NULL,
     valor numeric(2) NOT NULL,
-    estado_activo boolean NOT NULL
+    estado_activo boolean NOT NULL,
+    CONSTRAINT iva_pk PRIMARY KEY (id)
 );
 -- ddl-end --
 -- object: financiera.categoria_iva | type: TABLE --
@@ -15,7 +16,8 @@ CREATE TABLE financiera.iva(
 CREATE TABLE financiera.categoria_iva(
     id serial NOT NULL,
     nombre varchar,
-    estado_activo boolean NOT NULL
+    estado_activo boolean NOT NULL,
+    CONSTRAINT categoria_iva_pk PRIMARY KEY (id)
 );
 -- ddl-end --
 
