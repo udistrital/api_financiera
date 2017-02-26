@@ -362,6 +362,18 @@ func init() {
 				&controllers.TrConceptoController{},
 			),
 		),
+
+		beego.NSNamespace("/categoria_iva",
+			beego.NSInclude(
+				&controllers.CategoriaIvaController{},
+			),
+		),
+
+		beego.NSNamespace("/iva",
+			beego.NSInclude(
+				&controllers.IvaController{},
+			),
+			),
 	)
 	beego.AddNamespace(ns)
 }
