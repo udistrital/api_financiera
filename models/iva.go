@@ -5,58 +5,50 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type OrdenPago struct {
-	Id                   int                       `orm:"column(id);pk;auto"`
-	Vigencia             float64                   `orm:"column(vigencia)"`
-	FechaCreacion        time.Time                 `orm:"column(fecha_creacion);type(date)"`
-	RegistroPresupuestal *RegistroPresupuestal     `orm:"column(registro_presupuestal);rel(fk)"`
-	ValorBase            float64                   `orm:"column(valor_base)"`
-	PersonaElaboro       int                       `orm:"column(persona_elaboro)"`
-	Convenio             int                       `orm:"column(convenio);null"`
-	TipoOrdenPago        *TipoOrdenPago            `orm:"column(tipo_orden_pago);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora          `orm:"column(unidad_ejecutora);rel(fk)"`
-	EstadoOrdenPago      *EstadoOrdenPago          `orm:"column(estado_orden_pago);rel(fk)"`
-	Iva                  *Iva                      `orm:"column(iva);rel(fk)"`
+type Iva struct {
+	Id           int           `orm:"column(id);pk;auto"`
+	CategoriaIva *CategoriaIva `orm:"column(categoria_iva);rel(fk)"`
+	Valor        float64       `orm:"column(valor)"`
+	EstadoActivo bool          `orm:"column(estado_activo)"`
 }
 
-func (t *OrdenPago) TableName() string {
-	return "orden_pago"
+func (t *Iva) TableName() string {
+	return "iva"
 }
 
 func init() {
-	orm.RegisterModel(new(OrdenPago))
+	orm.RegisterModel(new(Iva))
 }
 
-// AddOrdenPago insert a new OrdenPago into database and returns
+// AddIva insert a new Iva into database and returns
 // last inserted Id on success.
-func AddOrdenPago(m *OrdenPago) (id int64, err error) {
+func AddIva(m *Iva) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetOrdenPagoById retrieves OrdenPago by Id. Returns error if
+// GetIvaById retrieves Iva by Id. Returns error if
 // Id doesn't exist
-func GetOrdenPagoById(id int) (v *OrdenPago, err error) {
+func GetIvaById(id int) (v *Iva, err error) {
 	o := orm.NewOrm()
-	v = &OrdenPago{Id: id}
+	v = &Iva{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllOrdenPago retrieves all OrdenPago matches certain condition. Returns empty list if
+// GetAllIva retrieves all Iva matches certain condition. Returns empty list if
 // no records exist
-func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllIva(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(Iva)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -106,7 +98,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 		}
 	}
 
-	var l []OrdenPago
+	var l []Iva
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -129,11 +121,11 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 	return nil, err
 }
 
-// UpdateOrdenPago updates OrdenPago by Id and returns error if
+// UpdateIva updates Iva by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateOrdenPagoById(m *OrdenPago) (err error) {
+func UpdateIvaById(m *Iva) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPago{Id: m.Id}
+	v := Iva{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -144,15 +136,15 @@ func UpdateOrdenPagoById(m *OrdenPago) (err error) {
 	return
 }
 
-// DeleteOrdenPago deletes OrdenPago by Id and returns error if
+// DeleteIva deletes Iva by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteOrdenPago(id int) (err error) {
+func DeleteIva(id int) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPago{Id: id}
+	v := Iva{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&OrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&Iva{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

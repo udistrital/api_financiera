@@ -1903,4 +1903,74 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+		beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"],
+		  beego.ControllerComments{
+		    Method: "Post",
+		    Router: `/`,
+		    AllowHTTPMethods: []string{"post"},
+		    Params: nil})
+
+		beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"],
+		  beego.ControllerComments{
+		    Method: "GetOne",
+		    Router: `/:id`,
+		    AllowHTTPMethods: []string{"get"},
+		    Params: nil})
+
+		beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"],
+		  beego.ControllerComments{
+		    Method: "GetAll",
+		    Router: `/`,
+		    AllowHTTPMethods: []string{"get"},
+		    Params: nil})
+
+		beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"],
+		  beego.ControllerComments{
+		    Method: "Put",
+		    Router: `/:id`,
+		    AllowHTTPMethods: []string{"put"},
+		    Params: nil})
+
+		beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:CategoriaIvaController"],
+		  beego.ControllerComments{
+		    Method: "Delete",
+		    Router: `/:id`,
+		    AllowHTTPMethods: []string{"delete"},
+		    Params: nil})
+
+			beego.GlobalControllerRouter["api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IvaController"],
+			  beego.ControllerComments{
+			    Method: "Post",
+			    Router: `/`,
+			    AllowHTTPMethods: []string{"post"},
+			    Params: nil})
+
+			beego.GlobalControllerRouter["api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IvaController"],
+			  beego.ControllerComments{
+			    Method: "GetOne",
+			    Router: `/:id`,
+			    AllowHTTPMethods: []string{"get"},
+			    Params: nil})
+
+			beego.GlobalControllerRouter["api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IvaController"],
+			  beego.ControllerComments{
+			    Method: "GetAll",
+			    Router: `/`,
+			    AllowHTTPMethods: []string{"get"},
+			    Params: nil})
+
+			beego.GlobalControllerRouter["api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IvaController"],
+			  beego.ControllerComments{
+			    Method: "Put",
+			    Router: `/:id`,
+			    AllowHTTPMethods: []string{"put"},
+			    Params: nil})
+
+			beego.GlobalControllerRouter["api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["api_financiera/controllers:IvaController"],
+			  beego.ControllerComments{
+			    Method: "Delete",
+			    Router: `/:id`,
+			    AllowHTTPMethods: []string{"delete"},
+			    Params: nil})
+
 }
