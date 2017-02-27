@@ -34,9 +34,9 @@ func (c *RubroRubroController) URLMapping() {
 func (c *RubroRubroController) Post() {
 	var v models.RubroRubro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddRubroRubro(&v); err == nil {
+		if id, err := models.AddRubroRubro(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = id
 		} else {
 			c.Data["json"] = err.Error()
 		}
@@ -45,7 +45,6 @@ func (c *RubroRubroController) Post() {
 	}
 	c.ServeJSON()
 }
-
 // GetOne ...
 // @Title Get One
 // @Description get RubroRubro by id

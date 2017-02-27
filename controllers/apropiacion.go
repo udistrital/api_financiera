@@ -22,6 +22,7 @@ func (c *ApropiacionController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("SaldoApropiacion", c.SaldoApropiacion)
 }
 
 // Post ...
@@ -169,3 +170,16 @@ func (c *ApropiacionController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+//funcion para verificar saldo de una apropiacion
+
+func (c *ApropiacionController) SaldoApropiacion() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+
+			valor := models.SaldoApropiacion(id)
+			c.Data["json"] = valor
+			c.ServeJSON()
+}
+
+//-----------------------------------------------
