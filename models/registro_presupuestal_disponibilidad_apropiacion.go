@@ -10,7 +10,7 @@ import (
 )
 
 type RegistroPresupuestalDisponibilidadApropiacion struct {
-	Id                        int                        `orm:"column(id);pk"`
+	Id                        int                        `orm:"auto;column(id);pk"`
 	RegistroPresupuestal      *RegistroPresupuestal      `orm:"column(registro_presupuestal);rel(fk)"`
 	DisponibilidadApropiacion *DisponibilidadApropiacion `orm:"column(disponibilidad_apropiacion);rel(fk)"`
 	Valor                     float64                    `orm:"column(valor);null"`
@@ -99,7 +99,7 @@ func GetAllRegistroPresupuestalDisponibilidadApropiacion(query map[string]string
 	}
 
 	var l []RegistroPresupuestalDisponibilidadApropiacion
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {

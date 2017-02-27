@@ -11,14 +11,27 @@ import (
 )
 
 type RegistroPresupuestal struct {
-	Id                         int                         `orm:"column(id);pk"`
-	UnidadEjecutora            int16                       `orm:"column(unidad_ejecutora)"`
+	Id                         int                         `orm:"auto;column(id);pk"`
+	UnidadEjecutora            *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
 	Vigencia                   float64                     `orm:"column(vigencia)"`
 	FechaMovimiento            time.Time                   `orm:"column(fecha_movimiento);type(date);null"`
 	Responsable                int                         `orm:"column(responsable);null"`
 	Estado                     *EstadoRegistroPresupuestal `orm:"column(estado);rel(fk)"`
 	NumeroRegistroPresupuestal int                         `orm:"column(numero_registro_presupuestal)"`
 	Beneficiario               int                         `orm:"column(beneficiario);null"`
+}
+
+type DatosRubroRegistroPresupuestal struct {
+	Id             int
+	Disponibilidad *Disponibilidad
+	Apropiacion    *Apropiacion
+	Valor          float64
+	ValorAsignado  float64
+}
+
+type DatosRegistroPresupuestal struct { //estructura temporal para el registro con relacion a las apropiaciones
+	Rp     *RegistroPresupuestal
+	Rubros []DatosRubroRegistroPresupuestal
 }
 
 func (t *RegistroPresupuestal) TableName() string {
@@ -31,12 +44,28 @@ func init() {
 
 // AddRegistroPresupuestal insert a new RegistroPresupuestal into database and returns
 // last inserted Id on success.
-func AddRegistroPresupuestal(m *RegistroPresupuestal) (id int64, err error) {
+func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
-	id, err = o.Insert(m)
+	o.Begin()
+	id, err = o.Insert(m.Rp)
+	if err == nil {
+		m.Rp.Id = int(id)
+		for _, data := range m.Rubros {
+			registro := RegistroPresupuestalDisponibilidadApropiacion{
+				RegistroPresupuestal:      m.Rp,
+				DisponibilidadApropiacion: &DisponibilidadApropiacion{Id: data.Id},
+				Valor: data.ValorAsignado,
+			}
+			_, err2 := o.Insert(&registro)
+			if err2 != nil {
+				o.Rollback()
+			}
+		}
+	}
+
+	o.Commit()
 	return
 }
-
 // GetRegistroPresupuestalById retrieves RegistroPresupuestal by Id. Returns error if
 // Id doesn't exist
 func GetRegistroPresupuestalById(id int) (v *RegistroPresupuestal, err error) {
@@ -104,7 +133,7 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	}
 
 	var l []RegistroPresupuestal
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {

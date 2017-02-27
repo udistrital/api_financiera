@@ -34,14 +34,16 @@ func (c *RubroController) URLMapping() {
 func (c *RubroController) Post() {
 	var v models.Rubro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddRubro(&v); err == nil {
+		if id, err := models.AddRubro(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = id
 		} else {
-			c.Data["json"] = err.Error()
+			//fmt.Println("error: ", err )
+			c.Data["json"] = err
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		//fmt.Println("error: ", err )
+		c.Data["json"] = err
 	}
 	c.ServeJSON()
 }
