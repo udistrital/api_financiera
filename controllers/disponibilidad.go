@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-
+	"fmt"
 	"github.com/astaxie/beego"
 )
 
@@ -22,6 +22,8 @@ func (c *DisponibilidadController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("SaldoCdp", c.SaldoCdp)
+	c.Mapping("Anular", c.Anular)
 }
 
 // Post ...
@@ -169,3 +171,48 @@ func (c *DisponibilidadController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+func (c *DisponibilidadController) Anular() {
+	var v models.Info_disponibilidad_a_anular
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if v.Anulacion.TipoAnulacion == "T" {
+			alertas, err := models.AnulacionTotal(&v)
+			if err != nil {
+				c.Data["json"] = err
+			} else {
+				c.Data["json"] = alertas
+			}
+		} else if v.Anulacion.TipoAnulacion == "P" {
+			alertas, err := models.AnulacionParcial(&v)
+			if err != nil {
+				c.Data["json"] = err
+			} else {
+				c.Data["json"] = alertas
+			}
+		} else {
+			c.Data["json"] = "No se pudo cargar el tipo de la anulacion"
+		}
+
+	} else {
+		c.Data["json"] = err
+	}
+	c.ServeJSON()
+}
+func (c *DisponibilidadController) SaldoCdp() {
+	var v models.DatosRubroRegistroPresupuestal
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		valor, err := models.SaldoCdp(v.Disponibilidad.Id, v.Apropiacion.Id)
+		if err != nil {
+			c.Data["json"] = err
+		} else {
+			c.Data["json"] = valor
+		}
+	} else {
+		c.Data["json"] = err
+		fmt.Println("error: ", err)
+	}
+
+	c.ServeJSON()
+}
+
+//-------------------

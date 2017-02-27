@@ -10,7 +10,7 @@ import (
 )
 
 type RubroRubro struct {
-	Id         int    `orm:"column(id);pk"`
+	Id         int    `orm:"auto;column(id);pk"`
 	RubroPadre *Rubro `orm:"column(rubro_padre);rel(fk)"`
 	RubroHijo  *Rubro `orm:"column(rubro_hijo);rel(fk)"`
 }
@@ -27,7 +27,15 @@ func init() {
 // last inserted Id on success.
 func AddRubroRubro(m *RubroRubro) (id int64, err error) {
 	o := orm.NewOrm()
+	o.Begin()
+	id_hijo, err := o.Insert(m.RubroHijo)
+	m.RubroHijo.Id= int(id_hijo)
 	id, err = o.Insert(m)
+	if err != nil {
+    err = o.Rollback()
+} else {
+    err = o.Commit()
+}
 	return
 }
 
