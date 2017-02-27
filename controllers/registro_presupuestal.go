@@ -32,9 +32,9 @@ func (c *RegistroPresupuestalController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *RegistroPresupuestalController) Post() {
-	var v models.RegistroPresupuestal
+	var v models.DatosRegistroPresupuestal
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddRegistroPresupuestal(&v); err == nil {
+		if _, err := models.AddRegistoPresupuestal(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -45,7 +45,6 @@ func (c *RegistroPresupuestalController) Post() {
 	}
 	c.ServeJSON()
 }
-
 // GetOne ...
 // @Title Get One
 // @Description get RegistroPresupuestal by id
