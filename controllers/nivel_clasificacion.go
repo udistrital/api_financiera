@@ -169,3 +169,19 @@ func (c *NivelClasificacionController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+// GetFirstNivel...
+// @Title Get First Level
+// @Description get GetPrimerNivelClasificacion in EstructuraNivelesClasificacion
+// @Success 200 {object} models.NivelClasificacion
+// @Failure 403 raw no exists
+// @router /primer_nivel [get]
+func (c *NivelClasificacionController) GetFirstNivel() {
+	v, err := models.GetPrimerNivelClasificacion()
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}

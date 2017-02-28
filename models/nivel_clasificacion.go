@@ -150,3 +150,14 @@ func DeleteNivelClasificacion(id int) (err error) {
 	}
 	return
 }
+
+// GetPrimerNivelClasificacion retrieves EstructuraNivelesClasificacion by position on
+// EstructuraNivelesClasificacion. Returns error if
+// row doesn't exist
+func GetPrimerNivelClasificacion() (v *NivelClasificacion, err error) {
+	o := orm.NewOrm()
+	if err = o.Raw("select * from financiera.nivel_clasificacion  where id not in (select nivel_hijo from financiera.estructura_niveles_clasificacion) and id in (select nivel_padre from financiera.estructura_niveles_clasificacion) order by id").QueryRow(&v); err == nil {
+		return v, nil
+	}
+	return nil, err
+}
