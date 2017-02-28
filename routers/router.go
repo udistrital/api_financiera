@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"api_financiera/controllers"
+	"github.com/udistrital/api_financiera/controllers"
 
 	"github.com/astaxie/beego"
 
@@ -373,7 +373,7 @@ func init() {
 			beego.NSInclude(
 				&controllers.IvaController{},
 			),
-			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
