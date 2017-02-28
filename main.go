@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "api_financiera/routers"
+	_ "github.com/udistrital/api_financiera/routers"
 	"github.com/astaxie/beego/plugins/cors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"api_financiera/models"
+	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"fmt"
 
