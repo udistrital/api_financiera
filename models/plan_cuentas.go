@@ -14,6 +14,7 @@ type PlanCuentas struct {
 	Nombre          string           `orm:"column(nombre)"`
 	Descripcion     string           `orm:"column(descripcion);null"`
 	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk)"`
+	PlanMaestro     bool             `orm:"column(plan_maestro)"`
 }
 
 func (t *PlanCuentas) TableName() string {
