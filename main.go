@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	orm.RegisterDataBase("default", "postgres", "postgres://postgres:admin@10.20.2.75/financiera?sslmode=disable&search_path=financiera")
+	orm.RegisterDataBase("default", "postgres","postgres://"+beego.AppConfig.String("PGuser")+":"+beego.AppConfig.String("PGpass")+"@"+beego.AppConfig.String("PGurls")+"/"+beego.AppConfig.String("PGdb")+"?sslmode=disable&search_path="+beego.AppConfig.String("PGschemas")+"")
 }
 
 func main() {
