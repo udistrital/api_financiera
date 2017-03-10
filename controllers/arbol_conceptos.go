@@ -17,10 +17,10 @@ func (c *ArbolConceptosController) URLMapping() {
 }
 
 // MakeTree ...
-// @Title Post
-// @Description get ConceptoConcepto Arbol
+// @Title MakeTree
+// @Description get Arbol of Conceptos
 // @Param	body		body 	models.ConceptoConcepto	true		"body for ConceptoConcepto content"
-// @Success 201 {int} models.ConceptoConcepto
+// @Success 201 {int} models.MakeTreeConcepto
 // @Failure 403 body is empty
 // @router / [get]
 func (c *ArbolConceptosController) MakeTree() {
