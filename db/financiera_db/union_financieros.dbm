@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.7.2" last-position="670,1624" last-zoom="0.8">
+<dbmodel pgmodeler-ver="0.7.2" last-position="6,0" last-zoom="0.8">
 <database name="union_financiera" encoding="UTF8" lc-collate="es_CO" lc-ctype="es_CO">
 	<role name="postgres"/>
 	<tablespace name="pg_default"/>
@@ -215,7 +215,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla para registrar la desagrgación presupuestal de la apropiacion en CDP]]></comment>
-	<position x="915" y="40.0666"/>
+	<position x="1008.75" y="25.0666"/>
 	<column name="id" not-null="true" default-value="nextval('disponibilidad_apropiacion_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -568,7 +568,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="registro_presupuestal_disponibilidad_apropiacion" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="854" y="222.867"/>
+	<position x="959" y="237.867"/>
 	<column name="id" not-null="true" default-value="nextval('registro_presupuestal_disponibilidad_apropiacion_id_seq'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[serial de identificacion ]]></comment>
@@ -1771,7 +1771,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="financiera"/>
 	<role name="postgres"/>
 	<comment><![CDATA[tabla que soporta el manejo de conceptos tanto de ingresos como de gastos]]></comment>
-	<position x="1747.25" y="1883.85"/>
+	<position x="1827.25" y="1795.1"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_id_seq1'::regclass)">
 		<type name="integer"/>
 		<comment><![CDATA[identificador de la tabla concepto]]></comment>
@@ -2026,7 +2026,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="concepto_orden_pago" unlogged="true">
 	<schema name="financiera"/>
 	<role name="postgres"/>
-	<position x="1626.25" y="2148.07"/>
+	<position x="1610" y="2063.07"/>
 	<column name="id" not-null="true" default-value="nextval('concepto_orden_pago_id_seq'::regclass)">
 		<type name="integer"/>
 	</column>
@@ -2507,7 +2507,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <relationship name="rel_registro_presupuestal_disponibilidad_apropiacion_disponibil" type="relfk"
 	 src-table="financiera.registro_presupuestal_disponibilidad_apropiacion"
 	 dst-table="financiera.disponibilidad_apropiacion"
-	 src-required="true" dst-required="true"/>
+	 src-required="true" dst-required="true">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <relationship name="rel_registro_presupuestal_disponibilidad_apropiacion_registo_pr" type="relfk"
 	 src-table="financiera.registro_presupuestal_disponibilidad_apropiacion"
