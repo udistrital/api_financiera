@@ -18,6 +18,7 @@ type MovimientoContable struct {
 	ConceptoCuentaContable   *ConceptoCuentaContable `orm:"column(concepto_cuenta_contable);rel(fk)"`
 	TipoDocumentoAfectante   *TipoDocumentoAfectante `orm:"column(tipo_documento_afectante);rel(fk)"`
 	CodigoDocumentoAfectante int                     `orm:"column(codigo_documento_afectante)"`
+	Aprobado                 bool                    `orm:"column(aprobado)"`
 }
 
 func (t *MovimientoContable) TableName() string {
