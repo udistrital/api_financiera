@@ -11,21 +11,22 @@ import (
 	"github.com/udistrital/api_financiera/controllers"
 
 	"github.com/astaxie/beego"
-
-	"github.com/astaxie/beego/plugins/cors"
 )
 
 func init() {
-	beego.Debug("Filters init...")
-	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
-		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "Content-Type"},
-		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
-		AllowCredentials: true,
-	}))
-
 	ns := beego.NewNamespace("/v1",
+
+		beego.NSNamespace("/anulacion_registro_presupuestal",
+			beego.NSInclude(
+				&controllers.AnulacionRegistroPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/anulacion_registro_presupuestal_disponibilidad_apropiacion",
+			beego.NSInclude(
+				&controllers.AnulacionRegistroPresupuestalDisponibilidadApropiacionController{},
+			),
+		),
 
 		beego.NSNamespace("/anulacion_disponibilidad",
 			beego.NSInclude(

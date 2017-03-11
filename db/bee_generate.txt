@@ -1,0 +1,1 @@
+bee generate appcode -tables="anulacion_registro_presupuestal,anulacion_registro_presupuestal_disponibilidad_apropiacion" -driver=postgres -conn="postgres://postgres:postgres@127.0.0.1/financiera?sslmode=disable&search_path=financiera" -level=3
