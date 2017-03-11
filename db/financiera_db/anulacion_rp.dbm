@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.8.1" last-position="281,0" last-zoom="1"
+	 default-schema="public" default-owner="postgres">
+<database name="new_database">
+</database>
+
+<schema name="public" protected="true" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<schema name="financiera" rect-visible="true" fill-color="#e1e1e1">
+	<role name="postgres"/>
+</schema>
+
+<table name="anulacion_registro_presupuestal">
+	<schema name="financiera"/>
+	<role name="postgres"/>
+	<position x="351" y="401"/>
+	<column name="id" not-null="true">
+		<type name="serial"/>
+		<comment><![CDATA[identificador del registro de la anulacion de rp]]></comment>
+	</column>
+	<column name="motivo" not-null="true">
+		<type name="character varying"/>
+		<comment><![CDATA[motivo por el cual se realiza la anulacion]]></comment>
+	</column>
+	<column name="fecha_registro" not-null="true">
+		<type name="date"/>
+		<comment><![CDATA[fecha en la que se realizo la anulacion]]></comment>
+	</column>
+	<column name="tipo_anulacion" not-null="true">
+		<type name="character varying"/>
+		<comment><![CDATA[tipo de anulacion que se realizo (total o parcial)]]></comment>
+	</column>
+	<constraint name="pk_anulacion_rp" type="pk-constr" table="financiera.anulacion_registro_presupuestal">
+		<columns names="id" ref-type="src-columns"/>
+		<comment><![CDATA[primary key de la tabla]]></comment>
+	</constraint>
+	<constraint name="ck_tipo_anulacion" type="ck-constr" table="financiera.anulacion_registro_presupuestal">
+			<expression><![CDATA[tipo_anulacion::text = ANY (ARRAY['T'::character varying::text, 'P'::character varying::text])]]></expression>
+	</constraint>
+</table>
+
+<table name="registro_presupuestal_disponibilidad_apropiacion">
+	<schema name="financiera"/>
+	<role name="postgres"/>
+	<position x="1676" y="281"/>
+	<column name="id" not-null="true">
+		<type name="serial"/>
+	</column>
+	<constraint name="pk_regstro_presupuestal_disponibilidad_apropiacion" type="pk-constr" table="financiera.registro_presupuestal_disponibilidad_apropiacion">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="anulacion_registro_presupuestal_disponibilidad_apropiacion">
+	<schema name="financiera"/>
+	<role name="postgres"/>
+	<position x="1027" y="469"/>
+	<column name="id" not-null="true">
+		<type name="serial"/>
+		<comment><![CDATA[identificador unico de la anulacion a la apropiacion del CDP]]></comment>
+	</column>
+	<column name="anulacion_registro_presupuestal" not-null="true">
+		<type name="integer"/>
+		<comment><![CDATA[identificador de la info general de la anulacion]]></comment>
+	</column>
+	<column name="registro_presupuestal_disponibilidad_apropiacion" not-null="true">
+		<type name="integer"/>
+		<comment><![CDATA[identificador de la apropiacion del CDP a donde se dirige el RP]]></comment>
+	</column>
+	<column name="valor" not-null="true">
+		<type name="numeric" length="30" precision="4"/>
+		<comment><![CDATA[valor anulado del RP]]></comment>
+	</column>
+	<constraint name="pk_anulacion_registro_presupuestal_apropiacion" type="pk-constr" table="financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion">
+		<columns names="id" ref-type="src-columns"/>
+		<comment><![CDATA[primary key del detalle de la anulacion]]></comment>
+	</constraint>
+</table>
+
+<constraint name="fk_anulacion_registro_presupuestal" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.anulacion_registro_presupuestal" table="financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion">
+	<columns names="anulacion_registro_presupuestal" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+		<comment><![CDATA[identificador del resumen de la anulacion ]]></comment>
+</constraint>
+
+<constraint name="fk_registro_presupuestal_disponibilidad_anulacion" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="financiera.registro_presupuestal_disponibilidad_apropiacion" table="financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion">
+	<columns names="registro_presupuestal_disponibilidad_apropiacion" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+		<comment><![CDATA[referencia al registro de la apropiacion tomada por el CDP del RP]]></comment>
+</constraint>
+
+<relationship name="rel_anulacion_registro_presupuestal_disponibilidad_apropiacion_" type="relfk"
+	 src-table="financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion"
+	 dst-table="financiera.anulacion_registro_presupuestal"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_anulacion_registro_presupuestal_disponibilidad_aprop_4094" type="relfk"
+	 src-table="financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion"
+	 dst-table="financiera.registro_presupuestal_disponibilidad_apropiacion"
+	 src-required="false" dst-required="false"/>
+
+</dbmodel>
