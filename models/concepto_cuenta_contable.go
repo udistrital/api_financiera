@@ -10,9 +10,10 @@ import (
 )
 
 type ConceptoCuentaContable struct {
-	Id             int             `orm:"column(id);pk;auto"`
-	CuentaContable *CuentaContable `orm:"column(cuenta_contable);rel(fk)"`
-	Concepto       *Concepto       `orm:"column(concepto);rel(fk)"`
+	Id              int             `orm:"column(id);pk;auto"`
+	CuentaContable  *CuentaContable `orm:"column(cuenta_contable);rel(fk)"`
+	Concepto        *Concepto       `orm:"column(concepto);rel(fk)"`
+	CuentaAcreedora bool            `orm:"column(cuenta_acreedora)"`
 }
 
 func (t *ConceptoCuentaContable) TableName() string {
