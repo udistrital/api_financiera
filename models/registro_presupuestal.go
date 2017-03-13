@@ -12,7 +12,7 @@ import (
 
 type RegistroPresupuestal struct {
 	Id                         int                         `orm:"column(id);pk"`
-	UnidadEjecutora            int16                       `orm:"column(unidad_ejecutora)"`
+	UnidadEjecutora            *UnidadEjecutora                       `orm:"column(unidad_ejecutora);rel(fk)"`
 	Vigencia                   float64                     `orm:"column(vigencia)"`
 	FechaMovimiento            time.Time                   `orm:"column(fecha_movimiento);type(date);null"`
 	Responsable                int                         `orm:"column(responsable);null"`
@@ -61,6 +61,8 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 				o.Rollback()
 			}
 		}
+	}else{
+		fmt.Println("error registro rp: ", err.Error())
 	}
 
 	o.Commit()
