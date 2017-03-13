@@ -15,7 +15,7 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                   int                   `orm:"column(id);pk"`
+	Id                   int                   `orm:"auto;column(id);pk"`
 	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
