@@ -13,6 +13,7 @@ import (
 type Data_OrdenPago_Concepto struct{
 	OrdenPago 						OrdenPago
 	ConceptoOrdenPago			[]ConceptoOrdenPago
+	MovimientoContable    []MovimientoContable
 }
 
 type OrdenPago struct {
@@ -187,6 +188,13 @@ func RegistrarOp(m *Data_OrdenPago_Concepto)(alerta []string, err error){
 					o.Rollback()
 				}
     }
+
+		for i := 0; i< len(m.MovimientoContable); i ++ {
+			fmt.Println(m.MovimientoContable[i].Credito)
+			fmt.Println(m.MovimientoContable[i].Debito)
+			fmt.Println(m.MovimientoContable[i].Id)
+		}
+
 
 
     o.Commit()
