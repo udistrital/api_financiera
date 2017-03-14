@@ -258,6 +258,13 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"],
+		beego.ControllerComments{
+			Method: "MakeTreeCuentas",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"],
 		beego.ControllerComments{
 			Method: "Post",
