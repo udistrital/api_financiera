@@ -375,6 +375,12 @@ func init() {
 				&controllers.IvaController{},
 			),
 		),
+
+		beego.NSNamespace("/arbol_plan_cuentas",
+			beego.NSInclude(
+				&controllers.ArbolPlanCuentasController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

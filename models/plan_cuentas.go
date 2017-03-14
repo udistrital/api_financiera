@@ -13,7 +13,7 @@ type PlanCuentas struct {
 	Id              int              `orm:"column(id);pk;auto"`
 	Nombre          string           `orm:"column(nombre)"`
 	Descripcion     string           `orm:"column(descripcion);null"`
-	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk)"`
+	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk);null"`
 	PlanMaestro     bool             `orm:"column(plan_maestro)"`
 }
 
