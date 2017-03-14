@@ -10,6 +10,11 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+type Data_OrdenPago_Concepto struct{
+	OrdenPago 						OrdenPago
+	ConceptoOrdenPago			[]ConceptoOrdenPago
+}
+
 type OrdenPago struct {
 	Id                   int                       `orm:"column(id);pk;auto"`
 	Vigencia             float64                   `orm:"column(vigencia)"`
@@ -157,4 +162,33 @@ func DeleteOrdenPago(id int) (err error) {
 		}
 	}
 	return
+}
+
+// personalizado Registrar orden_pago, concepto_ordenpago y transacciones
+func RegistrarOp(m *Data_OrdenPago_Concepto)(alerta []string, err error){
+    o := orm.NewOrm()
+    o.Begin()
+    m.OrdenPago.FechaCreacion = time.Now()
+    id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
+    if err1 != nil{
+        alerta = append(alerta, "Erro 1. No se puede registrar la Orden de Pago")
+        err = err1
+        o.Rollback()
+        return
+    }
+    //fmt.Println(id_OrdenPago)
+    //fmt.Println("recorrer")
+    for i := 0; i < len(m.ConceptoOrdenPago); i++ {
+				m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
+				_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
+				if err2 != nil{
+					alerta = append(alerta, "Erro 2. No se puede registrar los Conceptos asociados a la Orden de Pago")
+					err = err2
+					o.Rollback()
+				}
+    }
+
+
+    o.Commit()
+    return
 }
