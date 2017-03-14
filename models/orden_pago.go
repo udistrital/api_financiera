@@ -190,13 +190,22 @@ func RegistrarOp(m *Data_OrdenPago_Concepto)(alerta []string, err error){
     }
 
 		for i := 0; i< len(m.MovimientoContable); i ++ {
-			fmt.Println(m.MovimientoContable[i].Credito)
-			fmt.Println(m.MovimientoContable[i].Debito)
-			fmt.Println(m.MovimientoContable[i].Id)
+			movimiento_contable := MovimientoContable{
+				Debito: m.MovimientoContable[i].Debito,
+				Credito: m.MovimientoContable[i].Credito,
+				Fecha: time.Now(),
+				ConceptoCuentaContable: &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
+				TipoDocumentoAfectante: &TipoDocumentoAfectante{Id: 1}, //quemado
+				CodigoDocumentoAfectante: 123,
+				Aprobado: false,
+			}
+			_, err3 := o.Insert(&movimiento_contable)
+			if err3 != nil{
+				alerta = append(alerta, "Erro 3. No se puede registrar las Cuentas Contables Asociadas a los Concepto")
+				err = err3
+				o.Rollback()
+			}
 		}
-
-
-
     o.Commit()
     return
 }
