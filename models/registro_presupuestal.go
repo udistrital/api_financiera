@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
+	"strconv"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -33,7 +33,10 @@ type DatosRegistroPresupuestal struct { //estructura temporal para el registro c
 	Rp     *RegistroPresupuestal
 	Rubros []DatosRubroRegistroPresupuestal
 }
-
+type DatosSaldoRp struct {
+	Rp *RegistroPresupuestal
+	Apropiacion *Apropiacion
+}
 func (t *RegistroPresupuestal) TableName() string {
 	return "registro_presupuestal"
 }
@@ -187,3 +190,21 @@ func DeleteRegistroPresupuestal(id int) (err error) {
 	}
 	return
 }
+
+//----------------------------------------
+//funcion para obtener saldo restante del cdp
+func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM financiera.saldo_rp WHERE id = ? AND apropiacion = ? `, id_rp, id_apropiacion).Values(&maps)
+	fmt.Println("maps: ", maps)
+	if maps[0]["valor"] == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+//----------------------------------------

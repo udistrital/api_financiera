@@ -145,3 +145,42 @@ GROUP BY financiera.apropiacion.id , financiera.apropiacion.estado
 ) as saldo_apropiacion
 GROUP BY id , estado
 );
+
+CREATE VIEW financiera.saldo_rp AS
+(
+SELECT
+id,
+apropiacion,
+SUM(valor) as valor
+FROM
+(
+(
+SELECT financiera.registro_presupuestal.id ,financiera.disponibilidad_apropiacion.apropiacion ,SUM(financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.valor)*(-1) as valor
+FROM financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion
+INNER JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON financiera.registro_presupuestal_disponibilidad_apropiacion.id = financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion
+INNER JOIN financiera.registro_presupuestal ON financiera.registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = financiera.registro_presupuestal.id
+INNER JOIN financiera.disponibilidad_apropiacion ON financiera.disponibilidad_apropiacion.id = financiera.registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+GROUP BY financiera.registro_presupuestal.id ,financiera.disponibilidad_apropiacion.apropiacion
+)
+UNION
+(
+SELECT financiera.registro_presupuestal.id ,financiera.disponibilidad_apropiacion.apropiacion ,SUM(financiera.registro_presupuestal_disponibilidad_apropiacion.valor) as valor
+FROM financiera.registro_presupuestal_disponibilidad_apropiacion
+INNER JOIN financiera.registro_presupuestal ON financiera.registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = financiera.registro_presupuestal.id
+INNER JOIN financiera.disponibilidad_apropiacion ON financiera.disponibilidad_apropiacion.id = financiera.registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+GROUP BY financiera.registro_presupuestal.id ,financiera.disponibilidad_apropiacion.apropiacion
+)
+UNION
+(
+SELECT financiera.registro_presupuestal.id ,financiera.apropiacion.id as apropiacion ,SUM(financiera.concepto_orden_pago.valor)*(-1) as valor
+FROM financiera.orden_pago
+INNER JOIN financiera.concepto_orden_pago ON financiera.concepto_orden_pago.orden_de_pago = financiera.orden_pago.id
+INNER JOIN financiera.concepto ON financiera.concepto.id = financiera.concepto_orden_pago.concepto
+INNER JOIN financiera.rubro ON financiera.concepto.rubro = financiera.rubro.id
+INNER JOIN financiera.registro_presupuestal ON financiera.registro_presupuestal.id = financiera.orden_pago.registro_presupuestal
+INNER JOIN financiera.apropiacion ON financiera.apropiacion.rubro = financiera.rubro.id AND financiera.apropiacion.vigencia = financiera.registro_presupuestal.vigencia
+GROUP BY financiera.registro_presupuestal.id ,financiera.apropiacion.id
+)
+) AS saldo_rp
+GROUP BY id, apropiacion
+);
