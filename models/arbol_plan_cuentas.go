@@ -27,7 +27,7 @@ func MakeTreePlanCuentas(plan int) (a []ArbolPlanCuentas) {
 	var arbol []ArbolPlanCuentas
 	idplan := strconv.Itoa(plan)
 
-	_, err := o.Raw("select * from financiera.cuenta_contable where id not in (select cuenta_hijo from financiera.estructura_cuentas where plan_cuentas!=" + idplan + ") and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas=" + idplan + ") order by id;").QueryRows(&arbol)
+	_, err := o.Raw("select * from financiera.cuenta_contable where id not in (select cuenta_hijo from financiera.estructura_cuentas where cuenta_hijo is not null) and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas=" + idplan + ") order by id;").QueryRows(&arbol)
 
 	if err == nil {
 

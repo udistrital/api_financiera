@@ -1987,6 +1987,13 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrCuentasContablesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrCuentasContablesController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:UnidadEjecutoraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:UnidadEjecutoraController"],
 		beego.ControllerComments{
 			Method: "Post",

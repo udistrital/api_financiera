@@ -21,7 +21,7 @@ func (c *ArbolPlanCuentasController) URLMapping() {
 // MakeTreeCuentas ...
 // @Title MakeTreeCuentas
 // @Description get Arbol of Cuentas in Plan_Cuentas
-// @Param	body		body 	models.ConceptoConcepto	true		"body for ConceptoConcepto content"
+// @Param	body		body 	models.EstructuraCuentas	true		"body for EstructuraCuentas content"
 // @Success 201 {int} models.ArbolPlanCuentas
 // @Failure 403 body is empty
 // @router /:id [get]
