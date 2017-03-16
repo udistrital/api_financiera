@@ -279,34 +279,14 @@ func ValorCdp(id_cdp int, id_apropiacion int) (valor float64, err error) {
 func SaldoCdp(id_cdp int, id_apropiacion int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
-	var maps_valor_anulaciones []orm.Params
-	var valorDesagregado float64
-	var valorAnulado float64
-	valorCDP, _ := ValorCdp(id_cdp, id_apropiacion)
-	o.Raw(`SELECT SUM(a.valor) as valor from financiera.registro_presupuestal_disponibilidad_apropiacion as a ,
-				 financiera.disponibilidad_apropiacion as b
-				WHERE b.disponibilidad = ?  AND b.apropiacion = ? AND a.disponibilidad_apropiacion = b.id;`, id_cdp, id_apropiacion).Values(&maps)
+	o.Raw(`SELECT * FROM financiera.saldo_cdp WHERE id = ? AND apropiacion = ? `, id_cdp, id_apropiacion).Values(&maps)
 	fmt.Println("maps: ", maps)
 	if maps[0]["valor"] == nil {
-		valorDesagregado = 0
+		valor = 0
 	} else {
-		valorDesagregado, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
 	}
-	o.Raw(`SELECT  COALESCE(SUM(b.valor),0) as valor
 
-				FROM financiera.anulacion_disponibilidad_apropiacion AS b
-				LEFT JOIN
-				     financiera.disponibilidad_apropiacion AS a
-				ON a.id = b.disponibilidad_apropiacion
-
-				WHERE  a.apropiacion = ? AND a.disponibilidad = ?`, id_apropiacion, id_cdp).Values(&maps_valor_anulaciones)
-	if maps_valor_anulaciones[0]["valor"] == nil {
-		valorAnulado = 0
-	} else {
-		valorAnulado, err = strconv.ParseFloat(maps_valor_anulaciones[0]["valor"].(string), 64)
-	}
-	valor = valorCDP - valorDesagregado - valorAnulado
-	fmt.Println("valor: ", valor)
 	return
 }
 

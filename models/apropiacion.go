@@ -163,40 +163,14 @@ func DeleteApropiacion(id int) (err error) {
 func SaldoApropiacion(Id int) (valor float64) {
 	o := orm.NewOrm()
 	var maps_valor_tot []orm.Params
-	var maps_valor_compr []orm.Params
-	var maps_valor_anulaciones []orm.Params
-	var valor_tot float64
-	valor = 0
-	o.Raw("SELECT valor as valor from financiera.apropiacion WHERE id = ? and estado = ? ", Id, 2).Values(&maps_valor_tot)
+	o.Raw("SELECT * FROM financiera.saldo_apropiacion where id = ? AND estado = ?", Id, 2).Values(&maps_valor_tot)
 	fmt.Println("maps: ", len(maps_valor_tot))
 	if len(maps_valor_tot) > 0 {
-		valor_tot, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
+		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
 	} else {
-		valor_tot = 0
+		valor = 0
 	}
-	o.Raw("SELECT COALESCE( SUM(valor), 0 ) as valor from financiera.disponibilidad_apropiacion WHERE apropiacion = ?", Id).Values(&maps_valor_compr)
-	if len(maps_valor_compr) > 0 {
-		if valor_compr, err := strconv.ParseFloat(maps_valor_compr[0]["valor"].(string), 64); err == nil {
-			valor = valor_tot - valor_compr
-		} else {
-			valor = valor_tot - 0
-		}
 
-	}
-	o.Raw(`SELECT  COALESCE(SUM(b.valor),0) as valor
-
-				FROM financiera.anulacion_disponibilidad_apropiacion AS b
-				LEFT JOIN
-				     financiera.disponibilidad_apropiacion AS a
-				ON a.id = b.disponibilidad_apropiacion
-
-				WHERE  a.apropiacion = ?`, Id).Values(&maps_valor_anulaciones)
-	if maps_valor_anulaciones[0]["valor"] != nil {
-		if valor_anulaciones, err := strconv.ParseFloat(maps_valor_anulaciones[0]["valor"].(string), 64); err == nil {
-			valor = valor + valor_anulaciones
-		}
-
-	}
 	return
 }
 
