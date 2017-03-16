@@ -67,3 +67,81 @@ ALTER TABLE financiera.registro_presupuestal
 ALTER TABLE financiera.registro_presupuestal
   ADD CONSTRAINT fk_compromiso FOREIGN KEY (compromiso) REFERENCES financiera.compromiso (id) ON UPDATE NO ACTION ON DELETE NO ACTION;
 COMMENT ON COLUMN financiera.registro_presupuestal.compromiso IS 'refrencia al compromiso del RP';
+
+CREATE VIEW financiera.saldo_cdp AS
+(
+SELECT
+id,
+apropiacion,
+SUM(valor) as valor
+FROM ((
+SELECT
+disponibilidad.id, disponibilidad_apropiacion.apropiacion,
+SUM(financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.valor) as valor
+FROM financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion INNER JOIN
+financiera.registro_presupuestal_disponibilidad_apropiacion ON financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion = financiera.registro_presupuestal_disponibilidad_apropiacion.id
+INNER JOIN financiera.disponibilidad_apropiacion ON financiera.registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = financiera.disponibilidad_apropiacion.id
+INNER JOIN financiera.disponibilidad on financiera.disponibilidad_apropiacion.disponibilidad = financiera.disponibilidad.id
+GROUP BY disponibilidad.id , disponibilidad_apropiacion.apropiacion
+)
+UNION
+(
+SELECT
+disponibilidad.id, disponibilidad_apropiacion.apropiacion,
+SUM(financiera.registro_presupuestal_disponibilidad_apropiacion.valor)*(-1) as valor
+FROM financiera.disponibilidad INNER JOIN
+financiera.disponibilidad_apropiacion ON financiera.disponibilidad_apropiacion.disponibilidad = financiera.disponibilidad.id
+INNER JOIN financiera.registro_presupuestal_disponibilidad_apropiacion on financiera.registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = financiera.disponibilidad_apropiacion.id
+GROUP BY disponibilidad.id , disponibilidad_apropiacion.apropiacion
+)
+UNION
+(
+ SELECT
+disponibilidad.id, disponibilidad_apropiacion.apropiacion,
+SUM(financiera.disponibilidad_apropiacion.valor) as valor
+FROM financiera.disponibilidad INNER JOIN
+financiera.disponibilidad_apropiacion ON financiera.disponibilidad_apropiacion.disponibilidad = financiera.disponibilidad.id
+GROUP BY disponibilidad.id , disponibilidad_apropiacion.apropiacion
+)
+UNION
+(
+SELECT
+disponibilidad.id, disponibilidad_apropiacion.apropiacion,
+SUM(financiera.anulacion_disponibilidad_apropiacion.valor)*(-1) as valor
+FROM financiera.anulacion_disponibilidad_apropiacion INNER JOIN
+financiera.disponibilidad_apropiacion ON financiera.anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = financiera.disponibilidad_apropiacion.id
+INNER JOIN financiera.disponibilidad on financiera.disponibilidad_apropiacion.disponibilidad = financiera.disponibilidad.id
+GROUP BY disponibilidad.id , disponibilidad_apropiacion.apropiacion
+)
+)as saldo_cdp
+GROUP BY id , apropiacion
+);
+
+CREATE VIEW financiera.saldo_apropiacion AS
+(
+SELECT
+id,
+estado,
+SUM(valor) as valor
+FROM
+(
+(
+SELECT id ,valor , estado FROM financiera.apropiacion
+GROUP BY financiera.apropiacion.id , financiera.apropiacion.estado
+)
+UNION
+(
+SELECT financiera.apropiacion.id , SUM(financiera.disponibilidad_apropiacion.valor)*(-1), financiera.apropiacion.estado FROM financiera.apropiacion
+INNER JOIN financiera.disponibilidad_apropiacion ON financiera.disponibilidad_apropiacion.apropiacion = financiera.apropiacion.id
+GROUP BY financiera.apropiacion.id , financiera.apropiacion.estado
+)
+UNION
+(
+SELECT financiera.apropiacion.id , SUM(financiera.anulacion_disponibilidad_apropiacion.valor), financiera.apropiacion.estado FROM financiera.anulacion_disponibilidad_apropiacion
+INNER JOIN financiera.disponibilidad_apropiacion on financiera.anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = financiera.disponibilidad_apropiacion.id
+INNER JOIN financiera.apropiacion on financiera.apropiacion.id = financiera.disponibilidad_apropiacion.apropiacion
+GROUP BY financiera.apropiacion.id , financiera.apropiacion.estado
+)
+) as saldo_apropiacion
+GROUP BY id , estado
+);
