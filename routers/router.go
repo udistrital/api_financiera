@@ -381,6 +381,12 @@ func init() {
 				&controllers.ArbolPlanCuentasController{},
 			),
 		),
+
+		beego.NSNamespace("/tr_cuentas_contables",
+			beego.NSInclude(
+				&controllers.TrCuentasContablesController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

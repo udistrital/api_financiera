@@ -12,7 +12,7 @@ import (
 type EstructuraCuentas struct {
 	Id          int             `orm:"column(id);pk;auto"`
 	CuentaPadre *CuentaContable `orm:"column(cuenta_padre);rel(fk)"`
-	CuentaHijo  *CuentaContable `orm:"column(cuenta_hijo);rel(fk)"`
+	CuentaHijo  *CuentaContable `orm:"column(cuenta_hijo);rel(fk);null"`
 	PlanCuentas *PlanCuentas    `orm:"column(plan_cuentas);rel(fk)"`
 }
 

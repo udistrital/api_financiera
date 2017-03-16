@@ -10,7 +10,7 @@ import (
 )
 
 type CategoriaIva struct {
-	Id           int    `orm:"column(id);pk";auto`
+	Id           int    `orm:"column(id);pk;auto"`
 	Nombre       string `orm:"column(nombre);null"`
 	EstadoActivo bool   `orm:"column(estado_activo)"`
 }
