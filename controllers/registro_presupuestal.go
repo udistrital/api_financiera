@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-
+	"fmt"
 	"github.com/astaxie/beego"
 )
 
@@ -22,6 +22,7 @@ func (c *RegistroPresupuestalController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("SaldoRp", c.SaldoRp)
 }
 
 // Post ...
@@ -166,5 +167,28 @@ func (c *RegistroPresupuestalController) Delete() {
 	} else {
 		c.Data["json"] = err.Error()
 	}
+	c.ServeJSON()
+}
+// SaldoRp ...
+// @Title SaldoRp
+// @Description create RegistroPresupuestal
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} models.RegistroPresupuestal
+// @Failure 403 body is empty
+// @router SaldoRp/ [post]
+func (c *RegistroPresupuestalController) SaldoRp() {
+	var v models.DatosSaldoRp
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		valor, err := models.SaldoRp(v.Rp.Id, v.Apropiacion.Id )
+		if err != nil {
+			c.Data["json"] = err
+		} else {
+			c.Data["json"] = valor
+		}
+	} else {
+		c.Data["json"] = err
+		fmt.Println("error: ", err)
+	}
+
 	c.ServeJSON()
 }
