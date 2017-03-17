@@ -37,6 +37,11 @@ type DatosSaldoRp struct {
 	Rp *RegistroPresupuestal
 	Apropiacion *Apropiacion
 }
+type Info_rp_a_anular struct {
+	Anulacion                  AnulacionRegistroPresupuestal
+	Rp_apropiacion []RegistroPresupuestalDisponibilidadApropiacion
+	Valor                      float64
+}
 func (t *RegistroPresupuestal) TableName() string {
 	return "registro_presupuestal"
 }
@@ -208,3 +213,87 @@ func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
 }
 
 //----------------------------------------
+
+//----------------------------------------
+//funcion para realizar anulacion total en el RP
+func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	m.Anulacion.FechaRegistro = time.Now()
+	id_anulacion_rp, err1 := o.Insert(&m.Anulacion)
+	fmt.Println("error")
+	if err1 != nil {
+		alerta = append(alerta, "No se pudo registrar el detalle de la anulacion")
+		err = err1
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(m.Rp_apropiacion); i++ {
+
+		saldoRp, err2 := SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id)
+		if err2 != nil {
+			alerta = append(alerta, "No se pudo cargar el saldo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			err = err2
+			o.Rollback()
+			return
+		}
+		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
+			AnulacionRegistroPresupuestal: &AnulacionRegistroPresupuestal{Id:int(id_anulacion_rp)},
+			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+			Valor:                     saldoRp,
+		}
+		_, err3 := o.Insert(&anulacion_apropiacion)
+		if err3 != nil {
+			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			err = err3
+			o.Rollback()
+			return
+		} else {
+			alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(saldoRp, 'f', -1, 64))
+
+		}
+	}
+
+	o.Commit()
+	return
+}
+//--------------------------------------------------------
+//funcion para realizar la anulacion parcial del RP
+
+func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	alerta = append(alerta, "success")
+	m.Anulacion.FechaRegistro = time.Now()
+	id_anulacion_rp, err1 := o.Insert(&m.Anulacion)
+	fmt.Println("error")
+	if err1 != nil {
+		alerta = append(alerta, "No se pudo registrar el detalle de la anulacion")
+		alerta[0] = "error"
+		err = err1
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(m.Rp_apropiacion); i++ {
+
+
+		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
+			AnulacionRegistroPresupuestal: &AnulacionRegistroPresupuestal{Id:int(id_anulacion_rp)},
+			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+			Valor:                     m.Valor,
+		}
+		_, err3 := o.Insert(&anulacion_apropiacion)
+		if err3 != nil {
+			alerta[0] = "error"
+			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			err = err3
+			o.Rollback()
+			return
+		} else {
+			alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+		}
+	}
+
+	o.Commit()
+	return
+}
