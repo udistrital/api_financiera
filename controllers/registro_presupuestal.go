@@ -23,6 +23,7 @@ func (c *RegistroPresupuestalController) URLMapping() {
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("SaldoRp", c.SaldoRp)
+	c.Mapping("Anular", c.Anular)
 }
 
 // Post ...
@@ -190,5 +191,38 @@ func (c *RegistroPresupuestalController) SaldoRp() {
 		fmt.Println("error: ", err)
 	}
 
+	c.ServeJSON()
+}
+// Anular ...
+// @Title Anular
+// @Description create RegistroPresupuestal
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} models.RegistroPresupuestal
+// @Failure 403 body is empty
+// @router Anular/ [post]
+func (c *RegistroPresupuestalController) Anular() {
+	var v models.Info_rp_a_anular
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if v.Anulacion.TipoAnulacion == "T" {
+			alertas, err := models.AnulacionTotalRp(&v)
+			if err != nil {
+				c.Data["json"] = err
+			} else {
+				c.Data["json"] = alertas
+			}
+		} else if v.Anulacion.TipoAnulacion == "P" {
+			alertas, err := models.AnulacionParcialRp(&v)
+			if err != nil {
+				c.Data["json"] = err
+			} else {
+				c.Data["json"] = alertas
+			}
+		} else {
+			c.Data["json"] = "No se pudo cargar el tipo de la anulacion"
+		}
+
+	} else {
+		c.Data["json"] = err
+	}
 	c.ServeJSON()
 }
