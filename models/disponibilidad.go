@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
+
 	"github.com/astaxie/beego/orm"
 )
+
 type Info_disponibilidad_a_anular struct {
 	Anulacion                  AnulacionDisponibilidad
 	Disponibilidad_apropiacion []DisponibilidadApropiacion
@@ -19,16 +21,16 @@ type Disponibilidad struct {
 	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
-	Responsable          int                 `orm:"column(responsable);null"`
-	Solicitante          int                 `orm:"column(solicitante);null"`
+	Responsable          int                   `orm:"column(responsable);null"`
+	Solicitante          int                   `orm:"column(solicitante);null"`
 	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
 	ModalidadGiro        int16                 `orm:"column(modalidad_giro);null"`
 	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
 	NumeroOficio         string                `orm:"column(numero_oficio);null"`
 	Objeto               string                `orm:"column(objeto);null"`
 	VigenciaFutura       float64               `orm:"column(vigencia_futura);null"`
-	Destino              int                 `orm:"column(destino);null"`
-	Solicitud            int                 `orm:"column(solicitud)"`
+	Destino              int                   `orm:"column(destino);null"`
+	Solicitud            int                   `orm:"column(solicitud)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -166,14 +168,15 @@ func DeleteDisponibilidad(id int) (err error) {
 	return
 }
 
-
 func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	alerta = append(alerta, "success")
 	m.Anulacion.FechaRegistro = time.Now()
 	id_anulacion_cdp, err1 := o.Insert(&m.Anulacion)
 	fmt.Println("error")
 	if err1 != nil {
+		alerta[0] = "error"
 		alerta = append(alerta, "No se pudo registrar el detalle de la anulacion")
 		err = err1
 		o.Rollback()
@@ -183,6 +186,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 
 		saldoCDP, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id)
 		if err2 != nil {
+			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
 			err = err2
 			o.Rollback()
@@ -195,6 +199,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		}
 		_, err3 := o.Insert(&anulacion_apropiacion)
 		if err3 != nil {
+			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo registrar la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
 			err = err3
 			o.Rollback()
@@ -212,9 +217,11 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	alerta = append(alerta, "success")
 	m.Anulacion.FechaRegistro = time.Now()
 	id_anulacion_cdp, err1 := o.Insert(&m.Anulacion)
 	if err1 != nil {
+		alerta[0] = "error"
 		alerta = append(alerta, "No se pudo registrar el detalle de la anulacion")
 		err = err1
 		o.Rollback()
@@ -224,6 +231,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 
 		saldoCDP, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id)
 		if err2 != nil {
+			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
 			err = err2
 			o.Rollback()
@@ -242,6 +250,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 			}
 			_, err3 := o.Insert(&anulacion_apropiacion)
 			if err3 != nil {
+				alerta[0] = "error"
 				alerta = append(alerta, "No se pudo registrar la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
 				err = err3
 				o.Rollback()
