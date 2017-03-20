@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
+
 	"github.com/astaxie/beego/orm"
 )
 
@@ -34,14 +35,15 @@ type DatosRegistroPresupuestal struct { //estructura temporal para el registro c
 	Rubros []DatosRubroRegistroPresupuestal
 }
 type DatosSaldoRp struct {
-	Rp *RegistroPresupuestal
+	Rp          *RegistroPresupuestal
 	Apropiacion *Apropiacion
 }
 type Info_rp_a_anular struct {
-	Anulacion                  AnulacionRegistroPresupuestal
+	Anulacion      AnulacionRegistroPresupuestal
 	Rp_apropiacion []RegistroPresupuestalDisponibilidadApropiacion
-	Valor                      float64
+	Valor          float64
 }
+
 func (t *RegistroPresupuestal) TableName() string {
 	return "registro_presupuestal"
 }
@@ -219,10 +221,12 @@ func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
 func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	alerta = append(alerta, "success")
 	m.Anulacion.FechaRegistro = time.Now()
 	id_anulacion_rp, err1 := o.Insert(&m.Anulacion)
 	fmt.Println("error")
 	if err1 != nil {
+		alerta[0] = "error"
 		alerta = append(alerta, "No se pudo registrar el detalle de la anulacion")
 		err = err1
 		o.Rollback()
@@ -232,18 +236,20 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 
 		saldoRp, err2 := SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id)
 		if err2 != nil {
+			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
 			err = err2
 			o.Rollback()
 			return
 		}
 		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
-			AnulacionRegistroPresupuestal: &AnulacionRegistroPresupuestal{Id:int(id_anulacion_rp)},
+			AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
 			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
-			Valor:                     saldoRp,
+			Valor: saldoRp,
 		}
 		_, err3 := o.Insert(&anulacion_apropiacion)
 		if err3 != nil {
+			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
 			err = err3
 			o.Rollback()
@@ -257,6 +263,7 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	o.Commit()
 	return
 }
+
 //--------------------------------------------------------
 //funcion para realizar la anulacion parcial del RP
 
@@ -276,11 +283,10 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	}
 	for i := 0; i < len(m.Rp_apropiacion); i++ {
 
-
 		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
-			AnulacionRegistroPresupuestal: &AnulacionRegistroPresupuestal{Id:int(id_anulacion_rp)},
+			AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
 			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
-			Valor:                     m.Valor,
+			Valor: m.Valor,
 		}
 		_, err3 := o.Insert(&anulacion_apropiacion)
 		if err3 != nil {
