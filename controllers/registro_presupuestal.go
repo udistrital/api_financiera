@@ -226,3 +226,23 @@ func (c *RegistroPresupuestalController) Anular() {
 	}
 	c.ServeJSON()
 }
+
+// ValorTotalRp ...
+// @Title Valor Total Rp
+// @Description retorna valor total del RegistroPresupuestal por id
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} suma valor de los RegistroPresupuestal por id
+// @Failure 403 body is empty
+// @router /:id [get]
+
+func (c *RegistroPresupuestalController) ValorTotalRp() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetValorTotalRp(id)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
