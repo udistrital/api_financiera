@@ -27,9 +27,16 @@ func init() {
 
 // AddPlanCuentas insert a new PlanCuentas into database and returns
 // last inserted Id on success.
-func AddPlanCuentas(m *PlanCuentas) (id int64, err error) {
+func AddPlanCuentas(m *PlanCuentas) (alerta []string, err error) {
+	alerta = append(alerta, "success")
 	o := orm.NewOrm()
-	id, err = o.Insert(m)
+	if _, err = o.Insert(m); err == nil {
+		alerta = append(alerta, "Plan "+m.Nombre+" agregado exitosamente")
+		return alerta, nil
+	} else {
+		alerta[0] = "error"
+		alerta = append(alerta, "No se pudo agregar el plan")
+	}
 	return
 }
 
