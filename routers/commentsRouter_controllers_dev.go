@@ -41,4 +41,11 @@ func init() {
           AllowHTTPMethods: []string{"post"},
           Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "ValorTotalRp",
+			Router: `ValorTotalRp/:id`,
+			AllowHTTPMethods: []string{"get"},
+			Params: nil})
+
 }
