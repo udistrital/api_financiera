@@ -306,3 +306,14 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	o.Commit()
 	return
 }
+
+//funcion GetValorTotalRp
+func GetValorTotalRp(rp_id int) (total float64, err error){
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw("select sum(valor) from registro_presupuestal_disponibilidad_apropiacion where registro_presupuestal = ?", rp_id).QueryRow(&totalSql)
+	if err == nil {
+		return totalSql, nil
+	}
+	return totalSql, err
+}
