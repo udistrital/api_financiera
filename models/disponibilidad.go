@@ -24,11 +24,8 @@ type Disponibilidad struct {
 	Responsable          int                   `orm:"column(responsable);null"`
 	Solicitante          int                   `orm:"column(solicitante);null"`
 	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
-	ModalidadGiro        int16                 `orm:"column(modalidad_giro);null"`
 	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
 	NumeroOficio         string                `orm:"column(numero_oficio);null"`
-	Objeto               string                `orm:"column(objeto);null"`
-	VigenciaFutura       float64               `orm:"column(vigencia_futura);null"`
 	Destino              int                   `orm:"column(destino);null"`
 	Solicitud            int                   `orm:"column(solicitud)"`
 }

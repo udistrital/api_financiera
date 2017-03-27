@@ -69,10 +69,13 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 			_, err2 := o.Insert(&registro)
 			if err2 != nil {
 				o.Rollback()
+				return
 			}
 		}
 	} else {
 		fmt.Println("error registro rp: ", err.Error())
+		o.Rollback()
+		return
 	}
 
 	o.Commit()
