@@ -10,24 +10,24 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type Data_OrdenPago_Concepto struct{
-	OrdenPago 						OrdenPago
-	ConceptoOrdenPago			[]ConceptoOrdenPago
-	MovimientoContable    []MovimientoContable
+type Data_OrdenPago_Concepto struct {
+	OrdenPago          OrdenPago
+	ConceptoOrdenPago  []ConceptoOrdenPago
+	MovimientoContable []MovimientoContable
 }
 
 type OrdenPago struct {
-	Id                   int                       `orm:"column(id);pk;auto"`
-	Vigencia             float64                   `orm:"column(vigencia)"`
-	FechaCreacion        time.Time                 `orm:"column(fecha_creacion);type(date)"`
-	RegistroPresupuestal *RegistroPresupuestal     `orm:"column(registro_presupuestal);rel(fk)"`
-	ValorBase            float64                   `orm:"column(valor_base)"`
-	PersonaElaboro       int                       `orm:"column(persona_elaboro)"`
-	Convenio             int                       `orm:"column(convenio);null"`
-	TipoOrdenPago        *TipoOrdenPago            `orm:"column(tipo_orden_pago);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora          `orm:"column(unidad_ejecutora);rel(fk)"`
-	EstadoOrdenPago      *EstadoOrdenPago          `orm:"column(estado_orden_pago);rel(fk)"`
-	Iva                  *Iva                      `orm:"column(iva);rel(fk)"`
+	Id                   int                   `orm:"column(id);pk;auto"`
+	Vigencia             float64               `orm:"column(vigencia)"`
+	FechaCreacion        time.Time             `orm:"column(fecha_creacion);type(date)"`
+	RegistroPresupuestal *RegistroPresupuestal `orm:"column(registro_presupuestal);rel(fk)"`
+	ValorBase            float64               `orm:"column(valor_base)"`
+	PersonaElaboro       int                   `orm:"column(persona_elaboro)"`
+	Convenio             int                   `orm:"column(convenio);null"`
+	TipoOrdenPago        *TipoOrdenPago        `orm:"column(tipo_orden_pago);rel(fk)"`
+	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
+	EstadoOrdenPago      *EstadoOrdenPago      `orm:"column(estado_orden_pago);rel(fk)"`
+	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -166,46 +166,46 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOp(m *Data_OrdenPago_Concepto)(alerta []string, err error){
-    o := orm.NewOrm()
-    o.Begin()
-    m.OrdenPago.FechaCreacion = time.Now()
-    id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
-    if err1 != nil{
-        alerta = append(alerta, "Erro 1. No se puede registrar la Orden de Pago")
-        err = err1
-        o.Rollback()
-        return
-    }
-    //fmt.Println(id_OrdenPago)
-    //fmt.Println("recorrer")
-    for i := 0; i < len(m.ConceptoOrdenPago); i++ {
-				m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
-				_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
-				if err2 != nil{
-					alerta = append(alerta, "Erro 2. No se puede registrar los Conceptos asociados a la Orden de Pago")
-					err = err2
-					o.Rollback()
-				}
-    }
-
-		for i := 0; i< len(m.MovimientoContable); i ++ {
-			movimiento_contable := MovimientoContable{
-				Debito: m.MovimientoContable[i].Debito,
-				Credito: m.MovimientoContable[i].Credito,
-				Fecha: time.Now(),
-				ConceptoCuentaContable: &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
-				TipoDocumentoAfectante: &TipoDocumentoAfectante{Id: 1}, //quemado
-				CodigoDocumentoAfectante: 123,
-				Aprobado: false,
-			}
-			_, err3 := o.Insert(&movimiento_contable)
-			if err3 != nil{
-				alerta = append(alerta, "Erro 3. No se puede registrar las Cuentas Contables Asociadas a los Concepto")
-				err = err3
-				o.Rollback()
-			}
+func RegistrarOp(m *Data_OrdenPago_Concepto) (alerta []string, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	m.OrdenPago.FechaCreacion = time.Now()
+	id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
+	if err1 != nil {
+		alerta = append(alerta, "Erro 1. No se puede registrar la Orden de Pago")
+		err = err1
+		o.Rollback()
+		return
+	}
+	//fmt.Println(id_OrdenPago)
+	//fmt.Println("recorrer")
+	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
+		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
+		_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
+		if err2 != nil {
+			alerta = append(alerta, "Erro 2. No se puede registrar los Conceptos asociados a la Orden de Pago")
+			err = err2
+			o.Rollback()
 		}
-    o.Commit()
-    return
+	}
+
+	for i := 0; i < len(m.MovimientoContable); i++ {
+		movimiento_contable := MovimientoContable{
+			Debito:  m.MovimientoContable[i].Debito,
+			Credito: m.MovimientoContable[i].Credito,
+			Fecha:   time.Now(),
+			ConceptoCuentaContable:   &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
+			CodigoDocumentoAfectante: int(id_OrdenPago),
+			Aprobado:                 false,
+		}
+		_, err3 := o.Insert(&movimiento_contable)
+		if err3 != nil {
+			alerta = append(alerta, "Erro 3. No se puede registrar las Cuentas Contables Asociadas a los Concepto")
+			err = err3
+			o.Rollback()
+		}
+	}
+	o.Commit()
+	return
 }
