@@ -42,6 +42,10 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 			var concepto_cuentas ConceptoCuentaContable
 			concepto_cuentas.Concepto = m.Concepto
 			concepto_cuentas.CuentaContable = &c
+			if string(c.Codigo[0]) == "9" {
+				fmt.Println("CODIGO:", string(c.Codigo[0]))
+				concepto_cuentas.CuentaAcreedora = true
+			}
 			if _, err = o.Insert(&concepto_cuentas); err != nil {
 				fmt.Println("error concepto_cuentas", err)
 				o.Rollback()
