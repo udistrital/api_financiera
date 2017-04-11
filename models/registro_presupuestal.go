@@ -21,6 +21,7 @@ type RegistroPresupuestal struct {
 	NumeroRegistroPresupuestal int                         `orm:"column(numero_registro_presupuestal)"`
 	Beneficiario               int                         `orm:"column(beneficiario);null"`
 	Compromiso                 *Compromiso                 `orm:"column(compromiso);rel(fk)"`
+	Solicitud                  int                         `orm:"column(solicitud)"`
 }
 type DatosRubroRegistroPresupuestal struct {
 	Id             int
@@ -308,7 +309,7 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 }
 
 //funcion GetValorTotalRp
-func GetValorTotalRp(rp_id int) (total float64, err error){
+func GetValorTotalRp(rp_id int) (total float64, err error) {
 	o := orm.NewOrm()
 	var totalSql float64
 	err = o.Raw("select sum(valor) from registro_presupuestal_disponibilidad_apropiacion where registro_presupuestal = ?", rp_id).QueryRow(&totalSql)
