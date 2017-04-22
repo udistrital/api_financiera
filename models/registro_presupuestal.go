@@ -24,11 +24,12 @@ type RegistroPresupuestal struct {
 	Solicitud                  int                         `orm:"column(solicitud)"`
 }
 type DatosRubroRegistroPresupuestal struct {
-	Id             int
-	Disponibilidad *Disponibilidad
-	Apropiacion    *Apropiacion
-	Valor          float64
-	ValorAsignado  float64
+	Id                 int
+	Disponibilidad     *Disponibilidad
+	Apropiacion        *Apropiacion
+	FuenteFinanciacion *FuenteFinanciacion
+	Valor              float64
+	ValorAsignado      float64
 }
 
 type DatosRegistroPresupuestal struct { //estructura temporal para el registro con relacion a las apropiaciones
@@ -208,6 +209,52 @@ func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
 	o.Raw(`SELECT * FROM financiera.saldo_rp WHERE id = ? AND apropiacion = ? `, id_rp, id_apropiacion).Values(&maps)
+	fmt.Println("maps: ", maps)
+	if maps[0]["valor"] == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+//valor original rp.
+func ValorRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM ( SELECT registro_presupuestal.id,
+            disponibilidad_apropiacion.apropiacion,
+            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+            sum(registro_presupuestal_disponibilidad_apropiacion.valor) AS valor
+           FROM financiera.registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
+             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+          GROUP BY registro_presupuestal.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?;`, id_rp, id_apropiacion, id_fuente).Values(&maps)
+	fmt.Println("maps: ", maps)
+	if maps[0]["valor"] == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+//valor comprometido del rp.
+func ComprometidoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM ( SELECT registro_presupuestal.id,
+            disponibilidad_apropiacion.apropiacion,
+            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+            sum(registro_presupuestal_disponibilidad_apropiacion.valor) AS valor
+           FROM financiera.registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
+             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+          GROUP BY registro_presupuestal.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?;`, id_rp, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
 	if maps[0]["valor"] == nil {
 		valor = 0
