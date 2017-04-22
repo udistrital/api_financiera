@@ -22,7 +22,6 @@ type Disponibilidad struct {
 	Vigencia             float64               `orm:"column(vigencia)"`
 	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
 	Responsable          int                   `orm:"column(responsable);null"`
-	Solicitante          int                   `orm:"column(solicitante);null"`
 	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
 	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
 	NumeroOficio         string                `orm:"column(numero_oficio);null"`
@@ -184,7 +183,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	}
 	for i := 0; i < len(m.Disponibilidad_apropiacion); i++ {
 
-		saldoCDP, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id)
+		saldoCDP, _, _, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id, m.Disponibilidad_apropiacion[i].FuenteFinanciamiento.Id)
 		if err2 != nil {
 			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
@@ -229,7 +228,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	}
 	for i := 0; i < len(m.Disponibilidad_apropiacion); i++ {
 
-		saldoCDP, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id)
+		saldoCDP, _, _, err2 := SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id, m.Disponibilidad_apropiacion[i].FuenteFinanciamiento.Id)
 		if err2 != nil {
 			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
@@ -267,30 +266,110 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	return
 }
 
-//funcion para obtener valor total del cdp
-func ValorCdp(id_cdp int, id_apropiacion int) (valor float64, err error) {
+//----------------------------------------
+//funcion para obtener saldo restante del cdp
+func SaldoCdp(id_cdp int, id_apropiacion int, id_fuente int) (saldo float64, comprometido float64, anulado float64, err error) {
+	/*o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM financiera.saldo_cdp WHERE id = ? AND apropiacion = ? `, id_cdp, id_apropiacion).Values(&maps)
+	fmt.Println("maps: ", maps)
+	if maps[0]["valor"] == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}*/
+	valorcdp, err := ValorCdp(id_cdp, id_apropiacion, id_fuente)
+	comprometidocdp, err := ComprometidoCdp(id_cdp, id_apropiacion, id_fuente)
+	anuladocdp, err := AnuladoCdp(id_cdp, id_apropiacion, id_fuente)
+	anuladorp, err := AnuladoRpPorCDP(id_cdp, id_apropiacion, id_fuente)
+	comprometido = comprometidocdp - anuladorp
+	anulado = anuladocdp
+	saldo = valorcdp + anuladorp - anuladocdp - comprometidocdp
+
+	return
+}
+
+//valor original del CDP.
+func ValorCdp(id_cdp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
-	o.Raw("SELECT SUM(valor) as valor from financiera.disponibilidad_apropiacion WHERE disponibilidad = ? AND apropiacion = ? ", id_cdp, id_apropiacion).Values(&maps)
-
+	o.Raw(`SELECT * FROM (SELECT disponibilidad.id,
+			            disponibilidad_apropiacion.apropiacion,
+			            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+			            COALESCE(sum(disponibilidad_apropiacion.valor),0) AS valor
+			           FROM financiera.disponibilidad
+			             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+			          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+								WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?;`, id_cdp, id_apropiacion, id_fuente).Values(&maps)
 	if maps == nil {
 		valor = 0
 	} else {
 		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
 	}
 
-	//fmt.Println("valor: ", valor)
 	return
 }
 
-//----------------------------------------
-//funcion para obtener saldo restante del cdp
-func SaldoCdp(id_cdp int, id_apropiacion int) (valor float64, err error) {
+//saldo comprometido del cdp.
+func ComprometidoCdp(id_cdp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
-	o.Raw(`SELECT * FROM financiera.saldo_cdp WHERE id = ? AND apropiacion = ? `, id_cdp, id_apropiacion).Values(&maps)
+	o.Raw(`SELECT * FROM (SELECT disponibilidad.id,
+				            disponibilidad_apropiacion.apropiacion,
+				            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+				            COALESCE(sum(registro_presupuestal_disponibilidad_apropiacion.valor),0) AS valor
+				           FROM financiera.disponibilidad
+				             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+				             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+				          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion, disponibilidad_apropiacion.fuente_financiamiento) as saldo
+									WHERE id = ? AND apropiacion=? AND fuente_financiamiento = ?;`, id_cdp, id_apropiacion, id_fuente).Values(&maps)
+	if maps == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+//valor anulaciones del cdp.
+func AnuladoCdp(id_cdp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM(SELECT disponibilidad.id,
+					            disponibilidad_apropiacion.apropiacion,
+					            COALESCE(disponibilidad_apropiacion.fuente_financiamiento,0) as fuente_financiamiento,
+					            COALESCE(sum(anulacion_disponibilidad_apropiacion.valor),0) AS valor
+					           FROM financiera.anulacion_disponibilidad_apropiacion
+					             JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+					           WHERE disponibilidad.id = ? AND disponibilidad_apropiacion.apropiacion = ? AND disponibilidad_apropiacion.fuente_financiamiento = ?
+					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+										WHERE id = ? AND apropiacion = ? AND fuente_financiamiento = ?;`, id_cdp, id_apropiacion, id_fuente).Values(&maps)
+	if maps == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+func AnuladoRpPorCDP(id_disponibilidad int, id_apropiacion int, id_fuente int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM(SELECT disponibilidad.id,
+					            disponibilidad_apropiacion.apropiacion,
+					            COALESCE(disponibilidad_apropiacion.fuente_financiamiento) as fuente_financiamiento,
+					            COALESCE(sum(anulacion_registro_presupuestal_disponibilidad_apropiacion.valor),0) AS valor
+					           FROM financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion
+					             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion = registro_presupuestal_disponibilidad_apropiacion.id
+					             JOIN financiera.disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion, disponibilidad_apropiacion.fuente_financiamiento) as saldo
+										WHERE id = ? AND apropiacion = ? AND fuente_financiamiento = ?;`, id_disponibilidad, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
-	if maps[0]["valor"] == nil {
+	if maps == nil {
 		valor = 0
 	} else {
 		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
