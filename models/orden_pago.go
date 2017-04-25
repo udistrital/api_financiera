@@ -166,7 +166,7 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOp(m *Data_OrdenPago_Concepto) (alerta []string, err error) {
+func RegistrarOp(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
 	m.OrdenPago.FechaCreacion = time.Now()
