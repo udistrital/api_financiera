@@ -216,6 +216,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 
 			}
 		} else {
+			alerta[0] = "error"
 			alerta = append(alerta, "El CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" tiene saldo 0")
 
 		}
