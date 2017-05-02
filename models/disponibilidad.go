@@ -181,6 +181,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		o.Rollback()
 		return
 	}
+	var acumCdp float64
+	acumCdp = 0
 	for i := 0; i < len(m.Disponibilidad_apropiacion); i++ {
 		var saldoCDP float64
 		var err2 error
@@ -198,6 +200,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 			o.Rollback()
 			return
 		}
+		acumCdp = acumCdp + saldoCDP
 		if saldoCDP > 0 {
 			anulacion_apropiacion := AnulacionDisponibilidadApropiacion{
 				DisponibilidadApropiacion: &m.Disponibilidad_apropiacion[i],
@@ -218,14 +221,18 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		} else {
 			alerta[0] = "error"
 			alerta = append(alerta, "El CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" tiene saldo 0")
-			o.Rollback()
-			return
+
 		}
 
 	}
-	m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
-	o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad)
-	o.Commit()
+	if acumCdp > 0 {
+		m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
+		o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad)
+		o.Commit()
+	} else {
+		o.Rollback()
+	}
+
 	return
 }
 
