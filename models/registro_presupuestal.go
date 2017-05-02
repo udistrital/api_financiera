@@ -318,9 +318,12 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		o.Rollback()
 		return
 	}
-	var saldoRp float64
-	var err2 error
+	var acumRp float64
+	acumRp = 0
+
 	for i := 0; i < len(m.Rp_apropiacion); i++ {
+		var saldoRp float64
+		var err2 error
 		if m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
 			saldoRp, _, _, err2 = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
 
@@ -335,6 +338,7 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 			o.Rollback()
 			return
 		}
+		acumRp = acumRp + saldoRp
 		if saldoRp > 0 {
 			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
 				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
@@ -355,14 +359,18 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		} else {
 			alerta[0] = "error"
 			alerta = append(alerta, "El RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" tiene saldo 0")
-			o.Rollback()
-			return
+
 		}
 
 	}
-	m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
-	o.Update(m.Rp_apropiacion[0].RegistroPresupuestal)
-	o.Commit()
+	if acumRp > 0 {
+		m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
+		o.Update(m.Rp_apropiacion[0].RegistroPresupuestal)
+		o.Commit()
+	} else {
+		o.Rollback()
+	}
+
 	return
 }
 
