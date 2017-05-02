@@ -37,8 +37,9 @@ type DatosRegistroPresupuestal struct { //estructura temporal para el registro c
 	Rubros []DatosRubroRegistroPresupuestal
 }
 type DatosSaldoRp struct {
-	Rp          *RegistroPresupuestal
-	Apropiacion *Apropiacion
+	Rp                 *RegistroPresupuestal
+	Apropiacion        *Apropiacion
+	FuenteFinanciacion *FuenteFinanciacion
 }
 type Info_rp_a_anular struct {
 	Anulacion      AnulacionRegistroPresupuestal
@@ -107,6 +108,9 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 		k = strings.Replace(k, ".", "__", -1)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else if strings.Contains(k, "not_in") {
+			k = strings.Replace(k, "__not_in", "", -1)
+			qs = qs.Exclude(k, v)
 		} else {
 			qs = qs.Filter(k, v)
 		}
@@ -205,8 +209,8 @@ func DeleteRegistroPresupuestal(id int) (err error) {
 
 //----------------------------------------
 //funcion para obtener saldo restante del cdp
-func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
-	o := orm.NewOrm()
+func SaldoRp(id_rp int, id_apropiacion int, id_fuente int) (saldo float64, comprometido float64, anulado float64, err error) {
+	/*o := orm.NewOrm()
 	var maps []orm.Params
 	o.Raw(`SELECT * FROM financiera.saldo_rp WHERE id = ? AND apropiacion = ? `, id_rp, id_apropiacion).Values(&maps)
 	fmt.Println("maps: ", maps)
@@ -214,8 +218,13 @@ func SaldoRp(id_rp int, id_apropiacion int) (valor float64, err error) {
 		valor = 0
 	} else {
 		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
-	}
-
+	}*/
+	valorrp, err := ValorRp(id_rp, id_apropiacion, id_fuente)
+	comprometidorp, err := ComprometidoRp(id_rp, id_apropiacion, id_fuente)
+	anuladorp, err := AnuladoRp(id_rp, id_apropiacion, id_fuente)
+	anulado = anuladorp
+	comprometido = comprometidorp
+	saldo = valorrp - anuladorp - comprometidorp
 	return
 }
 
@@ -233,7 +242,7 @@ func ValorRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err e
           GROUP BY registro_presupuestal.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
           WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?;`, id_rp, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
-	if maps[0]["valor"] == nil {
+	if maps == nil {
 		valor = 0
 	} else {
 		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
@@ -246,17 +255,43 @@ func ValorRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err e
 func ComprometidoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
-	o.Raw(`SELECT * FROM ( SELECT registro_presupuestal.id,
+	o.Raw(`SELECT * FROM(SELECT registro_presupuestal.id,
+            apropiacion.id AS apropiacion,
+            sum(concepto_orden_pago.valor) AS valor
+           FROM financiera.orden_pago
+             JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
+             JOIN financiera.concepto ON concepto.id = concepto_orden_pago.concepto
+             JOIN financiera.rubro ON concepto.rubro = rubro.id
+             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = orden_pago.registro_presupuestal
+             JOIN financiera.apropiacion ON apropiacion.rubro = rubro.id AND apropiacion.vigencia = registro_presupuestal.vigencia
+          GROUP BY registro_presupuestal.id, apropiacion.id) as comprometido
+          WHERE id = ? AND apropiacion= ? `, id_rp, id_apropiacion).Values(&maps)
+	fmt.Println("maps: ", maps)
+	if maps == nil {
+		valor = 0
+	} else {
+		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
+	}
+
+	return
+}
+
+//valor anulado del rp por apropiaicon y fuente de financiamiento (si existe)
+//valor anulaciones del cdp.
+func AnuladoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	o.Raw(`SELECT * FROM (SELECT registro_presupuestal.id,
             disponibilidad_apropiacion.apropiacion,
-            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
-            sum(registro_presupuestal_disponibilidad_apropiacion.valor) AS valor
-           FROM financiera.registro_presupuestal_disponibilidad_apropiacion
+            COALESCE(disponibilidad_apropiacion.fuente_financiamiento,0) as fuente_financiamiento,
+            sum(anulacion_registro_presupuestal_disponibilidad_apropiacion.valor) AS valor
+           FROM financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.id = anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion
              JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
              JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
-          GROUP BY registro_presupuestal.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
-          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?;`, id_rp, id_apropiacion, id_fuente).Values(&maps)
-	fmt.Println("maps: ", maps)
-	if maps[0]["valor"] == nil {
+          GROUP BY registro_presupuestal.id, disponibilidad_apropiacion.apropiacion, disponibilidad_apropiacion.fuente_financiamiento) as anulaciones
+										WHERE id = ? AND apropiacion = ? AND fuente_financiamiento = ?;`, id_rp, id_apropiacion, id_fuente).Values(&maps)
+	if maps == nil {
 		valor = 0
 	} else {
 		valor, err = strconv.ParseFloat(maps[0]["valor"].(string), 64)
@@ -283,9 +318,16 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		o.Rollback()
 		return
 	}
+	var saldoRp float64
+	var err2 error
 	for i := 0; i < len(m.Rp_apropiacion); i++ {
+		if m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
+			saldoRp, _, _, err2 = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
 
-		saldoRp, err2 := SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id)
+		} else {
+			saldoRp, _, _, err2 = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
+
+		}
 		if err2 != nil {
 			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo cargar el saldo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
@@ -293,24 +335,33 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 			o.Rollback()
 			return
 		}
-		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
-			AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
-			Valor: saldoRp,
-		}
-		_, err3 := o.Insert(&anulacion_apropiacion)
-		if err3 != nil {
+		if saldoRp > 0 {
+			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
+				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
+				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				Valor: saldoRp,
+			}
+			_, err3 := o.Insert(&anulacion_apropiacion)
+			if err3 != nil {
+				alerta[0] = "error"
+				alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+				err = err3
+				o.Rollback()
+				return
+			} else {
+				alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(saldoRp, 'f', -1, 64))
+
+			}
+		} else {
 			alerta[0] = "error"
-			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
-			err = err3
+			alerta = append(alerta, "El RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" tiene saldo 0")
 			o.Rollback()
 			return
-		} else {
-			alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(saldoRp, 'f', -1, 64))
-
 		}
-	}
 
+	}
+	m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
+	o.Update(m.Rp_apropiacion[0].RegistroPresupuestal)
 	o.Commit()
 	return
 }
@@ -332,26 +383,73 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		o.Rollback()
 		return
 	}
+	var saldoRp float64
+	var err2 error
 	for i := 0; i < len(m.Rp_apropiacion); i++ {
+		if m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
+			saldoRp, _, _, err2 = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
 
-		anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
-			AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-			RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
-			Valor: m.Valor,
+		} else {
+			saldoRp, _, _, err2 = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
+
 		}
-		_, err3 := o.Insert(&anulacion_apropiacion)
-		if err3 != nil {
+		if err2 != nil {
 			alerta[0] = "error"
-			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
-			err = err3
+			alerta = append(alerta, "No se pudo cargar el saldo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			err = err2
+			o.Rollback()
+			return
+		}
+		if saldoRp < m.Valor {
+			alerta[0] = "error"
+			alerta = append(alerta, "Valor a anular supera el saldo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
 			o.Rollback()
 			return
 		} else {
-			alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
+				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
+				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				Valor: m.Valor,
+			}
+			_, err3 := o.Insert(&anulacion_apropiacion)
+			if err3 != nil {
+				alerta[0] = "error"
+				alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+				err = err3
+				o.Rollback()
+				return
+			} else {
+				alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+			}
 		}
+
+	}
+	o.Commit()
+	var acumRP float64
+	acumRP = 0
+	for i := 0; i < len(m.Rp_apropiacion); i++ {
+		var saldoRp float64
+		if m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
+			saldoRp, _, _, err = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
+
+		} else {
+			saldoRp, _, _, err = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
+
+		}
+		if err != nil {
+			o.Rollback()
+			alerta[0] = "error"
+			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			return
+		}
+		acumRP = acumRP + saldoRp
+	}
+	if acumRP == 0 {
+		m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
+		o.Update(m.Rp_apropiacion[0].RegistroPresupuestal)
+
 	}
 
-	o.Commit()
 	return
 }
 
