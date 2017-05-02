@@ -1224,17 +1224,15 @@
                 "tags": [
                     "arbol_plan_cuentas"
                 ],
-                "description": "get Arbol of Cuentas in Plan_Cuentas",
+                "description": "construye y muestra la estructura de cuentas en un plan de cuentas",
                 "operationId": "ArbolPlanCuentasController.MakeTreeCuentas",
                 "parameters": [
                     {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for EstructuraCuentas content",
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id del plan de cuentas a construirse",
                         "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.EstructuraCuentas"
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -9895,13 +9893,13 @@
                 "tags": [
                     "tr_cuentas_contables"
                 ],
-                "description": "Post Cuentas in Plan_Cuentas",
+                "description": "Post de cuentas contables mediante la transaccion que las crea y ubica en el plan de cuentas",
                 "operationId": "TrCuentasContablesController.Post",
                 "parameters": [
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "body for TrCuentaContable content",
+                        "description": "body para la transaccion",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/models.TrCuentaContable"
@@ -10699,10 +10697,6 @@
                     "type": "integer",
                     "format": "int64"
                 },
-                "Solicitante": {
-                    "type": "integer",
-                    "format": "int64"
-                },
                 "Solicitud": {
                     "type": "integer",
                     "format": "int64"
@@ -10725,6 +10719,9 @@
                 },
                 "Disponibilidad": {
                     "$ref": "#/definitions/models.Disponibilidad"
+                },
+                "FuenteFinanciamiento": {
+                    "$ref": "#/definitions/models.FuenteFinanciacion"
                 },
                 "Id": {
                     "type": "integer",
@@ -11323,6 +11320,10 @@
                     "format": "int64"
                 },
                 "Responsable": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "Solicitud": {
                     "type": "integer",
                     "format": "int64"
                 },
