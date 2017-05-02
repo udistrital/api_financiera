@@ -21,8 +21,8 @@ func (c *TrCuentasContablesController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description Post Cuentas in Plan_Cuentas
-// @Param	body		body 	models.TrCuentaContable	true		"body for TrCuentaContable content"
+// @Description Post de cuentas contables mediante la transaccion que las crea y ubica en el plan de cuentas
+// @Param	body	body 	models.TrCuentaContable	true "body para la transaccion"
 // @Success 201 {int} models.TrCuentaContable
 // @Failure 403 body is empty
 // @router / [post]
@@ -30,7 +30,6 @@ func (c *TrCuentasContablesController) Post() {
 
 	var v models.TrCuentaContable
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-
 		if alerta, err := models.AddTransaccionCuentaContable(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alerta
