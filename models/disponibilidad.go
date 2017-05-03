@@ -266,7 +266,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 			o.Rollback()
 			return
 		}
-		fmt.Println("anulacion: ", m.Valor)
+		fmt.Println("saldo: ", saldoCDP)
 		if saldoCDP < m.Valor {
 			alerta[0] = "error"
 			alerta = append(alerta, "Valor a anular supera el saldo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
@@ -281,12 +281,13 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 			_, err3 := o.Insert(&anulacion_apropiacion)
 			if err3 != nil {
 				alerta[0] = "error"
-				alerta = append(alerta, "No se pudo registrar la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
+				alerta = append(alerta, "No se pudo registrar la anulación del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
 				err = err3
 				o.Rollback()
 				return
 			} else {
 				alerta = append(alerta, "Se anulo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+
 			}
 		}
 
@@ -298,15 +299,16 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	for i := 0; i < len(m.Disponibilidad_apropiacion); i++ {
 		var saldoCDP float64
 		if m.Disponibilidad_apropiacion[i].FuenteFinanciamiento != nil {
-			saldoCDP, _, _, err = SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id, m.Disponibilidad_apropiacion[i].FuenteFinanciamiento.Id)
+			saldoCDP, err = GetValorActualCDP(m.Disponibilidad_apropiacion[i].Disponibilidad.Id)
 		} else {
-			saldoCDP, _, _, err = SaldoCdp(m.Disponibilidad_apropiacion[i].Disponibilidad.Id, m.Disponibilidad_apropiacion[i].Apropiacion.Id, 0)
+			saldoCDP, err = GetValorActualCDP(m.Disponibilidad_apropiacion[i].Disponibilidad.Id)
 
 		}
 		if err != nil {
 			o.Rollback()
 			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo registrar la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo)
+			fmt.Println("alerta ", alerta)
 			return
 		}
 		acumCDP = acumCDP + saldoCDP
@@ -430,3 +432,87 @@ func AnuladoRpPorCDP(id_disponibilidad int, id_apropiacion int, id_fuente int) (
 }
 
 //----------------------------------------
+
+//funcion GetValorTotalRp
+func GetValorTotalCDP(cdp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw("select sum(valor) from financiera.disponibilidad_apropiacion where disponibilidad = ?", cdp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total val: ", totalSql)
+		return totalSql, nil
+	}
+	fmt.Println("total comp: ", err)
+	return 0, nil
+}
+func GetValorTotalComprometidoRpPorCDP(cdp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw(`SELECT valor FROM (SELECT disponibilidad.id,
+				            disponibilidad_apropiacion.apropiacion,
+				            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+				            COALESCE(sum(registro_presupuestal_disponibilidad_apropiacion.valor),0) AS valor
+				           FROM financiera.disponibilidad
+				             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+				             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+				          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion, disponibilidad_apropiacion.fuente_financiamiento) as saldo
+									WHERE id = ? `, cdp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total comp: ", totalSql)
+		return totalSql, nil
+	}
+	fmt.Println("total comp: ", err)
+	return 0, nil
+
+}
+
+func GetValorTotalAnuladoRpPorCDP(cdp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw(`SELECT valor FROM (SELECT disponibilidad.id,
+				            disponibilidad_apropiacion.apropiacion,
+				            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
+				            COALESCE(sum(registro_presupuestal_disponibilidad_apropiacion.valor),0) AS valor
+				           FROM financiera.disponibilidad
+				             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+				             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+				          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion, disponibilidad_apropiacion.fuente_financiamiento) as saldo
+									WHERE id = ? `, cdp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total a rp: ", totalSql)
+		return totalSql, nil
+	}
+	fmt.Println("total a rp: ", err)
+	return 0, nil
+
+}
+
+func GetValorTotalAnuladoCDP(cdp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw(`SELECT valor FROM(SELECT disponibilidad.id,
+					            disponibilidad_apropiacion.apropiacion,
+					            COALESCE(disponibilidad_apropiacion.fuente_financiamiento,0) as fuente_financiamiento,
+					            COALESCE(sum(anulacion_disponibilidad_apropiacion.valor),0) AS valor
+					           FROM financiera.anulacion_disponibilidad_apropiacion
+					             JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+										WHERE id = ? `, cdp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total A: ", totalSql)
+		return totalSql, nil
+	}
+	fmt.Println("total A: ", err)
+	return 0, nil
+
+}
+
+func GetValorActualCDP(cdp_id int) (total float64, err error) {
+	valor, err := GetValorTotalCDP(cdp_id)
+	comprometido, err := GetValorTotalComprometidoRpPorCDP(cdp_id)
+	anulado, err := GetValorTotalAnuladoCDP(cdp_id)
+	anulado_rp, err := GetValorTotalAnuladoRpPorCDP(cdp_id)
+	total = valor - comprometido - anulado - anulado_rp
+	return
+}
