@@ -427,7 +427,9 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 				o.Rollback()
 				return
 			} else {
+
 				alerta = append(alerta, "se anulo del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo+" la suma de "+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+
 			}
 		}
 
@@ -435,21 +437,24 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	o.Commit()
 	var acumRP float64
 	acumRP = 0
+
 	for i := 0; i < len(m.Rp_apropiacion); i++ {
 		var saldoRp float64
 		if m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
-			saldoRp, _, _, err = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
+			saldoRp, err = GetValorActualRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id)
 
 		} else {
-			saldoRp, _, _, err = SaldoRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id, m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
+			saldoRp, err = GetValorActualRp(m.Rp_apropiacion[i].RegistroPresupuestal.Id)
 
 		}
 		if err != nil {
 			o.Rollback()
 			alerta[0] = "error"
 			alerta = append(alerta, "No se pudo registrar la anulacion del RP N° "+strconv.Itoa(m.Rp_apropiacion[i].RegistroPresupuestal.NumeroRegistroPresupuestal)+" para la apropiacion del Rubro "+m.Rp_apropiacion[i].DisponibilidadApropiacion.Apropiacion.Rubro.Codigo)
+			fmt.Println("entro: ", saldoRp)
 			return
 		}
+		fmt.Println("saldo: ", saldoRp)
 		acumRP = acumRP + saldoRp
 	}
 	if acumRP == 0 {
@@ -465,9 +470,57 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 func GetValorTotalRp(rp_id int) (total float64, err error) {
 	o := orm.NewOrm()
 	var totalSql float64
-	err = o.Raw("select sum(valor) from registro_presupuestal_disponibilidad_apropiacion where registro_presupuestal = ?", rp_id).QueryRow(&totalSql)
+	err = o.Raw("select sum(valor) from financiera.registro_presupuestal_disponibilidad_apropiacion where registro_presupuestal = ?", rp_id).QueryRow(&totalSql)
 	if err == nil {
 		return totalSql, nil
 	}
-	return totalSql, err
+	return 0, nil
+}
+func GetValorTotalComprometidoRp(rp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw(`SELECT valor FROM(SELECT registro_presupuestal.id,
+            sum(concepto_orden_pago.valor) AS valor
+           FROM financiera.orden_pago
+             JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
+             JOIN financiera.concepto ON concepto.id = concepto_orden_pago.concepto
+             JOIN financiera.rubro ON concepto.rubro = rubro.id
+             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = orden_pago.registro_presupuestal
+             JOIN financiera.apropiacion ON apropiacion.rubro = rubro.id AND apropiacion.vigencia = registro_presupuestal.vigencia
+          GROUP BY registro_presupuestal.id) as comprometido
+					WHERE id = ?`, rp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total: ", totalSql)
+		return totalSql, nil
+	}
+	return 0, nil
+
+}
+
+func GetValorTotalAnuladoRp(rp_id int) (total float64, err error) {
+	o := orm.NewOrm()
+	var totalSql float64
+	err = o.Raw(`SELECT valor FROM (SELECT registro_presupuestal.id,
+            sum(anulacion_registro_presupuestal_disponibilidad_apropiacion.valor) AS valor
+           FROM financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.id = anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
+             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+          GROUP BY registro_presupuestal.id) as anulaciones
+					WHERE id = ?`, rp_id).QueryRow(&totalSql)
+	if err == nil {
+		fmt.Println("total A: ", totalSql)
+		return totalSql, nil
+	}
+	fmt.Println("total A: ", err)
+	return 0, nil
+
+}
+
+func GetValorActualRp(rp_id int) (total float64, err error) {
+	valor, err := GetValorTotalRp(rp_id)
+	comprometido, err := GetValorTotalComprometidoRp(rp_id)
+	anulado, err := GetValorTotalAnuladoRp(rp_id)
+	total = valor - comprometido - anulado
+	return
 }
