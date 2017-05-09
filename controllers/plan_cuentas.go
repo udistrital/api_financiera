@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -34,9 +35,9 @@ func (c *PlanCuentasController) URLMapping() {
 func (c *PlanCuentasController) Post() {
 	var v models.PlanCuentas
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddPlanCuentas(&v); err == nil {
+		if alerta, err := models.AddPlanCuentas(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = alerta
 		} else {
 			c.Data["json"] = err.Error()
 		}

@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
-	"fmt"
+
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // RegistroPresupuestalController operations for RegistroPresupuestal
@@ -47,6 +48,7 @@ func (c *RegistroPresupuestalController) Post() {
 	}
 	c.ServeJSON()
 }
+
 // GetOne ...
 // @Title Get One
 // @Description get RegistroPresupuestal by id
@@ -170,6 +172,7 @@ func (c *RegistroPresupuestalController) Delete() {
 	}
 	c.ServeJSON()
 }
+
 // SaldoRp ...
 // @Title SaldoRp
 // @Description create RegistroPresupuestal
@@ -180,11 +183,22 @@ func (c *RegistroPresupuestalController) Delete() {
 func (c *RegistroPresupuestalController) SaldoRp() {
 	var v models.DatosSaldoRp
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		valor, err := models.SaldoRp(v.Rp.Id, v.Apropiacion.Id )
+		var ff int
+		if v.FuenteFinanciacion != nil {
+			ff = v.FuenteFinanciacion.Id
+		} else {
+			ff = 0
+		}
+		saldo, comprometido, anulado, err := models.SaldoRp(v.Rp.Id, v.Apropiacion.Id, ff)
 		if err != nil {
 			c.Data["json"] = err
 		} else {
-			c.Data["json"] = valor
+			var m map[string]float64
+			m = make(map[string]float64)
+			m["saldo"] = saldo
+			m["comprometido"] = comprometido
+			m["anulado"] = anulado
+			c.Data["json"] = m
 		}
 	} else {
 		c.Data["json"] = err
@@ -193,6 +207,7 @@ func (c *RegistroPresupuestalController) SaldoRp() {
 
 	c.ServeJSON()
 }
+
 // Anular ...
 // @Title Anular
 // @Description create RegistroPresupuestal
@@ -223,6 +238,26 @@ func (c *RegistroPresupuestalController) Anular() {
 
 	} else {
 		c.Data["json"] = err
+	}
+	c.ServeJSON()
+}
+
+// ValorTotalRp ...
+// @Title Valor Total Rp
+// @Description retorna valor total del RegistroPresupuestal por id
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} suma valor de los RegistroPresupuestal por id
+// @Failure 403 body is empty
+// @router /:id [get]
+
+func (c *RegistroPresupuestalController) ValorTotalRp() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetValorTotalRp(id)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
 	}
 	c.ServeJSON()
 }

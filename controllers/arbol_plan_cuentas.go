@@ -20,8 +20,8 @@ func (c *ArbolPlanCuentasController) URLMapping() {
 
 // MakeTreeCuentas ...
 // @Title MakeTreeCuentas
-// @Description get Arbol of Cuentas in Plan_Cuentas
-// @Param	body		body 	models.EstructuraCuentas	true		"body for EstructuraCuentas content"
+// @Description construye y muestra la estructura de cuentas en un plan de cuentas
+// @Param	id		path 	string	true		"Id del plan de cuentas a construirse"
 // @Success 201 {int} models.ArbolPlanCuentas
 // @Failure 403 body is empty
 // @router /:id [get]
@@ -29,7 +29,6 @@ func (c *ArbolPlanCuentasController) MakeTreeCuentas() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	l := models.MakeTreePlanCuentas(id)
-	//fmt.Println(l)
 	c.Data["json"] = l
 	//Generera el Json con los datos obtenidos
 	c.ServeJSON()

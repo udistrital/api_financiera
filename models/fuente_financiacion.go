@@ -9,54 +9,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type PlanCuentas struct {
-	Id              int              `orm:"column(id);pk;auto"`
-	Nombre          string           `orm:"column(nombre)"`
-	Descripcion     string           `orm:"column(descripcion);null"`
-	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk);null"`
-	PlanMaestro     bool             `orm:"column(plan_maestro)"`
+type FuenteFinanciacion struct {
+	Id          int    `orm:"auto;column(id);pk"`
+	Descripcion string `orm:"column(descripcion);null"`
+	Sigla       string `orm:"column(sigla)"`
+	Codigo      string `orm:"column(codigo)"`
 }
 
-func (t *PlanCuentas) TableName() string {
-	return "plan_cuentas"
+func (t *FuenteFinanciacion) TableName() string {
+	return "fuente_financiacion"
 }
 
 func init() {
-	orm.RegisterModel(new(PlanCuentas))
+	orm.RegisterModel(new(FuenteFinanciacion))
 }
 
-// AddPlanCuentas insert a new PlanCuentas into database and returns
+// AddFuenteFinanciacion insert a new FuenteFinanciacion into database and returns
 // last inserted Id on success.
-func AddPlanCuentas(m *PlanCuentas) (alerta []string, err error) {
-	alerta = append(alerta, "success")
+func AddFuenteFinanciacion(m *FuenteFinanciacion) (id int64, err error) {
 	o := orm.NewOrm()
-	if _, err = o.Insert(m); err == nil {
-		alerta = append(alerta, "Plan "+m.Nombre+" agregado exitosamente")
-		return alerta, nil
-	} else {
-		alerta[0] = "error"
-		alerta = append(alerta, "No se pudo agregar el plan")
-	}
+	id, err = o.Insert(m)
 	return
 }
 
-// GetPlanCuentasById retrieves PlanCuentas by Id. Returns error if
+// GetFuenteFinanciacionById retrieves FuenteFinanciacion by Id. Returns error if
 // Id doesn't exist
-func GetPlanCuentasById(id int) (v *PlanCuentas, err error) {
+func GetFuenteFinanciacionById(id int) (v *FuenteFinanciacion, err error) {
 	o := orm.NewOrm()
-	v = &PlanCuentas{Id: id}
+	v = &FuenteFinanciacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllPlanCuentas retrieves all PlanCuentas matches certain condition. Returns empty list if
+// GetAllFuenteFinanciacion retrieves all FuenteFinanciacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllFuenteFinanciacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(PlanCuentas)).RelatedSel()
+	qs := o.QueryTable(new(FuenteFinanciacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -106,7 +98,7 @@ func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string
 		}
 	}
 
-	var l []PlanCuentas
+	var l []FuenteFinanciacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -129,11 +121,11 @@ func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string
 	return nil, err
 }
 
-// UpdatePlanCuentas updates PlanCuentas by Id and returns error if
+// UpdateFuenteFinanciacion updates FuenteFinanciacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdatePlanCuentasById(m *PlanCuentas) (err error) {
+func UpdateFuenteFinanciacionById(m *FuenteFinanciacion) (err error) {
 	o := orm.NewOrm()
-	v := PlanCuentas{Id: m.Id}
+	v := FuenteFinanciacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -144,15 +136,15 @@ func UpdatePlanCuentasById(m *PlanCuentas) (err error) {
 	return
 }
 
-// DeletePlanCuentas deletes PlanCuentas by Id and returns error if
+// DeleteFuenteFinanciacion deletes FuenteFinanciacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeletePlanCuentas(id int) (err error) {
+func DeleteFuenteFinanciacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := PlanCuentas{Id: id}
+	v := FuenteFinanciacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&PlanCuentas{Id: id}); err == nil {
+		if num, err = o.Delete(&FuenteFinanciacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
