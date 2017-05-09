@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
-	"fmt"
+
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // DisponibilidadController operations for Disponibilidad
@@ -201,11 +202,22 @@ func (c *DisponibilidadController) Anular() {
 func (c *DisponibilidadController) SaldoCdp() {
 	var v models.DatosRubroRegistroPresupuestal
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		valor, err := models.SaldoCdp(v.Disponibilidad.Id, v.Apropiacion.Id)
+		var ff int
+		if v.FuenteFinanciacion != nil {
+			ff = v.FuenteFinanciacion.Id
+		} else {
+			ff = 0
+		}
+		saldo, comprometido, anulado, err := models.SaldoCdp(v.Disponibilidad.Id, v.Apropiacion.Id, ff)
 		if err != nil {
 			c.Data["json"] = err
 		} else {
-			c.Data["json"] = valor
+			var m map[string]float64
+			m = make(map[string]float64)
+			m["saldo"] = saldo
+			m["comprometido"] = comprometido
+			m["anulado"] = anulado
+			c.Data["json"] = m
 		}
 	} else {
 		c.Data["json"] = err

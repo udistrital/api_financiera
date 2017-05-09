@@ -5,58 +5,53 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type PlanCuentas struct {
-	Id              int              `orm:"column(id);pk;auto"`
-	Nombre          string           `orm:"column(nombre)"`
-	Descripcion     string           `orm:"column(descripcion);null"`
-	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk);null"`
-	PlanMaestro     bool             `orm:"column(plan_maestro)"`
+type FuenteFinanciacionApropiacion struct {
+	Id            int                 `orm:"auto;column(id);pk"`
+	FechaCreacion time.Time           `orm:"column(fecha_creacion);type(date)"`
+	Valor         float64             `orm:"column(valor)"`
+	Apropiacion   *Apropiacion        `orm:"column(apropiacion);rel(fk)"`
+	Fuente        *FuenteFinanciacion `orm:"column(fuente);rel(fk)"`
+	Dependencia   int                 `orm:"column(dependencia)"`
 }
 
-func (t *PlanCuentas) TableName() string {
-	return "plan_cuentas"
+func (t *FuenteFinanciacionApropiacion) TableName() string {
+	return "fuente_financiacion_apropiacion"
 }
 
 func init() {
-	orm.RegisterModel(new(PlanCuentas))
+	orm.RegisterModel(new(FuenteFinanciacionApropiacion))
 }
 
-// AddPlanCuentas insert a new PlanCuentas into database and returns
+// AddFuenteFinanciacionApropiacion insert a new FuenteFinanciacionApropiacion into database and returns
 // last inserted Id on success.
-func AddPlanCuentas(m *PlanCuentas) (alerta []string, err error) {
-	alerta = append(alerta, "success")
+func AddFuenteFinanciacionApropiacion(m *FuenteFinanciacionApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
-	if _, err = o.Insert(m); err == nil {
-		alerta = append(alerta, "Plan "+m.Nombre+" agregado exitosamente")
-		return alerta, nil
-	} else {
-		alerta[0] = "error"
-		alerta = append(alerta, "No se pudo agregar el plan")
-	}
+	id, err = o.Insert(m)
 	return
 }
 
-// GetPlanCuentasById retrieves PlanCuentas by Id. Returns error if
+// GetFuenteFinanciacionApropiacionById retrieves FuenteFinanciacionApropiacion by Id. Returns error if
 // Id doesn't exist
-func GetPlanCuentasById(id int) (v *PlanCuentas, err error) {
+func GetFuenteFinanciacionApropiacionById(id int) (v *FuenteFinanciacionApropiacion, err error) {
 	o := orm.NewOrm()
-	v = &PlanCuentas{Id: id}
+	v = &FuenteFinanciacionApropiacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllPlanCuentas retrieves all PlanCuentas matches certain condition. Returns empty list if
+// GetAllFuenteFinanciacionApropiacion retrieves all FuenteFinanciacionApropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllFuenteFinanciacionApropiacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(PlanCuentas)).RelatedSel()
+	qs := o.QueryTable(new(FuenteFinanciacionApropiacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -106,8 +101,8 @@ func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string
 		}
 	}
 
-	var l []PlanCuentas
-	qs = qs.OrderBy(sortFields...)
+	var l []FuenteFinanciacionApropiacion
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -129,11 +124,11 @@ func GetAllPlanCuentas(query map[string]string, fields []string, sortby []string
 	return nil, err
 }
 
-// UpdatePlanCuentas updates PlanCuentas by Id and returns error if
+// UpdateFuenteFinanciacionApropiacion updates FuenteFinanciacionApropiacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdatePlanCuentasById(m *PlanCuentas) (err error) {
+func UpdateFuenteFinanciacionApropiacionById(m *FuenteFinanciacionApropiacion) (err error) {
 	o := orm.NewOrm()
-	v := PlanCuentas{Id: m.Id}
+	v := FuenteFinanciacionApropiacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -144,15 +139,15 @@ func UpdatePlanCuentasById(m *PlanCuentas) (err error) {
 	return
 }
 
-// DeletePlanCuentas deletes PlanCuentas by Id and returns error if
+// DeleteFuenteFinanciacionApropiacion deletes FuenteFinanciacionApropiacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeletePlanCuentas(id int) (err error) {
+func DeleteFuenteFinanciacionApropiacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := PlanCuentas{Id: id}
+	v := FuenteFinanciacionApropiacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&PlanCuentas{Id: id}); err == nil {
+		if num, err = o.Delete(&FuenteFinanciacionApropiacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

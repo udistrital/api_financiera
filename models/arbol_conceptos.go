@@ -29,6 +29,7 @@ func MakeTreeConcepto() (a []ConceptoArbol) {
 	var arbol []ConceptoArbol
 	_, err := o.Raw("select * from financiera.concepto where id not in (select concepto_hijo from financiera.concepto_concepto) order by id;").QueryRows(&arbol)
 
+	//Para realizar un related sobre los conceptos en el arbol
 	/*for _, concepto := range arbol {
 		var l []Concepto
 		o.QueryTable(new(Concepto)).Filter("Id", concepto.Id).RelatedSel().All(&l)
@@ -44,9 +45,6 @@ func MakeTreeConcepto() (a []ConceptoArbol) {
 			o.QueryTable(&l).Filter("Id", arbol[i].Id).RelatedSel().All(&l)
 			arbol[i].TipoConcepto = l.TipoConcepto
 			arbol[i].Rubro = l.Rubro
-			//fmt.Print(l.TipoConcepto)
-
-			//Me verifica que los Id tengan hijos
 			MakeBranches(&arbol[i])
 		}
 
@@ -66,8 +64,6 @@ func MakeBranches(Padre *ConceptoArbol) (a []ConceptoArbol) {
 	_, err := o.Raw("select a.* from financiera.concepto a left join financiera.concepto_concepto b on a.id =b.concepto_hijo where b.concepto_padre=" + idpadre + " ORDER BY a.id").QueryRows(&arbol)
 	//Condicional si el error es nulo
 	if err == nil {
-		//fmt.Println("Menus Hijos encontrados: ", num)
-
 		//Llena el elemento Opciones en la estructura del menú padre
 		Padre.Hijos = &arbol
 
@@ -76,7 +72,6 @@ func MakeBranches(Padre *ConceptoArbol) (a []ConceptoArbol) {
 			var l Concepto
 			o.QueryTable(&l).Filter("Id", arbol[i].Id).RelatedSel().All(&l)
 			arbol[i].TipoConcepto = l.TipoConcepto
-			//Me verifica que los Id tengan hijos
 			MakeBranches(&arbol[i])
 		}
 	}
