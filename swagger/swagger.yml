@@ -814,15 +814,14 @@ paths:
     get:
       tags:
       - arbol_plan_cuentas
-      description: get Arbol of Cuentas in Plan_Cuentas
+      description: construye y muestra la estructura de cuentas en un plan de cuentas
       operationId: ArbolPlanCuentasController.MakeTreeCuentas
       parameters:
-      - in: body
-        name: body
-        description: body for EstructuraCuentas content
+      - in: path
+        name: id
+        description: Id del plan de cuentas a construirse
         required: true
-        schema:
-          $ref: '#/definitions/models.EstructuraCuentas'
+        type: string
       responses:
         "201":
           description: '{int} models.ArbolPlanCuentas'
@@ -2038,6 +2037,117 @@ paths:
       - cuenta_contable
       description: delete the CuentaContable
       operationId: CuentaContableController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /cuenta_especial/:
+    get:
+      tags:
+      - cuenta_especial
+      description: get CuentaEspecial
+      operationId: CuentaEspecialController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.CuentaEspecial'
+        "403": {}
+    post:
+      tags:
+      - cuenta_especial
+      description: create CuentaEspecial
+      operationId: CuentaEspecialController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for CuentaEspecial content
+        required: true
+        schema:
+          $ref: '#/definitions/models.CuentaEspecial'
+      responses:
+        "201":
+          description: '{int} models.CuentaEspecial'
+        "403":
+          description: body is empty
+  /cuenta_especial/{id}:
+    get:
+      tags:
+      - cuenta_especial
+      description: get CuentaEspecial by id
+      operationId: CuentaEspecialController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.CuentaEspecial'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - cuenta_especial
+      description: update the CuentaEspecial
+      operationId: CuentaEspecialController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for CuentaEspecial content
+        required: true
+        schema:
+          $ref: '#/definitions/models.CuentaEspecial'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.CuentaEspecial'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - cuenta_especial
+      description: delete the CuentaEspecial
+      operationId: CuentaEspecialController.Delete
       parameters:
       - in: path
         name: id
@@ -3703,6 +3813,228 @@ paths:
       - forma_ingreso
       description: delete the FormaIngreso
       operationId: FormaIngresoController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /fuente_financiacion/:
+    get:
+      tags:
+      - fuente_financiacion
+      description: get FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403": {}
+    post:
+      tags:
+      - fuente_financiacion
+      description: create FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for FuenteFinanciacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacion'
+      responses:
+        "201":
+          description: '{int} models.FuenteFinanciacion'
+        "403":
+          description: body is empty
+  /fuente_financiacion/{id}:
+    get:
+      tags:
+      - fuente_financiacion
+      description: get FuenteFinanciacion by id
+      operationId: FuenteFinanciacionController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - fuente_financiacion
+      description: update the FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for FuenteFinanciacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacion'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - fuente_financiacion
+      description: delete the FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /fuente_financiacion_apropiacion/:
+    get:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: get FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403": {}
+    post:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: create FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for FuenteFinanciacionApropiacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+      responses:
+        "201":
+          description: '{int} models.FuenteFinanciacionApropiacion'
+        "403":
+          description: body is empty
+  /fuente_financiacion_apropiacion/{id}:
+    get:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: get FuenteFinanciacionApropiacion by id
+      operationId: FuenteFinanciacionApropiacionController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: update the FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for FuenteFinanciacionApropiacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: delete the FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Delete
       parameters:
       - in: path
         name: id
@@ -6870,6 +7202,117 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
+  /tipo_cuenta_especial/:
+    get:
+      tags:
+      - tipo_cuenta_especial
+      description: get TipoCuentaEspecial
+      operationId: TipoCuentaEspecialController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.TipoCuentaEspecial'
+        "403": {}
+    post:
+      tags:
+      - tipo_cuenta_especial
+      description: create TipoCuentaEspecial
+      operationId: TipoCuentaEspecialController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for TipoCuentaEspecial content
+        required: true
+        schema:
+          $ref: '#/definitions/models.TipoCuentaEspecial'
+      responses:
+        "201":
+          description: '{int} models.TipoCuentaEspecial'
+        "403":
+          description: body is empty
+  /tipo_cuenta_especial/{id}:
+    get:
+      tags:
+      - tipo_cuenta_especial
+      description: get TipoCuentaEspecial by id
+      operationId: TipoCuentaEspecialController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.TipoCuentaEspecial'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - tipo_cuenta_especial
+      description: update the TipoCuentaEspecial
+      operationId: TipoCuentaEspecialController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for TipoCuentaEspecial content
+        required: true
+        schema:
+          $ref: '#/definitions/models.TipoCuentaEspecial'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.TipoCuentaEspecial'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - tipo_cuenta_especial
+      description: delete the TipoCuentaEspecial
+      operationId: TipoCuentaEspecialController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
   /tipo_documento_afectante/:
     get:
       tags:
@@ -7429,12 +7872,13 @@ paths:
     post:
       tags:
       - tr_cuentas_contables
-      description: Post Cuentas in Plan_Cuentas
+      description: Post de cuentas contables mediante la transaccion que las crea
+        y ubica en el plan de cuentas
       operationId: TrCuentasContablesController.Post
       parameters:
       - in: body
         name: body
-        description: body for TrCuentaContable content
+        description: body para la transaccion
         required: true
         schema:
           $ref: '#/definitions/models.TrCuentaContable'
@@ -7981,6 +8425,30 @@ definitions:
       Saldo:
         type: number
         format: double
+  models.CuentaEspecial:
+    title: CuentaEspecial
+    type: object
+    properties:
+      CuentaContable:
+        $ref: '#/definitions/models.CuentaContable'
+      Deducible:
+        type: boolean
+      Descripcion:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      InformacionPersonaJuridica:
+        type: integer
+        format: int64
+      Porcentaje:
+        type: number
+        format: double
+      TarifaUvt:
+        type: number
+        format: double
+      TipoCuentaEspecial:
+        $ref: '#/definitions/models.TipoCuentaEspecial'
   models.Disponibilidad:
     title: Disponibilidad
     type: object
@@ -7996,20 +8464,12 @@ definitions:
       Id:
         type: integer
         format: int64
-      ModalidadGiro:
-        type: integer
-        format: int32
       NumeroDisponibilidad:
         type: number
         format: double
       NumeroOficio:
         type: string
-      Objeto:
-        type: string
       Responsable:
-        type: integer
-        format: int64
-      Solicitante:
         type: integer
         format: int64
       Solicitud:
@@ -8020,9 +8480,6 @@ definitions:
       Vigencia:
         type: number
         format: double
-      VigenciaFutura:
-        type: number
-        format: double
   models.DisponibilidadApropiacion:
     title: DisponibilidadApropiacion
     type: object
@@ -8031,6 +8488,8 @@ definitions:
         $ref: '#/definitions/models.Apropiacion'
       Disponibilidad:
         $ref: '#/definitions/models.Disponibilidad'
+      FuenteFinanciamiento:
+        $ref: '#/definitions/models.FuenteFinanciacion'
       Id:
         type: integer
         format: int64
@@ -8197,6 +8656,39 @@ definitions:
         format: int64
       Nombre:
         type: string
+  models.FuenteFinanciacion:
+    title: FuenteFinanciacion
+    type: object
+    properties:
+      Codigo:
+        type: string
+      Descripcion:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      Sigla:
+        type: string
+  models.FuenteFinanciacionApropiacion:
+    title: FuenteFinanciacionApropiacion
+    type: object
+    properties:
+      Apropiacion:
+        $ref: '#/definitions/models.Apropiacion'
+      Dependencia:
+        type: integer
+        format: int64
+      FechaCreacion:
+        type: string
+        format: string
+      Fuente:
+        $ref: '#/definitions/models.FuenteFinanciacion'
+      Id:
+        type: integer
+        format: int64
+      Valor:
+        type: number
+        format: double
   models.Ingreso:
     title: Ingreso
     type: object
@@ -8469,6 +8961,9 @@ definitions:
         type: integer
         format: int64
       Responsable:
+        type: integer
+        format: int64
+      Solicitud:
         type: integer
         format: int64
       UnidadEjecutora:
@@ -8752,6 +9247,17 @@ definitions:
         format: int64
       Nombre:
         type: string
+  models.TipoCuentaEspecial:
+    title: TipoCuentaEspecial
+    type: object
+    properties:
+      Descripcion:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      Nombre:
+        type: string
   models.TipoDocumentoAfectante:
     title: TipoDocumentoAfectante
     type: object
@@ -8857,9 +9363,12 @@ definitions:
       TipoTransaccion:
         $ref: '#/definitions/models.TipoTransaccion'
 tags:
-- name: beneficiario
+- name: fuente_financiacion
   description: |
-    BeneficiarioController operations for Beneficiario
+    FuenteFinanciacionController operations for FuenteFinanciacion
+- name: fuente_financiacion_apropiacion
+  description: |
+    FuenteFinanciacionApropiacionController operations for FuenteFinanciacionApropiacion
 - name: requisito_avance
   description: |
     RequisitoAvanceController operations for RequisitoAvance
@@ -9076,3 +9585,9 @@ tags:
 - name: tr_cuentas_contables
   description: |
     TrCuentasContablesController operations for plan_cuentas
+- name: tipo_cuenta_especial
+  description: |
+    TipoCuentaEspecialController operations for TipoCuentaEspecial
+- name: cuenta_especial
+  description: |
+    CuentaEspecialController operations for CuentaEspecial
