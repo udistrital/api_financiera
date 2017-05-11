@@ -11,7 +11,7 @@ import (
 )
 
 type TipoAvance struct {
-	Id            int       `orm:"column(id);pk"`
+	Id            int       `orm:"column(id);pk;auto"`
 	Referencia    string    `orm:"column(referencia)"`
 	Nombre        string    `orm:"column(nombre)"`
 	Descripcion   string    `orm:"column(descripcion)"`
