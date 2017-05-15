@@ -5,54 +5,49 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type RequisitoAvance struct {
-	Id            int       `orm:"column(id);pk;auto"`
-	Referencia    string    `orm:"column(referencia)"`
-	Nombre        string    `orm:"column(nombre)"`
-	Descripcion   string    `orm:"column(descripcion)"`
-	Estado        string    `orm:"column(estado)"`
-	Etapa         string    `orm:"column(etapa)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
+type TipoCuentaEspecial struct {
+	Id          int    `orm:"column(id);pk"`
+	Nombre      string `orm:"column(nombre)"`
+	Descripcion string `orm:"column(descripcion);null"`
 }
 
-func (t *RequisitoAvance) TableName() string {
-	return "requisito_avance"
+func (t *TipoCuentaEspecial) TableName() string {
+	return "tipo_cuenta_especial"
 }
 
 func init() {
-	orm.RegisterModel(new(RequisitoAvance))
+	orm.RegisterModel(new(TipoCuentaEspecial))
 }
 
-// AddRequisitoAvance insert a new RequisitoAvance into database and returns
+// AddTipoCuentaEspecial insert a new TipoCuentaEspecial into database and returns
 // last inserted Id on success.
-func AddRequisitoAvance(m *RequisitoAvance) (id int64, err error) {
+func AddTipoCuentaEspecial(m *TipoCuentaEspecial) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetRequisitoAvanceById retrieves RequisitoAvance by Id. Returns error if
+// GetTipoCuentaEspecialById retrieves TipoCuentaEspecial by Id. Returns error if
 // Id doesn't exist
-func GetRequisitoAvanceById(id int) (v *RequisitoAvance, err error) {
+func GetTipoCuentaEspecialById(id int) (v *TipoCuentaEspecial, err error) {
 	o := orm.NewOrm()
-	v = &RequisitoAvance{Id: id}
+	v = &TipoCuentaEspecial{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllRequisitoAvance retrieves all RequisitoAvance matches certain condition. Returns empty list if
+// GetAllTipoCuentaEspecial retrieves all TipoCuentaEspecial matches certain condition. Returns empty list if
 // no records exist
-func GetAllRequisitoAvance(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RequisitoAvance))
+	qs := o.QueryTable(new(TipoCuentaEspecial)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +97,7 @@ func GetAllRequisitoAvance(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []RequisitoAvance
+	var l []TipoCuentaEspecial
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +120,11 @@ func GetAllRequisitoAvance(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateRequisitoAvance updates RequisitoAvance by Id and returns error if
+// UpdateTipoCuentaEspecial updates TipoCuentaEspecial by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateRequisitoAvanceById(m *RequisitoAvance) (err error) {
+func UpdateTipoCuentaEspecialById(m *TipoCuentaEspecial) (err error) {
 	o := orm.NewOrm()
-	v := RequisitoAvance{Id: m.Id}
+	v := TipoCuentaEspecial{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +135,15 @@ func UpdateRequisitoAvanceById(m *RequisitoAvance) (err error) {
 	return
 }
 
-// DeleteRequisitoAvance deletes RequisitoAvance by Id and returns error if
+// DeleteTipoCuentaEspecial deletes TipoCuentaEspecial by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteRequisitoAvance(id int) (err error) {
+func DeleteTipoCuentaEspecial(id int) (err error) {
 	o := orm.NewOrm()
-	v := RequisitoAvance{Id: id}
+	v := TipoCuentaEspecial{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&RequisitoAvance{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoCuentaEspecial{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
