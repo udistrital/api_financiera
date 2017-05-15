@@ -17,7 +17,7 @@ type CuentaEspecial struct {
 	Deducible                  bool                `orm:"column(deducible);null"`
 	TipoCuentaEspecial         *TipoCuentaEspecial `orm:"column(tipo_cuenta_especial);rel(fk)"`
 	CuentaContable             *CuentaContable     `orm:"column(cuenta_contable);rel(fk)"`
-	InformacionPersonaJuridica int                 `orm:"column(informacion_persona_juridica)"`
+	InformacionPersonaJuridica int64               `orm:"column(informacion_persona_juridica)"`
 }
 
 func (t *CuentaEspecial) TableName() string {
