@@ -188,3 +188,21 @@ func (c *OrdenPagoController) RegistrarOp() {
     }
     c.ServeJSON()
 }
+
+// personalizado Actualizar orden_pago, concepto_ordenpago y Movimientos Contables
+func (c *OrdenPagoController) ActualizarOpProveedor() {
+    var v models.Data_OrdenPago_Concepto
+    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+        mensaje, err, id_orden := models.ActualizarOpProveedor(&v)
+        if err != nil {
+          fmt.Println(mensaje)
+          c.Data["json"] = err
+        } else {
+          c.Data["json"] = id_orden
+        }
+    } else {
+			fmt.Println(err)
+      c.Data["json"] = err
+    }
+    c.ServeJSON()
+}
