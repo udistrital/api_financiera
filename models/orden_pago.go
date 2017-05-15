@@ -209,3 +209,28 @@ func RegistrarOp(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_Ord
 	o.Commit()
 	return
 }
+
+// personalizado Actualiza orden_pago, concepto_ordenpago y movimeintos contalbes
+func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+	o := orm.NewOrm()
+	o.Begin()
+	fmt.Println("AAAAAAAA")
+	fmt.Println(m.OrdenPago.Id)
+	fmt.Println("AAAAAAAA")
+	// Actualizar datos de la Orden
+	orden := OrdenPago{Id: m.OrdenPago.Id}
+	if o.Read(&orden) == nil {
+	    orden.Iva = m.OrdenPago.Iva
+			orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+			orden.ValorBase = m.OrdenPago.ValorBase
+	    if _, err1 := o.Update(&orden); err1 != nil {
+				fmt.Println("Error 1")
+				alerta = append(alerta, "Erro 1. No se puede actualizar los Campos de la Orden de Pago")
+				err = err1
+				o.Rollback()
+	    }
+	}
+	// Eliminar Conceptos Orden de Pagos y Movimientos contables
+	o.Commit()
+	return
+}
