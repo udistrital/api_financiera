@@ -36,8 +36,8 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
       beego.ControllerComments{
-          Method: "RegistrarOp",
-          Router: `RegistrarOp`,
+          Method: "RegistrarOpProveedor",
+          Router: `RegistrarOpProveedor`,
           AllowHTTPMethods: []string{"post"},
           Params: nil})
 
