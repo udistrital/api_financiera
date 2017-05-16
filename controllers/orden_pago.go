@@ -173,10 +173,10 @@ func (c *OrdenPagoController) Delete() {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func (c *OrdenPagoController) RegistrarOp() {
+func (c *OrdenPagoController) RegistrarOpProveedor() {
     var v models.Data_OrdenPago_Concepto
     if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-        mensaje, err, id_orden := models.RegistrarOp(&v)
+        mensaje, err, id_orden := models.RegistrarOpProveedor(&v)
         if err != nil {
           fmt.Println(mensaje)
           c.Data["json"] = err
@@ -201,7 +201,6 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
           c.Data["json"] = id_orden
         }
     } else {
-			fmt.Println(err)
       c.Data["json"] = err
     }
     c.ServeJSON()
