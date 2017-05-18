@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Ingreso struct {
@@ -33,6 +34,59 @@ func (t *Ingreso) TableName() string {
 
 func init() {
 	orm.RegisterModel(new(Ingreso))
+}
+
+// AddIngreso insert a new Ingreso into database and returns
+// last inserted Id on success.
+func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
+	var id int64
+	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	if err == nil {
+		ingreso.EstadoIngreso = &EstadoIngreso{Id: 1}
+		ingreso.FechaIngreso = time.Now()
+		ingreso.Vigencia = float64(time.Now().Year())
+		o := orm.NewOrm()
+		o.Begin()
+		id, err = o.Insert(&ingreso)
+		if err != nil {
+			o.Rollback()
+			return
+		} else {
+			ingreso.Id = int(id)
+			var ingresoslice []interface{}
+			err = utilidades.FillStruct(m["IngresoBanco"], &ingresoslice)
+			if err == nil {
+				concepto := &Concepto{}
+				err = utilidades.FillStruct(m["Concepto"], concepto)
+				if err == nil {
+					for _, ingresobanco := range ingresoslice {
+						fmt.Println(ingresobanco)
+						ingreso_concepto := &IngresoConcepto{ValorAgregado: 0,
+							Ingreso:  &ingreso,
+							Concepto: concepto}
+						_, err = o.Insert(ingreso_concepto)
+						if err != nil {
+							o.Rollback()
+							return
+						}
+					}
+				} else {
+					o.Rollback()
+					return
+				}
+
+			} else {
+				o.Rollback()
+				return
+			}
+
+			o.Commit()
+			return
+		}
+	} else {
+		return
+	}
+
 }
 
 // AddIngreso insert a new Ingreso into database and returns
