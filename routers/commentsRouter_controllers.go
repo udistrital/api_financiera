@@ -1317,6 +1317,13 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
 		beego.ControllerComments{
+			Method: "CreateIngresos",
+			Router: `/CreateIngresos`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
+		beego.ControllerComments{
 			Method: "Post",
 			Router: `/`,
 			AllowHTTPMethods: []string{"post"},
