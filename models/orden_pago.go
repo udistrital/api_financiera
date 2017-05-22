@@ -28,6 +28,7 @@ type OrdenPago struct {
 	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
 	EstadoOrdenPago      *EstadoOrdenPago      `orm:"column(estado_orden_pago);rel(fk)"`
 	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
+	Nomina               string                `orm:"column(nomina)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -171,6 +172,9 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 	o.Begin()
 	// Inserta datos Orden de pago
 	m.OrdenPago.FechaCreacion = time.Now()
+	m.OrdenPago.Nomina = "PROVEEDOR"
+	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+
 	id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
 	if err1 != nil {
 		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
