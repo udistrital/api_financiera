@@ -205,3 +205,15 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
     }
     c.ServeJSON()
 }
+
+// personalizado Retrona la fecha actual del servidor
+func (c *OrdenPagoController) FechaActual() {
+		formatoInput := c.Ctx.Input.Param(":formato")
+		fechaActual, err := models.FechaActual(formatoInput)
+		if err == nil{
+			c.Data["json"] = fechaActual
+		} else {
+			c.Data["json"] = err.Error()
+		}
+		c.ServeJSON()
+}
