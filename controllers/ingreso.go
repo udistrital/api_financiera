@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // IngresoController operations for Ingreso
@@ -22,6 +22,33 @@ func (c *IngresoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("CreateIngresos", c.CreateIngresos)
+}
+
+// Post ...
+// @Title CreateIngresos
+// @Description create Ingreso
+// @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
+// @Success 201 {int} models.Ingreso
+// @Failure 403 body is empty
+// @router /CreateIngresos [post]
+func (c *IngresoController) CreateIngresos() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		//m := structs.Map(v)
+		m := v.(map[string]interface{})
+		if res, err := models.AddIngresotr(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
+			c.Data["json"] = alert
+		} else {
+
+			c.Data["json"] = err.Error()
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
 }
 
 // Post ...
