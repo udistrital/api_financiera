@@ -277,7 +277,13 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 			o.Rollback()
 		}
 	}
-
 	o.Commit()
+	return
+}
+
+// personalizado Retrona la fecha actual del servidor
+func FechaActual(formato string)(fechaActual string, err error){
+	hoy := time.Now()
+	fechaActual = hoy.Format(formato)
 	return
 }
