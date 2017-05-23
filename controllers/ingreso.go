@@ -39,7 +39,8 @@ func (c *IngresoController) CreateIngresos() {
 		m := v.(map[string]interface{})
 		if res, err := models.AddIngresotr(m); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = res
+			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
+			c.Data["json"] = alert
 		} else {
 
 			c.Data["json"] = err.Error()
