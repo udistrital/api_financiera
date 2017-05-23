@@ -15,7 +15,8 @@ type MovimientoContable struct {
 	Debito                   float64                 `orm:"column(debito)"`
 	Credito                  float64                 `orm:"column(credito)"`
 	Fecha                    time.Time               `orm:"column(fecha);type(timestamp without time zone)"`
-	ConceptoCuentaContable   *ConceptoCuentaContable `orm:"column(concepto_cuenta_contable);rel(fk)"`
+	Concepto                 *Concepto               `orm:"column(concepto);rel(fk)"`
+	CuentaContable           *CuentaContable         `orm:"column(cuenta_contable);rel(fk)"`
 	TipoDocumentoAfectante   *TipoDocumentoAfectante `orm:"column(tipo_documento_afectante);rel(fk)"`
 	CodigoDocumentoAfectante int                     `orm:"column(codigo_documento_afectante)"`
 	Aprobado                 bool                    `orm:"column(aprobado)"`
