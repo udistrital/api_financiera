@@ -191,10 +191,11 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(m.MovimientoContable); i++ {
 		movimiento_contable := MovimientoContable{
-			Debito:  m.MovimientoContable[i].Debito,
-			Credito: m.MovimientoContable[i].Credito,
-			Fecha:   time.Now(),
-			ConceptoCuentaContable:   &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
+			Debito:                   m.MovimientoContable[i].Debito,
+			Credito:                  m.MovimientoContable[i].Credito,
+			Fecha:                    time.Now(),
+			Concepto:                 m.MovimientoContable[i].Concepto,
+			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
 			CodigoDocumentoAfectante: int(id_OrdenPago),
 			Aprobado:                 false,
@@ -217,15 +218,15 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 	// Actualizar datos de la Orden
 	orden := OrdenPago{Id: m.OrdenPago.Id}
 	if o.Read(&orden) == nil {
-	    orden.Iva = m.OrdenPago.Iva
-			orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
-			orden.ValorBase = m.OrdenPago.ValorBase
-	    if _, err1 := o.Update(&orden); err1 != nil {
-				fmt.Println("Error 1")
-				alerta = append(alerta, "ERRRO_1 [ActualizarOpProveedor] No se puede actualizar los Campos de la Orden de Pago")
-				err = err1
-				o.Rollback()
-	    }
+		orden.Iva = m.OrdenPago.Iva
+		orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+		orden.ValorBase = m.OrdenPago.ValorBase
+		if _, err1 := o.Update(&orden); err1 != nil {
+			fmt.Println("Error 1")
+			alerta = append(alerta, "ERRRO_1 [ActualizarOpProveedor] No se puede actualizar los Campos de la Orden de Pago")
+			err = err1
+			o.Rollback()
+		}
 	}
 	// Eliminar Conceptos Orden de Pagos y Movimientos contables
 	if len(m.ConceptoOrdenPago) > 0 {
@@ -258,10 +259,11 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 	//Movimientos
 	for i := 0; i < len(m.MovimientoContable); i++ {
 		movimiento_contable := MovimientoContable{
-			Debito:  m.MovimientoContable[i].Debito,
-			Credito: m.MovimientoContable[i].Credito,
-			Fecha:   time.Now(),
-			ConceptoCuentaContable:   &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
+			Debito:                   m.MovimientoContable[i].Debito,
+			Credito:                  m.MovimientoContable[i].Credito,
+			Fecha:                    time.Now(),
+			Concepto:                 m.MovimientoContable[i].Concepto,
+			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
 			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
 			Aprobado:                 false,
