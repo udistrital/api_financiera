@@ -48,6 +48,10 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		ingreso.Vigencia = float64(time.Now().Year())
 		o := orm.NewOrm()
 		o.Begin()
+		var consecutivo float64
+		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
+		ingreso.Consecutivo = consecutivo
 		id, err = o.Insert(&ingreso)
 		if err != nil {
 			o.Rollback()
