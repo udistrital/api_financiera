@@ -52,7 +52,22 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
 						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
 		ingreso.Consecutivo = consecutivo
+		//insert ingreso
 		id, err = o.Insert(&ingreso)
+		//insert MovimientoContable
+		var mov []MovimientoContable
+		err = utilidades.FillStruct(m["Movimientos"], &mov)
+		for _, element := range mov {
+			element.Fecha = time.Now()
+			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
+			element.CodigoDocumentoAfectante = ingreso.Id
+			_, err = o.Insert(&element)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		}
+
 		if err != nil {
 			o.Rollback()
 			return
@@ -62,6 +77,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			err = utilidades.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
 				concepto := &Concepto{}
+				fmt.Println("concepto ", m["Concepto"])
 				err = utilidades.FillStruct(m["Concepto"], concepto)
 				if err == nil {
 					ingreso_concepto := &IngresoConcepto{ValorAgregado: ingresos,
