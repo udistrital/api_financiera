@@ -281,6 +281,34 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 	return
 }
 
+// personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
+func RegistrarOpPlanta(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+	o := orm.NewOrm()
+	o.Begin()
+	// Inserta datos Orden de pago
+	m.OrdenPago.FechaCreacion = time.Now()
+	m.OrdenPago.Nomina = "PLANTA"
+	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	m.OrdenPago.Iva = &Iva{Id: 1} 											  //1 iva del 0%
+	m.OrdenPago.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
+
+	id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
+	if err1 != nil {
+		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
+		err = err1
+		o.Rollback()
+		return
+	}
+	// Homologación
+
+	// Insertar data Conceptos
+
+	// Insertar data Movimientos Contables
+
+	o.Commit()
+	return
+}
+
 // personalizado Retrona la fecha actual del servidor
 func FechaActual(formato string)(fechaActual string, err error){
 	hoy := time.Now()
