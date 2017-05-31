@@ -17,14 +17,14 @@ func init() {
 	ns := beego.NewNamespace("/v1",
 
 		beego.NSNamespace("/fuente_financiacion",
-			beego.NSInclude(
-				&controllers.FuenteFinanciacionController{},
-			),
+		  beego.NSInclude(
+		    &controllers.FuenteFinanciacionController{},
+		  ),
 		),
 		beego.NSNamespace("/fuente_financiacion_apropiacion",
-			beego.NSInclude(
-				&controllers.FuenteFinanciacionApropiacionController{},
-			),
+		  beego.NSInclude(
+		    &controllers.FuenteFinanciacionApropiacionController{},
+		  ),
 		),
 
 		beego.NSNamespace("/requisito_avance",
@@ -33,15 +33,27 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/beneficiario",
-			beego.NSInclude(
-				&controllers.BeneficiarioController{},
-			),
-		),
-
 		beego.NSNamespace("/presupuesto_avance",
 			beego.NSInclude(
 				&controllers.PresupuestoAvanceController{},
+			),
+		),
+
+		beego.NSNamespace("/estados",
+			beego.NSInclude(
+				&controllers.EstadosController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_avance",
+			beego.NSInclude(
+				&controllers.EstadoAvanceController{},
+			),
+		),
+
+		beego.NSNamespace("/solicitud_avance",
+			beego.NSInclude(
+				&controllers.SolicitudAvanceController{},
 			),
 		),
 
@@ -66,24 +78,6 @@ func init() {
 		beego.NSNamespace("/solicitud_requisito_tipo_avance",
 			beego.NSInclude(
 				&controllers.SolicitudRequisitoTipoAvanceController{},
-			),
-		),
-
-		beego.NSNamespace("/estados",
-			beego.NSInclude(
-				&controllers.EstadosController{},
-			),
-		),
-
-		beego.NSNamespace("/estado_avance",
-			beego.NSInclude(
-				&controllers.EstadoAvanceController{},
-			),
-		),
-
-		beego.NSNamespace("/solicitud_avance",
-			beego.NSInclude(
-				&controllers.SolicitudAvanceController{},
 			),
 		),
 

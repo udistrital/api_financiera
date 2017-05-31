@@ -11,12 +11,13 @@ import (
 )
 
 type EstadoAvance struct {
-	Id            int              `orm:"column(id_estado);pk"`
-	IdSolicitud   *SolicitudAvance `orm:"column(id_solicitud);rel(fk)"`
-	Observaciones string           `orm:"column(observaciones)"`
-	Usuario       string           `orm:"column(usuario)"`
-	Estado        string           `orm:"column(estado)"`
-	FechaRegistro time.Time        `orm:"column(fecha_registro);type(timestamp without time zone);null"`
+	Id              int              `orm:"column(id);pk"`
+	Estados         *Estados         `orm:"column(estados);rel(fk)"`
+	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
+	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	Observaciones   string           `orm:"column(observaciones)"`
+	Usuario         string           `orm:"column(usuario)"`
+	Estado          string           `orm:"column(estado)"`
 }
 
 func (t *EstadoAvance) TableName() string {

@@ -16,7 +16,7 @@ type TipoAvance struct {
 	Nombre        string    `orm:"column(nombre)"`
 	Descripcion   string    `orm:"column(descripcion)"`
 	Estado        string    `orm:"column(estado)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date);null"`
+	FechaRegistro time.Time `orm:"column(fecha_registro);type(timestamp with time zone)"`
 }
 
 func (t *TipoAvance) TableName() string {
