@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
 type RequisitoTipoAvance struct {
-	Id            int              `orm:"column(id_tipo);pk;auto"`
-	IdReq         *RequisitoAvance `orm:"column(id_req);rel(fk)"`
-	Estado        string           `orm:"column(estado)"`
-	FechaRegistro string           `orm:"column(fecha_registro)"`
+	Id              int              `orm:"column(id);pk"`
+	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
+	RequisitoAvance *RequisitoAvance `orm:"column(requisito_avance);rel(fk)"`
+	Estado          string           `orm:"column(estado)"`
+	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
 }
 
 func (t *RequisitoTipoAvance) TableName() string {
@@ -48,7 +50,7 @@ func GetRequisitoTipoAvanceById(id int) (v *RequisitoTipoAvance, err error) {
 func GetAllRequisitoTipoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RequisitoTipoAvance)).RelatedSel()
+	qs := o.QueryTable(new(RequisitoTipoAvance))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute

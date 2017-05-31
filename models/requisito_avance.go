@@ -17,7 +17,7 @@ type RequisitoAvance struct {
 	Descripcion   string    `orm:"column(descripcion)"`
 	Estado        string    `orm:"column(estado)"`
 	Etapa         string    `orm:"column(etapa)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
+	FechaRegistro time.Time `orm:"column(fecha_registro);type(timestamp with time zone)"`
 }
 
 func (t *RequisitoAvance) TableName() string {
@@ -32,6 +32,8 @@ func init() {
 // last inserted Id on success.
 func AddRequisitoAvance(m *RequisitoAvance) (id int64, err error) {
 	o := orm.NewOrm()
+	m.Estado = "A"
+	m.FechaRegistro = time.Now()
 	id, err = o.Insert(m)
 	return
 }
