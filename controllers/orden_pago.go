@@ -209,7 +209,7 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
 func (c *OrdenPagoController) RegistrarOpPlanta() {
 		fmt.Println("1-------")
-    var v models.Data_OrdenPago_Concepto
+    var v models.OrdenPago
     if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
         mensaje, err, id_orden := models.RegistrarOpPlanta(&v)
         if err != nil {
