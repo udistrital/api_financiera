@@ -5,56 +5,49 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type MovimientoContable struct {
-	Id                       int                     `orm:"column(id);pk;auto"`
-	Debito                   float64                 `orm:"column(debito)"`
-	Credito                  float64                 `orm:"column(credito)"`
-	Fecha                    time.Time               `orm:"column(fecha);type(timestamp without time zone)"`
-	Concepto                 *Concepto               `orm:"column(concepto);rel(fk)"`
-	CuentaContable           *CuentaContable         `orm:"column(cuenta_contable);rel(fk)"`
-	TipoDocumentoAfectante   *TipoDocumentoAfectante `orm:"column(tipo_documento_afectante);rel(fk)"`
-	CodigoDocumentoAfectante int                     `orm:"column(codigo_documento_afectante)"`
-	Aprobado                 bool                    `orm:"column(aprobado)"`
+type TipoCuentaEspecial struct {
+	Id          int    `orm:"column(id);pk;auto"`
+	Nombre      string `orm:"column(nombre)"`
+	Descripcion string `orm:"column(descripcion);null"`
 }
 
-func (t *MovimientoContable) TableName() string {
-	return "movimiento_contable"
+func (t *TipoCuentaEspecial) TableName() string {
+	return "tipo_cuenta_especial"
 }
 
 func init() {
-	orm.RegisterModel(new(MovimientoContable))
+	orm.RegisterModel(new(TipoCuentaEspecial))
 }
 
-// AddMovimientoContable insert a new MovimientoContable into database and returns
+// AddTipoCuentaEspecial insert a new TipoCuentaEspecial into database and returns
 // last inserted Id on success.
-func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
+func AddTipoCuentaEspecial(m *TipoCuentaEspecial) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetMovimientoContableById retrieves MovimientoContable by Id. Returns error if
+// GetTipoCuentaEspecialById retrieves TipoCuentaEspecial by Id. Returns error if
 // Id doesn't exist
-func GetMovimientoContableById(id int) (v *MovimientoContable, err error) {
+func GetTipoCuentaEspecialById(id int) (v *TipoCuentaEspecial, err error) {
 	o := orm.NewOrm()
-	v = &MovimientoContable{Id: id}
+	v = &TipoCuentaEspecial{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllMovimientoContable retrieves all MovimientoContable matches certain condition. Returns empty list if
+// GetAllTipoCuentaEspecial retrieves all TipoCuentaEspecial matches certain condition. Returns empty list if
 // no records exist
-func GetAllMovimientoContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(MovimientoContable)).RelatedSel()
+	qs := o.QueryTable(new(TipoCuentaEspecial)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -104,7 +97,7 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []MovimientoContable
+	var l []TipoCuentaEspecial
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -127,11 +120,11 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateMovimientoContable updates MovimientoContable by Id and returns error if
+// UpdateTipoCuentaEspecial updates TipoCuentaEspecial by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
+func UpdateTipoCuentaEspecialById(m *TipoCuentaEspecial) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: m.Id}
+	v := TipoCuentaEspecial{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -142,15 +135,15 @@ func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
 	return
 }
 
-// DeleteMovimientoContable deletes MovimientoContable by Id and returns error if
+// DeleteTipoCuentaEspecial deletes TipoCuentaEspecial by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMovimientoContable(id int) (err error) {
+func DeleteTipoCuentaEspecial(id int) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: id}
+	v := TipoCuentaEspecial{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&MovimientoContable{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoCuentaEspecial{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

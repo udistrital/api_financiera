@@ -8,23 +8,25 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Ingreso struct {
-	Id                int              `orm:"column(id);pk;auto"`
-	Consecutivo       float64          `orm:"column(consecutivo)"`
-	Vigencia          float64          `orm:"column(vigencia)"`
-	FechaIngreso      time.Time        `orm:"column(fecha_ingreso);type(date)"`
-	FechaConsignacion time.Time        `orm:"column(fecha_consignacion);type(date)"`
-	Valor             float64          `orm:"column(valor)"`
-	Observaciones     string           `orm:"column(observaciones);null"`
-	OrigenIngreso     string           `orm:"column(origen_ingreso);null"`
-	FormaIngreso      *FormaIngreso    `orm:"column(forma_ingreso);rel(fk)"`
-	EstadoIngreso     *EstadoIngreso   `orm:"column(estado_ingreso);rel(fk)"`
-	UnidadEjecutora   *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk)"`
-	Aportante         int              `orm:"column(aportante);null"`
-	Reviso            int              `orm:"column(reviso);null"`
-	Elaboro           int              `orm:"column(elaboro)"`
+	Id                int                `orm:"column(id);pk;auto"`
+	Consecutivo       float64            `orm:"column(consecutivo)"`
+	Vigencia          float64            `orm:"column(vigencia)"`
+	FechaIngreso      time.Time          `orm:"column(fecha_ingreso);type(date)"`
+	FechaConsignacion time.Time          `orm:"column(fecha_consignacion);type(date)"`
+	Valor             float64            `orm:"column(valor)"`
+	Observaciones     string             `orm:"column(observaciones);null"`
+	OrigenIngreso     string             `orm:"column(origen_ingreso);null"`
+	FormaIngreso      *FormaIngreso      `orm:"column(forma_ingreso);rel(fk)"`
+	EstadoIngreso     *EstadoIngreso     `orm:"column(estado_ingreso);rel(fk)"`
+	UnidadEjecutora   *UnidadEjecutora   `orm:"column(unidad_ejecutora);rel(fk)"`
+	Aportante         int                `orm:"column(aportante);null"`
+	Reviso            int                `orm:"column(reviso);null"`
+	Elaboro           int                `orm:"column(elaboro)"`
+	IngresoConcepto   []*IngresoConcepto `orm:"reverse(many)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -33,6 +35,77 @@ func (t *Ingreso) TableName() string {
 
 func init() {
 	orm.RegisterModel(new(Ingreso))
+}
+
+// AddIngreso insert a new Ingreso into database and returns
+// last inserted Id on success.
+func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
+	var id int64
+	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	if err == nil {
+		ingreso.EstadoIngreso = &EstadoIngreso{Id: 1}
+		ingreso.FechaIngreso = time.Now()
+		ingreso.Vigencia = float64(time.Now().Year())
+		o := orm.NewOrm()
+		o.Begin()
+		var consecutivo float64
+		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
+		ingreso.Consecutivo = consecutivo
+		//insert ingreso
+		id, err = o.Insert(&ingreso)
+		//insert MovimientoContable
+		var mov []MovimientoContable
+		err = utilidades.FillStruct(m["Movimientos"], &mov)
+		for _, element := range mov {
+			element.Fecha = time.Now()
+			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
+			element.CodigoDocumentoAfectante = ingreso.Id
+			_, err = o.Insert(&element)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		}
+
+		if err != nil {
+			o.Rollback()
+			return
+		} else {
+			ingreso.Id = int(id)
+			var ingresos float64
+			err = utilidades.FillStruct(m["IngresoBanco"], &ingresos)
+			if err == nil {
+				concepto := &Concepto{}
+				fmt.Println("concepto ", m["Concepto"])
+				err = utilidades.FillStruct(m["Concepto"], concepto)
+				if err == nil {
+					ingreso_concepto := &IngresoConcepto{ValorAgregado: ingresos,
+						Ingreso:  &ingreso,
+						Concepto: concepto}
+					_, err = o.Insert(ingreso_concepto)
+					if err != nil {
+						o.Rollback()
+						return
+					}
+
+				} else {
+					o.Rollback()
+					return
+				}
+
+			} else {
+				o.Rollback()
+				return
+			}
+
+			o.Commit()
+			return
+		}
+	} else {
+		return
+	}
+
 }
 
 // AddIngreso insert a new Ingreso into database and returns
@@ -114,6 +187,7 @@ func GetAllIngreso(query map[string]string, fields []string, sortby []string, or
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "IngresoConcepto", 5)
 				ml = append(ml, v)
 			}
 		} else {
