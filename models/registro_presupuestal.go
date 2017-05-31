@@ -60,6 +60,14 @@ func init() {
 func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	var consecutivo int
+	err = o.Raw(`SELECT COALESCE(MAX(numero_registro_presupuestal), 0)+1  as consecutivo
+					FROM financiera.registro_presupuestal WHERE vigencia = ?`, m.Rp.Vigencia).QueryRow(&consecutivo)
+	m.Rp.NumeroRegistroPresupuestal = consecutivo
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	id, err = o.Insert(m.Rp)
 	if err == nil {
 		m.Rp.Id = int(id)
@@ -257,15 +265,15 @@ func ComprometidoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64
 	var maps []orm.Params
 	o.Raw(`SELECT * FROM(SELECT registro_presupuestal.id,
             apropiacion.id AS apropiacion,
+            COALESCE(disponibilidad_apropiacion.fuente_financiamiento, 0) as fuente_financiamiento,
             sum(concepto_orden_pago.valor) AS valor
-           FROM financiera.orden_pago
-             JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
-             JOIN financiera.concepto ON concepto.id = concepto_orden_pago.concepto
-             JOIN financiera.rubro ON concepto.rubro = rubro.id
-             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = orden_pago.registro_presupuestal
-             JOIN financiera.apropiacion ON apropiacion.rubro = rubro.id AND apropiacion.vigencia = registro_presupuestal.vigencia
-          GROUP BY registro_presupuestal.id, apropiacion.id) as comprometido
-          WHERE id = ? AND apropiacion= ? `, id_rp, id_apropiacion).Values(&maps)
+           FROM financiera.concepto_orden_pago
+             JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.id = concepto_orden_pago.registro_presupuestal_disponibilidad_apropiacion
+             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal
+             JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
+             JOIN financiera.apropiacion ON financiera.apropiacion.id = disponibilidad_apropiacion.apropiacion
+          GROUP BY registro_presupuestal.id, apropiacion.id, fuente_financiamiento) as comprometido
+          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?`, id_rp, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
 	if maps == nil {
 		valor = 0
