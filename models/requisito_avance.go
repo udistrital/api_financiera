@@ -17,7 +17,7 @@ type RequisitoAvance struct {
 	Descripcion   string    `orm:"column(descripcion)"`
 	Estado        string    `orm:"column(estado)"`
 	Etapa         string    `orm:"column(etapa)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
+	FechaRegistro time.Time `orm:"column(fecha_registro);type(timestamp with time zone)"`
 }
 
 func (t *RequisitoAvance) TableName() string {

@@ -814,131 +814,19 @@ paths:
     get:
       tags:
       - arbol_plan_cuentas
-      description: get Arbol of Cuentas in Plan_Cuentas
+      description: construye y muestra la estructura de cuentas en un plan de cuentas
       operationId: ArbolPlanCuentasController.MakeTreeCuentas
       parameters:
-      - in: body
-        name: body
-        description: body for EstructuraCuentas content
+      - in: path
+        name: id
+        description: Id del plan de cuentas a construirse
         required: true
-        schema:
-          $ref: '#/definitions/models.EstructuraCuentas'
+        type: string
       responses:
         "201":
           description: '{int} models.ArbolPlanCuentas'
         "403":
           description: body is empty
-  /beneficiario/:
-    get:
-      tags:
-      - beneficiario
-      description: get Beneficiario
-      operationId: BeneficiarioController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Beneficiario'
-        "403": {}
-    post:
-      tags:
-      - beneficiario
-      description: create Beneficiario
-      operationId: BeneficiarioController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for Beneficiario content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Beneficiario'
-      responses:
-        "201":
-          description: '{int} models.Beneficiario'
-        "403":
-          description: body is empty
-  /beneficiario/{id}:
-    get:
-      tags:
-      - beneficiario
-      description: get Beneficiario by id
-      operationId: BeneficiarioController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Beneficiario'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - beneficiario
-      description: update the Beneficiario
-      operationId: BeneficiarioController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for Beneficiario content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Beneficiario'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Beneficiario'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - beneficiario
-      description: delete the Beneficiario
-      operationId: BeneficiarioController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /categoria_compromiso/:
     get:
       tags:
@@ -2493,117 +2381,6 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
-  /estado_avance/:
-    get:
-      tags:
-      - estado_avance
-      description: get EstadoAvance
-      operationId: EstadoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.EstadoAvance'
-        "403": {}
-    post:
-      tags:
-      - estado_avance
-      description: create EstadoAvance
-      operationId: EstadoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for EstadoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.EstadoAvance'
-      responses:
-        "201":
-          description: '{int} models.EstadoAvance'
-        "403":
-          description: body is empty
-  /estado_avance/{id}:
-    get:
-      tags:
-      - estado_avance
-      description: get EstadoAvance by id
-      operationId: EstadoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.EstadoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - estado_avance
-      description: update the EstadoAvance
-      operationId: EstadoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for EstadoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.EstadoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.EstadoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - estado_avance
-      description: delete the EstadoAvance
-      operationId: EstadoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /estado_compromiso/:
     get:
       tags:
@@ -3270,117 +3047,6 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
-  /estados/:
-    get:
-      tags:
-      - estados
-      description: get Estados
-      operationId: EstadosController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Estados'
-        "403": {}
-    post:
-      tags:
-      - estados
-      description: create Estados
-      operationId: EstadosController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for Estados content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Estados'
-      responses:
-        "201":
-          description: '{int} models.Estados'
-        "403":
-          description: body is empty
-  /estados/{id}:
-    get:
-      tags:
-      - estados
-      description: get Estados by id
-      operationId: EstadosController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Estados'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - estados
-      description: update the Estados
-      operationId: EstadosController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for Estados content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Estados'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.Estados'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - estados
-      description: delete the Estados
-      operationId: EstadosController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /estructura_cuentas/:
     get:
       tags:
@@ -3703,6 +3369,228 @@ paths:
       - forma_ingreso
       description: delete the FormaIngreso
       operationId: FormaIngresoController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /fuente_financiacion/:
+    get:
+      tags:
+      - fuente_financiacion
+      description: get FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403": {}
+    post:
+      tags:
+      - fuente_financiacion
+      description: create FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for FuenteFinanciacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacion'
+      responses:
+        "201":
+          description: '{int} models.FuenteFinanciacion'
+        "403":
+          description: body is empty
+  /fuente_financiacion/{id}:
+    get:
+      tags:
+      - fuente_financiacion
+      description: get FuenteFinanciacion by id
+      operationId: FuenteFinanciacionController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - fuente_financiacion
+      description: update the FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for FuenteFinanciacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacion'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacion'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - fuente_financiacion
+      description: delete the FuenteFinanciacion
+      operationId: FuenteFinanciacionController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /fuente_financiacion_apropiacion/:
+    get:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: get FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403": {}
+    post:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: create FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for FuenteFinanciacionApropiacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+      responses:
+        "201":
+          description: '{int} models.FuenteFinanciacionApropiacion'
+        "403":
+          description: body is empty
+  /fuente_financiacion_apropiacion/{id}:
+    get:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: get FuenteFinanciacionApropiacion by id
+      operationId: FuenteFinanciacionApropiacionController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: update the FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for FuenteFinanciacionApropiacion content
+        required: true
+        schema:
+          $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+      responses:
+        "200":
+          schema:
+            $ref: '#/definitions/models.FuenteFinanciacionApropiacion'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - fuente_financiacion_apropiacion
+      description: delete the FuenteFinanciacionApropiacion
+      operationId: FuenteFinanciacionApropiacionController.Delete
       parameters:
       - in: path
         name: id
@@ -4947,117 +4835,6 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
-  /presupuesto_avance/:
-    get:
-      tags:
-      - presupuesto_avance
-      description: get PresupuestoAvance
-      operationId: PresupuestoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.PresupuestoAvance'
-        "403": {}
-    post:
-      tags:
-      - presupuesto_avance
-      description: create PresupuestoAvance
-      operationId: PresupuestoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for PresupuestoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.PresupuestoAvance'
-      responses:
-        "201":
-          description: '{int} models.PresupuestoAvance'
-        "403":
-          description: body is empty
-  /presupuesto_avance/{id}:
-    get:
-      tags:
-      - presupuesto_avance
-      description: get PresupuestoAvance by id
-      operationId: PresupuestoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.PresupuestoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - presupuesto_avance
-      description: update the PresupuestoAvance
-      operationId: PresupuestoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for PresupuestoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.PresupuestoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.PresupuestoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - presupuesto_avance
-      description: delete the PresupuestoAvance
-      operationId: PresupuestoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /registro_presupuestal/:
     get:
       tags:
@@ -5316,228 +5093,6 @@ paths:
           description: '{int} models.RegistroPresupuestal'
         "403":
           description: body is empty
-  /requisito_avance/:
-    get:
-      tags:
-      - requisito_avance
-      description: get RequisitoAvance
-      operationId: RequisitoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoAvance'
-        "403": {}
-    post:
-      tags:
-      - requisito_avance
-      description: create RequisitoAvance
-      operationId: RequisitoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for RequisitoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.RequisitoAvance'
-      responses:
-        "201":
-          description: '{int} models.RequisitoAvance'
-        "403":
-          description: body is empty
-  /requisito_avance/{id}:
-    get:
-      tags:
-      - requisito_avance
-      description: get RequisitoAvance by id
-      operationId: RequisitoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - requisito_avance
-      description: update the RequisitoAvance
-      operationId: RequisitoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for RequisitoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.RequisitoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - requisito_avance
-      description: delete the RequisitoAvance
-      operationId: RequisitoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
-  /requisito_tipo_avance/:
-    get:
-      tags:
-      - requisito_tipo_avance
-      description: get RequisitoTipoAvance
-      operationId: RequisitoTipoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoTipoAvance'
-        "403": {}
-    post:
-      tags:
-      - requisito_tipo_avance
-      description: create RequisitoTipoAvance
-      operationId: RequisitoTipoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for RequisitoTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.RequisitoTipoAvance'
-      responses:
-        "201":
-          description: '{int} models.RequisitoTipoAvance'
-        "403":
-          description: body is empty
-  /requisito_tipo_avance/{id}:
-    get:
-      tags:
-      - requisito_tipo_avance
-      description: get RequisitoTipoAvance by id
-      operationId: RequisitoTipoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoTipoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - requisito_tipo_avance
-      description: update the RequisitoTipoAvance
-      operationId: RequisitoTipoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for RequisitoTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.RequisitoTipoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.RequisitoTipoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - requisito_tipo_avance
-      description: delete the RequisitoTipoAvance
-      operationId: RequisitoTipoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /reserva_presupuestal/:
     get:
       tags:
@@ -5982,339 +5537,6 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
-  /solicitud_avance/:
-    get:
-      tags:
-      - solicitud_avance
-      description: get SolicitudAvance
-      operationId: SolicitudAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudAvance'
-        "403": {}
-    post:
-      tags:
-      - solicitud_avance
-      description: create SolicitudAvance
-      operationId: SolicitudAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for SolicitudAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudAvance'
-      responses:
-        "201":
-          description: '{int} models.SolicitudAvance'
-        "403":
-          description: body is empty
-  /solicitud_avance/{id}:
-    get:
-      tags:
-      - solicitud_avance
-      description: get SolicitudAvance by id
-      operationId: SolicitudAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - solicitud_avance
-      description: update the SolicitudAvance
-      operationId: SolicitudAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for SolicitudAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - solicitud_avance
-      description: delete the SolicitudAvance
-      operationId: SolicitudAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
-  /solicitud_requisito_tipo_avance/:
-    get:
-      tags:
-      - solicitud_requisito_tipo_avance
-      description: get SolicitudRequisitoTipoAvance
-      operationId: SolicitudRequisitoTipoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudRequisitoTipoAvance'
-        "403": {}
-    post:
-      tags:
-      - solicitud_requisito_tipo_avance
-      description: create SolicitudRequisitoTipoAvance
-      operationId: SolicitudRequisitoTipoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for SolicitudRequisitoTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudRequisitoTipoAvance'
-      responses:
-        "201":
-          description: '{int} models.SolicitudRequisitoTipoAvance'
-        "403":
-          description: body is empty
-  /solicitud_requisito_tipo_avance/{id}:
-    get:
-      tags:
-      - solicitud_requisito_tipo_avance
-      description: get SolicitudRequisitoTipoAvance by id
-      operationId: SolicitudRequisitoTipoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudRequisitoTipoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - solicitud_requisito_tipo_avance
-      description: update the SolicitudRequisitoTipoAvance
-      operationId: SolicitudRequisitoTipoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for SolicitudRequisitoTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudRequisitoTipoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudRequisitoTipoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - solicitud_requisito_tipo_avance
-      description: delete the SolicitudRequisitoTipoAvance
-      operationId: SolicitudRequisitoTipoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
-  /solicitud_tipo_avance/:
-    get:
-      tags:
-      - solicitud_tipo_avance
-      description: get SolicitudTipoAvance
-      operationId: SolicitudTipoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudTipoAvance'
-        "403": {}
-    post:
-      tags:
-      - solicitud_tipo_avance
-      description: create SolicitudTipoAvance
-      operationId: SolicitudTipoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for SolicitudTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudTipoAvance'
-      responses:
-        "201":
-          description: '{int} models.SolicitudTipoAvance'
-        "403":
-          description: body is empty
-  /solicitud_tipo_avance/{id}:
-    get:
-      tags:
-      - solicitud_tipo_avance
-      description: get SolicitudTipoAvance by id
-      operationId: SolicitudTipoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudTipoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - solicitud_tipo_avance
-      description: update the SolicitudTipoAvance
-      operationId: SolicitudTipoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for SolicitudTipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.SolicitudTipoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.SolicitudTipoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - solicitud_tipo_avance
-      description: delete the SolicitudTipoAvance
-      operationId: SolicitudTipoAvanceController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /tipo_afectacion/:
     get:
       tags:
@@ -6415,117 +5637,6 @@ paths:
       - tipo_afectacion
       description: delete the TipoAfectacion
       operationId: TipoAfectacionController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
-  /tipo_avance/:
-    get:
-      tags:
-      - tipo_avance
-      description: get TipoAvance
-      operationId: TipoAvanceController.Get All
-      parameters:
-      - in: query
-        name: query
-        description: Filter. e.g. col1:v1,col2:v2 ...
-        type: string
-      - in: query
-        name: fields
-        description: Fields returned. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: sortby
-        description: Sorted-by fields. e.g. col1,col2 ...
-        type: string
-      - in: query
-        name: order
-        description: Order corresponding to each sortby field, if single value, apply
-          to all sortby fields. e.g. desc,asc ...
-        type: string
-      - in: query
-        name: limit
-        description: Limit the size of result set. Must be an integer
-        type: string
-      - in: query
-        name: offset
-        description: Start position of result set. Must be an integer
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.TipoAvance'
-        "403": {}
-    post:
-      tags:
-      - tipo_avance
-      description: create TipoAvance
-      operationId: TipoAvanceController.Post
-      parameters:
-      - in: body
-        name: body
-        description: body for TipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.TipoAvance'
-      responses:
-        "201":
-          description: '{int} models.TipoAvance'
-        "403":
-          description: body is empty
-  /tipo_avance/{id}:
-    get:
-      tags:
-      - tipo_avance
-      description: get TipoAvance by id
-      operationId: TipoAvanceController.Get One
-      parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.TipoAvance'
-        "403":
-          description: :id is empty
-    put:
-      tags:
-      - tipo_avance
-      description: update the TipoAvance
-      operationId: TipoAvanceController.Put
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to update
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: body for TipoAvance content
-        required: true
-        schema:
-          $ref: '#/definitions/models.TipoAvance'
-      responses:
-        "200":
-          schema:
-            $ref: '#/definitions/models.TipoAvance'
-        "403":
-          description: :id is not int
-    delete:
-      tags:
-      - tipo_avance
-      description: delete the TipoAvance
-      operationId: TipoAvanceController.Delete
       parameters:
       - in: path
         name: id
@@ -7429,12 +6540,13 @@ paths:
     post:
       tags:
       - tr_cuentas_contables
-      description: Post Cuentas in Plan_Cuentas
+      description: Post de cuentas contables mediante la transaccion que las crea
+        y ubica en el plan de cuentas
       operationId: TrCuentasContablesController.Post
       parameters:
       - in: body
         name: body
-        description: body for TrCuentaContable content
+        description: body para la transaccion
         required: true
         schema:
           $ref: '#/definitions/models.TrCuentaContable'
@@ -7782,33 +6894,6 @@ definitions:
       Vigencia:
         type: number
         format: double
-  models.Beneficiario:
-    title: Beneficiario
-    type: object
-    properties:
-      Apellidos:
-        type: string
-      Celular:
-        type: string
-      Correo:
-        type: string
-      Direccion:
-        type: string
-      Documento:
-        type: string
-      Estado:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      LugarDocumento:
-        type: string
-      Nombres:
-        type: string
-      Telefono:
-        type: string
-      TipoDocumento:
-        type: string
   models.CategoriaCompromiso:
     title: CategoriaCompromiso
     type: object
@@ -7996,20 +7081,12 @@ definitions:
       Id:
         type: integer
         format: int64
-      ModalidadGiro:
-        type: integer
-        format: int32
       NumeroDisponibilidad:
         type: number
         format: double
       NumeroOficio:
         type: string
-      Objeto:
-        type: string
       Responsable:
-        type: integer
-        format: int64
-      Solicitante:
         type: integer
         format: int64
       Solicitud:
@@ -8020,9 +7097,6 @@ definitions:
       Vigencia:
         type: number
         format: double
-      VigenciaFutura:
-        type: number
-        format: double
   models.DisponibilidadApropiacion:
     title: DisponibilidadApropiacion
     type: object
@@ -8031,6 +7105,8 @@ definitions:
         $ref: '#/definitions/models.Apropiacion'
       Disponibilidad:
         $ref: '#/definitions/models.Disponibilidad'
+      FuenteFinanciamiento:
+        $ref: '#/definitions/models.FuenteFinanciacion'
       Id:
         type: integer
         format: int64
@@ -8060,24 +7136,6 @@ definitions:
         type: integer
         format: int64
       Nombre:
-        type: string
-  models.EstadoAvance:
-    title: EstadoAvance
-    type: object
-    properties:
-      Estado:
-        type: string
-      FechaRegistro:
-        type: string
-        format: string
-      Id:
-        type: integer
-        format: int64
-      IdSolicitud:
-        $ref: '#/definitions/models.SolicitudAvance'
-      Observaciones:
-        type: string
-      Usuario:
         type: string
   models.EstadoCompromiso:
     title: EstadoCompromiso
@@ -8147,21 +7205,6 @@ definitions:
         format: int64
       Nombre:
         type: string
-  models.Estados:
-    title: Estados
-    type: object
-    properties:
-      Descripcion:
-        type: string
-      Estado:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      Nombre:
-        type: string
-      Proceso:
-        type: string
   models.EstructuraCuentas:
     title: EstructuraCuentas
     type: object
@@ -8197,6 +7240,39 @@ definitions:
         format: int64
       Nombre:
         type: string
+  models.FuenteFinanciacion:
+    title: FuenteFinanciacion
+    type: object
+    properties:
+      Codigo:
+        type: string
+      Descripcion:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      Sigla:
+        type: string
+  models.FuenteFinanciacionApropiacion:
+    title: FuenteFinanciacionApropiacion
+    type: object
+    properties:
+      Apropiacion:
+        $ref: '#/definitions/models.Apropiacion'
+      Dependencia:
+        type: integer
+        format: int64
+      FechaCreacion:
+        type: string
+        format: string
+      Fuente:
+        $ref: '#/definitions/models.FuenteFinanciacion'
+      Id:
+        type: integer
+        format: int64
+      Valor:
+        type: number
+        format: double
   models.Ingreso:
     title: Ingreso
     type: object
@@ -8429,25 +7505,6 @@ definitions:
         type: boolean
       UnidadEjecutora:
         $ref: '#/definitions/models.UnidadEjecutora'
-  models.PresupuestoAvance:
-    title: PresupuestoAvance
-    type: object
-    properties:
-      CodRubro:
-        type: string
-      Compromiso:
-        type: string
-      Disponibilidad:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      OrdenPago:
-        type: string
-      Registro:
-        type: string
-      Vigencia:
-        type: string
   models.RegistroPresupuestal:
     title: RegistroPresupuestal
     type: object
@@ -8471,6 +7528,9 @@ definitions:
       Responsable:
         type: integer
         format: int64
+      Solicitud:
+        type: integer
+        format: int64
       UnidadEjecutora:
         $ref: '#/definitions/models.UnidadEjecutora'
       Vigencia:
@@ -8490,39 +7550,6 @@ definitions:
       Valor:
         type: number
         format: double
-  models.RequisitoAvance:
-    title: RequisitoAvance
-    type: object
-    properties:
-      Descripcion:
-        type: string
-      Estado:
-        type: string
-      Etapa:
-        type: string
-      FechaRegistro:
-        type: string
-        format: string
-      Id:
-        type: integer
-        format: int64
-      Nombre:
-        type: string
-      Referencia:
-        type: string
-  models.RequisitoTipoAvance:
-    title: RequisitoTipoAvance
-    type: object
-    properties:
-      Estado:
-        type: string
-      FechaRegistro:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      IdReq:
-        $ref: '#/definitions/models.RequisitoAvance'
   models.ReservaPresupuestal:
     title: ReservaPresupuestal
     type: object
@@ -8602,90 +7629,6 @@ definitions:
         $ref: '#/definitions/models.Rubro'
       RubroPadre:
         $ref: '#/definitions/models.Rubro'
-  models.SolicitudAvance:
-    title: SolicitudAvance
-    type: object
-    properties:
-      CodigoConvenio:
-        type: string
-      CodigoDependencia:
-        type: string
-      CodigoFacultad:
-        type: string
-      CodigoProyectoCurricular:
-        type: string
-      CodigoProyectoInv:
-        type: string
-      Consecutivo:
-        type: string
-      Convenio:
-        type: string
-      Dependencia:
-        type: string
-      Estado:
-        type: string
-      Facultad:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      IdBeneficiario:
-        $ref: '#/definitions/models.Beneficiario'
-      Justificacion:
-        type: string
-      Objetivo:
-        type: string
-      ProyectoCurricular:
-        type: string
-      ProyectoInv:
-        type: string
-      ValorTotal:
-        type: number
-        format: double
-      Vigencia:
-        type: string
-  models.SolicitudRequisitoTipoAvance:
-    title: SolicitudRequisitoTipoAvance
-    type: object
-    properties:
-      Documento:
-        type: string
-      Estado:
-        type: string
-      FechaRegistro:
-        type: string
-        format: string
-      Id:
-        type: integer
-        format: int64
-      IdReq:
-        type: integer
-        format: int64
-      IdSolicitud:
-        type: integer
-        format: int64
-      Observaciones:
-        type: string
-      UbicacionDoc:
-        type: string
-      Valido:
-        type: string
-  models.SolicitudTipoAvance:
-    title: SolicitudTipoAvance
-    type: object
-    properties:
-      Descripcion:
-        type: string
-      Estado:
-        type: string
-      Id:
-        type: integer
-        format: int64
-      IdTipo:
-        $ref: '#/definitions/models.TipoAvance'
-      Valor:
-        type: number
-        format: double
   models.TipoAfectacion:
     title: TipoAfectacion
     type: object
@@ -8696,24 +7639,6 @@ definitions:
         type: integer
         format: int64
       Nombre:
-        type: string
-  models.TipoAvance:
-    title: TipoAvance
-    type: object
-    properties:
-      Descripcion:
-        type: string
-      Estado:
-        type: string
-      FechaRegistro:
-        type: string
-        format: string
-      Id:
-        type: integer
-        format: int64
-      Nombre:
-        type: string
-      Referencia:
         type: string
   models.TipoCompromisoTesoral:
     title: TipoCompromisoTesoral
@@ -8857,39 +7782,12 @@ definitions:
       TipoTransaccion:
         $ref: '#/definitions/models.TipoTransaccion'
 tags:
-- name: beneficiario
+- name: fuente_financiacion
   description: |
-    BeneficiarioController operations for Beneficiario
-- name: requisito_avance
+    FuenteFinanciacionController operations for FuenteFinanciacion
+- name: fuente_financiacion_apropiacion
   description: |
-    RequisitoAvanceController operations for RequisitoAvance
-- name: beneficiario
-  description: |
-    BeneficiarioController operations for Beneficiario
-- name: presupuesto_avance
-  description: |
-    PresupuestoAvanceController operations for PresupuestoAvance
-- name: tipo_avance
-  description: |
-    TipoAvanceController operations for TipoAvance
-- name: solicitud_tipo_avance
-  description: |
-    SolicitudTipoAvanceController operations for SolicitudTipoAvance
-- name: requisito_tipo_avance
-  description: |
-    RequisitoTipoAvanceController operations for RequisitoTipoAvance
-- name: solicitud_requisito_tipo_avance
-  description: |
-    SolicitudRequisitoTipoAvanceController operations for SolicitudRequisitoTipoAvance
-- name: estados
-  description: |
-    EstadosController operations for Estados
-- name: estado_avance
-  description: |
-    EstadoAvanceController operations for EstadoAvance
-- name: solicitud_avance
-  description: |
-    SolicitudAvanceController operations for SolicitudAvance
+    FuenteFinanciacionApropiacionController operations for FuenteFinanciacionApropiacion
 - name: anulacion_registro_presupuestal
   description: |
     AnulacionRegistroPresupuestalController operations for AnulacionRegistroPresupuestal
