@@ -283,9 +283,11 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpPlanta(m *OrdenPago) (alerta []string, err error, id_OrdenPago int64) {
+func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, err error, id_OrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
+	m := OrdenPago{}
+	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &m)
 	// Inserta datos Orden de pago
 	m.FechaCreacion = time.Now()
 	m.Nomina = "PLANTA"
