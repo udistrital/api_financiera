@@ -73,26 +73,21 @@ func DeleteBranchPlan(IdCuenta int, IdPlan int) (msg string, err error) {
 	var hijos []EstructuraCuentas
 	o := orm.NewOrm()
 	o.Begin()
-	_, err = o.Raw("select * from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_padre = ?", IdPlan, IdCuenta).QueryRows(&hijos)
-	if err != nil {
-		fmt.Println(err)
-		o.Rollback()
-		return "", err
-	}
-	for _, hijo := range hijos {
-		if _, err = DeleteBranchPlan(hijo.Id, IdPlan); err != nil {
-			o.Rollback()
-			return "", err
+	if _, err = o.Raw("select * from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_padre = ?", IdPlan, IdCuenta).QueryRows(&hijos); err == nil {
+		for _, hijo := range hijos {
+			if _, err = DeleteBranchPlan(hijo.Id, IdPlan); err != nil {
+				o.Rollback()
+				return "", err
+			}
 		}
 	}
 	_, err = o.Raw("delete from financiera.estructura_cuentas where plan_cuentas = ? and (cuenta_hijo=? or cuenta_padre=?)", IdPlan, IdCuenta, IdCuenta).Exec()
 	if err != nil {
 		o.Rollback()
 		return "", err
-	} else {
-		o.Commit()
-		return "rama eliminada", nil
 	}
+	o.Commit()
+	return "rama eliminada", nil
 }
 
 func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (msg string, err error) {
@@ -101,22 +96,23 @@ func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (msg string, err error) {
 	var v EstructuraCuentas
 	v.PlanCuentas = &PlanCuentas{Id: IdPlan}
 	v.CuentaPadre = &CuentaContable{Id: Rama.Id}
-	for _, cuenta := range *Rama.Hijos {
-		p := v
-		p.CuentaHijo = &CuentaContable{Id: cuenta.Id}
-		var f EstructuraCuentas
-		if err := o.Raw("Select * from financiera.estructura_cuentas where cuenta_padre=? and cuenta_hijo=? and plan_cuentas=?", p.CuentaPadre.Id, p.CuentaHijo.Id, p.PlanCuentas.Id).QueryRow(&f); err != nil {
-			fmt.Println(err)
-			if _, err = o.Insert(&p); err != nil {
-				o.Rollback()
-				return "fallo algo", err
+	if Rama.Hijos != nil {
+		for _, cuenta := range *Rama.Hijos {
+			p := v
+			p.CuentaHijo = &CuentaContable{Id: cuenta.Id}
+			var f EstructuraCuentas
+			fmt.Println(p.CuentaHijo.Id)
+			if err := o.Raw("Select * from financiera.estructura_cuentas where cuenta_hijo=? and plan_cuentas=?", p.CuentaHijo.Id, p.PlanCuentas.Id).QueryRow(&f); err != nil {
+				if _, err = o.Insert(&p); err != nil {
+					o.Rollback()
+					return "fallo algo", err
+				}
 			}
 			if _, err = AddBranchPlan(&cuenta, IdPlan); err != nil {
 				return "fallo algo", err
 			}
+
 		}
-		o.Commit()
-		return "la creo", nil
 	}
 	o.Commit()
 	return "la creo", nil
