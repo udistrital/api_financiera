@@ -10,11 +10,12 @@ import (
 )
 
 type SolicitudTipoAvance struct {
-	Id          int         `orm:"column(id_solicitud);pk"`
-	IdTipo      *TipoAvance `orm:"column(id_tipo);rel(fk)"`
-	Descripcion string      `orm:"column(descripcion)"`
-	Valor       float64     `orm:"column(valor)"`
-	Estado      string      `orm:"column(estado)"`
+	Id              int              `orm:"column(id);pk"`
+	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
+	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
+	Descripcion     string           `orm:"column(descripcion)"`
+	Valor           float64          `orm:"column(valor)"`
+	Estado          string           `orm:"column(estado)"`
 }
 
 func (t *SolicitudTipoAvance) TableName() string {

@@ -41,7 +41,17 @@ func init() {
 // last inserted Id on success.
 func AddDisponibilidad(m *Disponibilidad) (id int64, err error) {
 	o := orm.NewOrm()
+	o.Begin()
+	var consecutivo float64
+	err = o.Raw(`SELECT COALESCE(MAX(numero_disponibilidad), 0)+1  as consecutivo
+					FROM financiera.disponibilidad WHERE vigencia = ?`, m.Vigencia).QueryRow(&consecutivo)
+	m.NumeroDisponibilidad = consecutivo
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	id, err = o.Insert(m)
+	o.Commit()
 	return
 }
 
