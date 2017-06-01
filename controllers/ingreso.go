@@ -28,6 +28,62 @@ func (c *IngresoController) URLMapping() {
 }
 
 // Post ...
+// @Title AprobarIngreso
+// @Description Aprobar Ingreso
+// @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
+// @Success 201 {int} models.Ingreso
+// @Failure 403 body is empty
+// @router /AprobarIngreso [post]
+func (c *IngresoController) AprobarIngreso() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if res, err := models.AprobarIngreso(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_544", Body: res}
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// Post ...
+// @Title AprobarIngreso
+// @Description Aprobar Ingreso
+// @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
+// @Success 201 {int} models.Ingreso
+// @Failure 403 body is empty
+// @router /RechazarIngreso [post]
+func (c *IngresoController) RechazarIngreso() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if res, err := models.RechazarIngreso(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// Post ...
 // @Title CreateIngresos
 // @Description create Ingreso
 // @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
