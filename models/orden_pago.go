@@ -284,7 +284,6 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
 func RegistrarOpPlanta(m *OrdenPago) (alerta []string, err error, id_OrdenPago int64) {
-	fmt.Println("Funcion")
 	o := orm.NewOrm()
 	o.Begin()
 	// Inserta datos Orden de pago
@@ -296,10 +295,10 @@ func RegistrarOpPlanta(m *OrdenPago) (alerta []string, err error, id_OrdenPago i
 	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(m)
 	if err1 != nil {
-			alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
-			err = err1
-			o.Rollback()
-			return
+		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
+		err = err1
+		o.Rollback()
+		return
 	}
 	// Homologación
 	// Insertar data Conceptos
