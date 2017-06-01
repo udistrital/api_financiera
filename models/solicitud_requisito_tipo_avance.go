@@ -11,15 +11,15 @@ import (
 )
 
 type SolicitudRequisitoTipoAvance struct {
-	Id            int       `orm:"column(id_tipo);pk"`
-	IdReq         int       `orm:"column(id_req)"`
-	IdSolicitud   int       `orm:"column(id_solicitud)"`
-	Valido        string    `orm:"column(valido);null"`
-	Observaciones string    `orm:"column(observaciones);null"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
-	Documento     string    `orm:"column(documento);null"`
-	Estado        string    `orm:"column(estado)"`
-	UbicacionDoc  string    `orm:"column(ubicacion_doc);null"`
+	Id                  int                  `orm:"column(id);pk"`
+	RequisitoTipoAvance *RequisitoTipoAvance `orm:"column(requisito_tipo_avance);rel(fk)"`
+	SolicitudTipoAvance *SolicitudTipoAvance `orm:"column(solicitud_tipo_avance);rel(fk)"`
+	Valido              string               `orm:"column(valido);null"`
+	Observaciones       string               `orm:"column(observaciones);null"`
+	FechaRegistro       time.Time            `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	Documento           string               `orm:"column(documento);null"`
+	Estado              string               `orm:"column(estado)"`
+	UbicacionDoc        string               `orm:"column(ubicacion_doc);null"`
 }
 
 func (t *SolicitudRequisitoTipoAvance) TableName() string {

@@ -60,6 +60,14 @@ func init() {
 func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	var consecutivo int
+	err = o.Raw(`SELECT COALESCE(MAX(numero_registro_presupuestal), 0)+1  as consecutivo
+					FROM financiera.registro_presupuestal WHERE vigencia = ?`, m.Rp.Vigencia).QueryRow(&consecutivo)
+	m.Rp.NumeroRegistroPresupuestal = consecutivo
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	id, err = o.Insert(m.Rp)
 	if err == nil {
 		m.Rp.Id = int(id)

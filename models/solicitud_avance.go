@@ -10,24 +10,24 @@ import (
 )
 
 type SolicitudAvance struct {
-	Id                       int           `orm:"column(id_solicitud);pk"`
-	IdBeneficiario           *Beneficiario `orm:"column(id_beneficiario);rel(fk)"`
-	Vigencia                 string        `orm:"column(vigencia)"`
-	Consecutivo              string        `orm:"column(consecutivo)"`
-	Objetivo                 string        `orm:"column(objetivo)"`
-	Justificacion            string        `orm:"column(justificacion)"`
-	ValorTotal               float64       `orm:"column(valor_total)"`
-	CodigoDependencia        string        `orm:"column(codigo_dependencia)"`
-	Dependencia              string        `orm:"column(dependencia)"`
-	CodigoFacultad           string        `orm:"column(codigo_facultad);null"`
-	Facultad                 string        `orm:"column(facultad);null"`
-	CodigoProyectoCurricular string        `orm:"column(codigo_proyecto_curricular)"`
-	ProyectoCurricular       string        `orm:"column(proyecto_curricular)"`
-	CodigoConvenio           string        `orm:"column(codigo_convenio);null"`
-	Convenio                 string        `orm:"column(convenio);null"`
-	ProyectoInv              string        `orm:"column(proyecto_inv);null"`
-	Estado                   string        `orm:"column(estado)"`
-	CodigoProyectoInv        string        `orm:"column(codigo_proyecto_inv);null"`
+	Id                       int     `orm:"column(id);pk"`
+	IdBeneficiario           int     `orm:"column(id_beneficiario)"`
+	Vigencia                 string  `orm:"column(vigencia)"`
+	Consecutivo              string  `orm:"column(consecutivo)"`
+	Objetivo                 string  `orm:"column(objetivo)"`
+	Justificacion            string  `orm:"column(justificacion)"`
+	ValorTotal               float64 `orm:"column(valor_total)"`
+	CodigoDependencia        string  `orm:"column(codigo_dependencia)"`
+	Dependencia              string  `orm:"column(dependencia)"`
+	CodigoFacultad           string  `orm:"column(codigo_facultad);null"`
+	Facultad                 string  `orm:"column(facultad);null"`
+	CodigoProyectoCurricular string  `orm:"column(codigo_proyecto_curricular)"`
+	ProyectoCurricular       string  `orm:"column(proyecto_curricular)"`
+	CodigoConvenio           string  `orm:"column(codigo_convenio);null"`
+	Convenio                 string  `orm:"column(convenio);null"`
+	CodigoProyectoInv        string  `orm:"column(codigo_proyecto_inv);null"`
+	ProyectoInv              string  `orm:"column(proyecto_inv);null"`
+	Estado                   string  `orm:"column(estado)"`
 }
 
 func (t *SolicitudAvance) TableName() string {

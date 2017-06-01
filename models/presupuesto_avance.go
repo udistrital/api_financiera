@@ -10,13 +10,14 @@ import (
 )
 
 type PresupuestoAvance struct {
-	Id             int    `orm:"column(id_solicitud);pk"`
-	CodRubro       string `orm:"column(cod_rubro)"`
-	Vigencia       string `orm:"column(vigencia)"`
-	Disponibilidad string `orm:"column(disponibilidad)"`
-	Registro       string `orm:"column(registro)"`
-	Compromiso     string `orm:"column(compromiso)"`
-	OrdenPago      string `orm:"column(orden_pago)"`
+	Id              int              `orm:"column(id);pk"`
+	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
+	Rubro           *Rubro           `orm:"column(rubro);rel(fk)"`
+	Vigencia        string           `orm:"column(vigencia)"`
+	Disponibilidad  string           `orm:"column(disponibilidad)"`
+	Registro        string           `orm:"column(registro)"`
+	Compromiso      string           `orm:"column(compromiso)"`
+	OrdenPago       string           `orm:"column(orden_pago)"`
 }
 
 func (t *PresupuestoAvance) TableName() string {
