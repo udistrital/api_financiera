@@ -24,6 +24,10 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
+	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
+	c.Mapping("RegistrarOpPlanta", c.RegistrarOpPlanta)
+	c.Mapping("FechaActual", c.FechaActual)
 }
 
 // Post ...
@@ -208,26 +212,21 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
 func (c *OrdenPagoController) RegistrarOpPlanta() {
-		fmt.Println("1-------")
     var v models.OrdenPago
     if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
         mensaje, err, id_orden := models.RegistrarOpPlanta(&v)
         if err != nil {
-          fmt.Println("2-------")
           c.Data["json"] = err
         } else {
-					fmt.Println("3-------")
           c.Data["json"] = id_orden
 					fmt.Println(mensaje)
         }
     } else {
-				fmt.Println("4-------")
         c.Data["json"] = err
 				fmt.Println(err)
     }
     c.ServeJSON()
 }
-
 
 // personalizado Retrona la fecha actual del servidor
 func (c *OrdenPagoController) FechaActual() {
