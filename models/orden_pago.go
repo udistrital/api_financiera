@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
+	"github.com/udistrital/api_financiera/utilidades"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -289,7 +289,24 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	o := orm.NewOrm()
 	o.Begin()
 	m := OrdenPago{}
+	var detalle []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &m)
+	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
+	homologacion := HomologacionConcepto{}
+	var orden_pago_concepto []ConceptoOrdenPago
+	for i,element := range detalle{
+		det := element.(map[string]interface{})
+		var idconceptotitan int
+		var valorcalculado int64
+		err = utilidades.FillStruct(det["ValorCalculado"], &valorcalculado)
+		conc := det["Concepto"].(map[string]interface{})
+		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		homologacion = {}
+		homologacion.Vigencia = m.Vigencia
+		homologacion.ConceptoTitan = idconceptotitan
+		err = o.Read(&homologacion, "Vigencia, ConceptoTitan")
+
+	}
 	// Inserta datos Orden de pago
 	m.FechaCreacion = time.Now()
 	m.Nomina = "PLANTA"
