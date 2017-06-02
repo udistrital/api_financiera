@@ -10,10 +10,11 @@ import (
 )
 
 type ConceptoOrdenPago struct {
-	Id          int        `orm:"column(id);pk;auto"`
-	Valor       float64    `orm:"column(valor)"`
-	Concepto    *Concepto  `orm:"column(concepto);rel(fk)"`
-	OrdenDePago *OrdenPago `orm:"column(orden_de_pago);rel(fk)"`
+	Id                                               int                                                   `orm:"column(id);pk;auto"`
+	Valor                                            float64                                               `orm:"column(valor)"`
+	Concepto                                         *Concepto                                             `orm:"column(concepto);rel(fk)"`
+	OrdenDePago                                      *OrdenPago                                            `orm:"column(orden_de_pago);rel(fk)"`
+	RegistroPresupuestalDisponibilidadApropiacion    *RegistroPresupuestalDisponibilidadApropiacion        `orm:"column(registro_presupuestal_disponibilidad_apropiacion);rel(fk);null"`
 }
 
 func (t *ConceptoOrdenPago) TableName() string {
@@ -48,7 +49,7 @@ func GetConceptoOrdenPagoById(id int) (v *ConceptoOrdenPago, err error) {
 func GetAllConceptoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ConceptoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(ConceptoOrdenPago)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
