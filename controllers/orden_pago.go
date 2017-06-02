@@ -212,9 +212,11 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
 func (c *OrdenPagoController) RegistrarOpPlanta() {
-    var v models.OrdenPago
+		fmt.Println("controller kronos")
+    var v interface{}
     if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-        mensaje, err, id_orden := models.RegistrarOpPlanta(&v)
+				m := v.(map[string]interface{})
+        mensaje, err, id_orden := models.RegistrarOpPlanta(m)
         if err != nil {
           c.Data["json"] = err
         } else {
