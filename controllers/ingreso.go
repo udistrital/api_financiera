@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -79,6 +80,7 @@ func (c *IngresoController) RechazarIngreso() {
 		}
 	} else {
 		c.Data["json"] = err.Error()
+		fmt.Println(err.Error())
 	}
 	c.ServeJSON()
 }

@@ -41,10 +41,10 @@ func init() {
 func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	err = utilidades.FillStruct(m, &ingreso)
 	fmt.Println(ingreso)
 	ingreso.EstadoIngreso = &EstadoIngreso{Id: 3}
-	_, err = o.Update(&ingreso, "EstadoIngreso,MotivoRechazo")
+	_, err = o.Update(&ingreso, "EstadoIngreso", "MotivoRechazo")
 	if err != nil {
 		o.Rollback()
 		return
