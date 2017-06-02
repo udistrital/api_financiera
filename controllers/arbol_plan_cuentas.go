@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -50,11 +52,16 @@ func (c *ArbolPlanCuentasController) DeleteBranch() {
 	idPlanStr := c.Ctx.Input.Param(":idPlan")
 	idCuenta, _ := strconv.Atoi(idCuentaStr)
 	idPlan, _ := strconv.Atoi(idPlanStr)
-	if msg, err := models.DeleteBranchPlan(idCuenta, idPlan); err == nil {
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = msg
+	if err := models.DeleteBranchPlan(idCuenta, idPlan); err == nil {
+		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		c.Ctx.Output.SetStatus(201)
+		c.Data["json"] = alert
 	} else {
-		c.Data["json"] = err.Error()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -72,11 +79,16 @@ func (c *ArbolPlanCuentasController) Post() {
 	idPlan, _ := strconv.Atoi(idPlanStr)
 	var v models.ArbolPlanCuentas
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if msg, err := models.AddBranchPlan(&v, idPlan); err == nil {
+		if err = models.AddBranchPlan(&v, idPlan); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = msg
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = err.Error()
