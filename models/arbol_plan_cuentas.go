@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/astaxie/beego/orm"
@@ -65,4 +66,54 @@ func MakeBranchesPlan(Padre *ArbolPlanCuentas, plan int) (a []ArbolPlanCuentas) 
 		}
 	}
 	return arbol
+}
+
+//DeleteBranchPlan Funcion para eliminar una rama del arbol
+func DeleteBranchPlan(IdCuenta int, IdPlan int) (err error) {
+	var hijos []EstructuraCuentas
+	o := orm.NewOrm()
+	o.Begin()
+	if _, err = o.Raw("select * from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_padre = ?", IdPlan, IdCuenta).QueryRows(&hijos); err == nil {
+		for _, hijo := range hijos {
+			if err = DeleteBranchPlan(hijo.CuentaHijo.Id, IdPlan); err != nil {
+				o.Rollback()
+				return
+			}
+		}
+	}
+	_, err = o.Raw("delete from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_hijo=? ", IdPlan, IdCuenta).Exec()
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+//AddBranchPlan Funcion que agrega una rama al plan como venga construida
+func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	var v EstructuraCuentas
+	v.PlanCuentas = &PlanCuentas{Id: IdPlan}
+	v.CuentaPadre = &CuentaContable{Id: Rama.Id}
+	if Rama.Hijos != nil {
+		for _, cuenta := range *Rama.Hijos {
+			p := v
+			p.CuentaHijo = &CuentaContable{Id: cuenta.Id}
+			var f EstructuraCuentas
+			fmt.Println(p.CuentaHijo.Id)
+			if err = o.Raw("Select * from financiera.estructura_cuentas where cuenta_hijo=? and plan_cuentas=?", p.CuentaHijo.Id, p.PlanCuentas.Id).QueryRow(&f); err != nil {
+				if _, err = o.Insert(&p); err != nil {
+					o.Rollback()
+					return
+				}
+			}
+			if err = AddBranchPlan(&cuenta, IdPlan); err != nil {
+				return
+			}
+		}
+	}
+	o.Commit()
+	return
 }
