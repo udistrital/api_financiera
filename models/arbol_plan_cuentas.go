@@ -69,28 +69,29 @@ func MakeBranchesPlan(Padre *ArbolPlanCuentas, plan int) (a []ArbolPlanCuentas) 
 }
 
 //DeleteBranchPlan Funcion para eliminar una rama del arbol
-func DeleteBranchPlan(IdCuenta int, IdPlan int) (msg string, err error) {
+func DeleteBranchPlan(IdCuenta int, IdPlan int) (err error) {
 	var hijos []EstructuraCuentas
 	o := orm.NewOrm()
 	o.Begin()
 	if _, err = o.Raw("select * from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_padre = ?", IdPlan, IdCuenta).QueryRows(&hijos); err == nil {
 		for _, hijo := range hijos {
-			if _, err = DeleteBranchPlan(hijo.Id, IdPlan); err != nil {
+			if err = DeleteBranchPlan(hijo.CuentaHijo.Id, IdPlan); err != nil {
 				o.Rollback()
-				return "", err
+				return
 			}
 		}
 	}
-	_, err = o.Raw("delete from financiera.estructura_cuentas where plan_cuentas = ? and (cuenta_hijo=? or cuenta_padre=?)", IdPlan, IdCuenta, IdCuenta).Exec()
+	_, err = o.Raw("delete from financiera.estructura_cuentas where plan_cuentas = ? and cuenta_hijo=? ", IdPlan, IdCuenta).Exec()
 	if err != nil {
 		o.Rollback()
-		return "", err
+		return
 	}
 	o.Commit()
-	return "rama eliminada", nil
+	return
 }
 
-func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (msg string, err error) {
+//AddBranchPlan Funcion que agrega una rama al plan como venga construida
+func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	var v EstructuraCuentas
@@ -102,31 +103,17 @@ func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (msg string, err error) {
 			p.CuentaHijo = &CuentaContable{Id: cuenta.Id}
 			var f EstructuraCuentas
 			fmt.Println(p.CuentaHijo.Id)
-			if err := o.Raw("Select * from financiera.estructura_cuentas where cuenta_hijo=? and plan_cuentas=?", p.CuentaHijo.Id, p.PlanCuentas.Id).QueryRow(&f); err != nil {
+			if err = o.Raw("Select * from financiera.estructura_cuentas where cuenta_hijo=? and plan_cuentas=?", p.CuentaHijo.Id, p.PlanCuentas.Id).QueryRow(&f); err != nil {
 				if _, err = o.Insert(&p); err != nil {
 					o.Rollback()
-					return "fallo algo", err
+					return
 				}
 			}
-			if _, err = AddBranchPlan(&cuenta, IdPlan); err != nil {
-				return "fallo algo", err
+			if err = AddBranchPlan(&cuenta, IdPlan); err != nil {
+				return
 			}
-
 		}
 	}
 	o.Commit()
-	return "la creo", nil
-
-	/*for _, cuenta := range *Rama.Hijos {
-		var cuentaPadre *CuentaContable
-		cuentaPadre = &CuentaContable{Id: Rama.Id}
-		o.Read(&cuentaPadre)
-		var cuentaHijo *CuentaContable
-		cuentaHijo = &CuentaContable{Id: cuenta.Id}
-		o.Read(&cuentaHijo)
-		v.CuentaPadre = cuentaPadre
-		v.CuentaHijo = cuentaHijo
-		v.PlanCuentas.Id = IdPlan
-	}*/
-
+	return
 }
