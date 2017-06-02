@@ -166,46 +166,116 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOp(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
+	// Inserta datos Orden de pago
 	m.OrdenPago.FechaCreacion = time.Now()
 	id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
 	if err1 != nil {
-		alerta = append(alerta, "Erro 1. No se puede registrar la Orden de Pago")
+		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
 		err = err1
 		o.Rollback()
 		return
 	}
-	//fmt.Println(id_OrdenPago)
-	//fmt.Println("recorrer")
+	// Insertar data Conceptos
 	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
 		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
 		_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
 		if err2 != nil {
-			alerta = append(alerta, "Erro 2. No se puede registrar los Conceptos asociados a la Orden de Pago")
+			alerta = append(alerta, "ERROR_2 [RegistrarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
 			err = err2
 			o.Rollback()
 		}
 	}
-
+	// Insertar data Movimientos Contables
 	for i := 0; i < len(m.MovimientoContable); i++ {
 		movimiento_contable := MovimientoContable{
-			Debito:  m.MovimientoContable[i].Debito,
-			Credito: m.MovimientoContable[i].Credito,
-			Fecha:   time.Now(),
-			ConceptoCuentaContable:   &ConceptoCuentaContable{Id: int(m.MovimientoContable[i].Id)},
+			Debito:                   m.MovimientoContable[i].Debito,
+			Credito:                  m.MovimientoContable[i].Credito,
+			Fecha:                    time.Now(),
+			Concepto:                 m.MovimientoContable[i].Concepto,
+			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
 			CodigoDocumentoAfectante: int(id_OrdenPago),
 			Aprobado:                 false,
 		}
 		_, err3 := o.Insert(&movimiento_contable)
 		if err3 != nil {
-			alerta = append(alerta, "Erro 3. No se puede registrar las Cuentas Contables Asociadas a los Concepto")
+			alerta = append(alerta, "ERROR_3 [RegistrarOpProveedor] No se puede registrar las Cuentas Contables Asociadas a los Concepto")
 			err = err3
 			o.Rollback()
 		}
 	}
+	o.Commit()
+	return
+}
+
+// personalizado Actualiza orden_pago, concepto_ordenpago y movimeintos contalbes
+func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+	o := orm.NewOrm()
+	o.Begin()
+	// Actualizar datos de la Orden
+	orden := OrdenPago{Id: m.OrdenPago.Id}
+	if o.Read(&orden) == nil {
+		orden.Iva = m.OrdenPago.Iva
+		orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+		orden.ValorBase = m.OrdenPago.ValorBase
+		if _, err1 := o.Update(&orden); err1 != nil {
+			fmt.Println("Error 1")
+			alerta = append(alerta, "ERRRO_1 [ActualizarOpProveedor] No se puede actualizar los Campos de la Orden de Pago")
+			err = err1
+			o.Rollback()
+		}
+	}
+	// Eliminar Conceptos Orden de Pagos y Movimientos contables
+	if len(m.ConceptoOrdenPago) > 0 {
+		_, err2 := o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", m.OrdenPago.Id).Exec()
+		if err2 != nil {
+			alerta = append(alerta, "ERROR_02 [ActualizarOpProveedor] No se puede Eliminar los conceptos relacionados a la orden de pago")
+			err = err2
+			o.Rollback()
+		}
+	}
+	if len(m.MovimientoContable) > 0 {
+		_, err3 := o.Raw("DELETE FROM financiera.movimiento_contable where codigo_documento_afectante = ?", m.OrdenPago.Id).Exec()
+		if err3 != nil {
+			alerta = append(alerta, "ERROR_03 [ActualizarOpProveedor] No se puede Eliminar los movimientos contables relacionados a la orden de pago")
+			err = err3
+			o.Rollback()
+		}
+	}
+	// Insertar Nueva Data Conceptos Orden de Pagos y Movimientos contables
+	//Conceptos
+	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
+		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(m.OrdenPago.Id)}
+		_, err4 := o.Insert(&m.ConceptoOrdenPago[i])
+		if err4 != nil {
+			alerta = append(alerta, "ERROR_04 [ActualizarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
+			err = err4
+			o.Rollback()
+		}
+	}
+	//Movimientos
+	for i := 0; i < len(m.MovimientoContable); i++ {
+		movimiento_contable := MovimientoContable{
+			Debito:                   m.MovimientoContable[i].Debito,
+			Credito:                  m.MovimientoContable[i].Credito,
+			Fecha:                    time.Now(),
+			Concepto:                 m.MovimientoContable[i].Concepto,
+			CuentaContable:           m.MovimientoContable[i].CuentaContable,
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
+			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
+			Aprobado:                 false,
+		}
+		_, err5 := o.Insert(&movimiento_contable)
+		if err5 != nil {
+			alerta = append(alerta, "ERROR_05 [ActualizarOpProveedor] No se puede registrar las Cuentas Contables Asociadas a los Concepto")
+			err = err5
+			o.Rollback()
+		}
+	}
+
 	o.Commit()
 	return
 }
