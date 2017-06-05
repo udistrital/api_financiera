@@ -289,20 +289,27 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	fmt.Println("Models Registro OP Planta")
 	o := orm.NewOrm()
 	o.Begin()
+
+	fmt.Println(OrdenDetalle)
 	m := OrdenPago{}
 	var detalle []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &m)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
 	//homologacion := HomologacionConcepto{}
 	//var orden_pago_concepto []ConceptoOrdenPago
+	fmt.Println(len(detalle))
+	fmt.Println("init For")
 
-	for _,element := range detalle{
+	for i,element := range detalle{
+		fmt.Println(i)
 		det := element.(map[string]interface{})
 		var idconceptotitan int
 		var valorcalculado int64
 		err = utilidades.FillStruct(det["ValorCalculado"], &valorcalculado)
 		conc := det["Concepto"].(map[string]interface{})
 		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		fmt.Println(idconceptotitan)
+
 		// consulta tabla de homologacion
 		//homologacion = {}
 		//homologacion.Vigencia = m.Vigencia
@@ -310,7 +317,9 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		//err = o.Read(&homologacion, "Vigencia, ConceptoTitan")
 
 	}
+	fmt.Println("Fin For")
 	// Inserta datos Orden de pago
+	/*
 	m.FechaCreacion = time.Now()
 	m.Nomina = "PLANTA"
 	m.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
@@ -324,6 +333,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		o.Rollback()
 		return
 	}
+	*/
 	// Homologación
 	// Insertar data Conceptos
 	// Insertar data Movimientos Contables
