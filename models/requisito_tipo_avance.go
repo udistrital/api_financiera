@@ -11,7 +11,7 @@ import (
 )
 
 type RequisitoTipoAvance struct {
-	Id              int              `orm:"column(id);pk"`
+	Id              int              `orm:"column(id);pk;auto"`
 	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
 	RequisitoAvance *RequisitoAvance `orm:"column(requisito_avance);rel(fk)"`
 	Estado          string           `orm:"column(estado)"`
@@ -30,6 +30,8 @@ func init() {
 // last inserted Id on success.
 func AddRequisitoTipoAvance(m *RequisitoTipoAvance) (id int64, err error) {
 	o := orm.NewOrm()
+	m.Estado = "A"
+	m.FechaRegistro = time.Now()
 	id, err = o.Insert(m)
 	return
 }
@@ -50,7 +52,7 @@ func GetRequisitoTipoAvanceById(id int) (v *RequisitoTipoAvance, err error) {
 func GetAllRequisitoTipoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RequisitoTipoAvance))
+	qs := o.QueryTable(new(RequisitoTipoAvance)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
