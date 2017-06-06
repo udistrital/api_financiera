@@ -8,6 +8,7 @@ import (
 	"time"
 	"github.com/udistrital/api_financiera/utilidades"
 	"github.com/astaxie/beego/orm"
+	"strconv"
 )
 
 type Data_OrdenPago_Concepto struct {
@@ -296,49 +297,74 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &m)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
 	//homologacion := HomologacionConcepto{}
-	//var orden_pago_concepto []ConceptoOrdenPago
-	fmt.Println(len(detalle))
-	fmt.Println("init For")
+	var orden_pago_concepto []ConceptoOrdenPago
 
 	for i,element := range detalle{
-		fmt.Println(i)
 		det := element.(map[string]interface{})
 		var idconceptotitan int
 		var valorcalculado int64
 		err = utilidades.FillStruct(det["ValorCalculado"], &valorcalculado)
 		conc := det["Concepto"].(map[string]interface{})
 		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
-		fmt.Println(idconceptotitan)
 
+		fmt.Println("********************* ",strconv.Itoa(i), " **********************" )
+		if i == 0 {
+			fmt.Println("***Priner append ***")
+			fmt.Println("concepto: ", strconv.Itoa(idconceptotitan))
+			fmt.Println(float64(valorcalculado))
+			new_orden := ConceptoOrdenPago {
+				Valor: float64(valorcalculado),
+				Concepto: &Concepto{Id: idconceptotitan},
+			}
+			orden_pago_concepto = append(orden_pago_concepto, new_orden)
+		}else{
+			fmt.Println("***Sumar o Append***")
+			if esta, idlista := estaConcepto(idconceptotitan, orden_pago_concepto); esta == true {
+				fmt.Println("---Sumar")
+				fmt.Println("Nuevo")
+				fmt.Println("concepto: ", strconv.Itoa(idconceptotitan))
+				fmt.Println(float64(valorcalculado))
+				fmt.Println("lo que hay")
+				fmt.Println("concepto: ", strconv.Itoa(orden_pago_concepto[idlista].Concepto.Id))
+				fmt.Println(orden_pago_concepto[idlista].Valor)
+				//
+				suma_valor := orden_pago_concepto[idlista].Valor + float64(valorcalculado)
+				orden_pago_concepto[idlista].Valor = suma_valor
+			}else{
+				fmt.Println("---Append")
+				fmt.Println("concepto: ", strconv.Itoa(idconceptotitan))
+				fmt.Println(float64(valorcalculado))
+				new_orden_concepto := ConceptoOrdenPago {
+					Valor: float64(valorcalculado),
+					Concepto: &Concepto{Id: idconceptotitan},
+				}
+				orden_pago_concepto = append(orden_pago_concepto, new_orden_concepto)
+			}
+		}
 		// consulta tabla de homologacion
 		//homologacion = {}
 		//homologacion.Vigencia = m.Vigencia
 		//homologacion.ConceptoTitan = idconceptotitan
 		//err = o.Read(&homologacion, "Vigencia, ConceptoTitan")
-
 	}
-	fmt.Println("Fin For")
-	// Inserta datos Orden de pago
-	/*
-	m.FechaCreacion = time.Now()
-	m.Nomina = "PLANTA"
-	m.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	m.Iva = &Iva{Id: 1} //1 iva del 0%
-	m.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
-	// insertar OP Planta
-	id_OrdenPago, err1 := o.Insert(m)
-	if err1 != nil {
-		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
-		err = err1
-		o.Rollback()
-		return
+	fmt.Println("*****************Totalizado**********************")
+	for i:=0; i< len(orden_pago_concepto); i++{
+		fmt.Println(orden_pago_concepto[i].Concepto.Id)
+		fmt.Println(orden_pago_concepto[i].Valor)
+		fmt.Println("--")
 	}
-	*/
-	// Homologación
-	// Insertar data Conceptos
-	// Insertar data Movimientos Contables
+	fmt.Println("*****************FIN Totalizado**********************")
 	o.Commit()
 	return
+}
+//
+func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista int) {
+	for or := 0; or < len(lista); or++ {
+		if lista[or].Concepto.Id == idConcepto {
+			return true, or
+		}
+	}
+	return false, 0
 }
 
 // personalizado Retrona la fecha actual del servidor
