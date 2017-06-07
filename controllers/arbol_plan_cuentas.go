@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
 	"strconv"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -16,6 +19,8 @@ type ArbolPlanCuentasController struct {
 // URLMapping ...
 func (c *ArbolPlanCuentasController) URLMapping() {
 	c.Mapping("MakeTreeCuentas", c.MakeTreeCuentas)
+	c.Mapping("DeleteBranch", c.DeleteBranch)
+	c.Mapping("Post", c.Post)
 }
 
 // MakeTreeCuentas ...
@@ -31,5 +36,62 @@ func (c *ArbolPlanCuentasController) MakeTreeCuentas() {
 	l := models.MakeTreePlanCuentas(id)
 	c.Data["json"] = l
 	//Generera el Json con los datos obtenidos
+	c.ServeJSON()
+}
+
+// DeleteBranchPlan ...
+// @Title DeleteBranchPlan
+// @Description Elimina una rama del plan
+// @Param	idCuenta		path 	string	true		"Id de la cuenta"
+// @Param	idPlan		path 	string	true		"Id del plan"
+// @Success 200 {string} delete success!
+// @Failure 403 idCuenta or idPlan is empty
+// @router /:idCuenta/:idPlan [delete]
+func (c *ArbolPlanCuentasController) DeleteBranch() {
+	idCuentaStr := c.Ctx.Input.Param(":idCuenta")
+	idPlanStr := c.Ctx.Input.Param(":idPlan")
+	idCuenta, _ := strconv.Atoi(idCuentaStr)
+	idPlan, _ := strconv.Atoi(idPlanStr)
+	if err := models.DeleteBranchPlan(idCuenta, idPlan); err == nil {
+		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		c.Ctx.Output.SetStatus(201)
+		c.Data["json"] = alert
+	} else {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}
+
+// Post ...
+// @Title Post
+// @Description create Rama arbol plan
+// @Param	body		body 	models.CategoriaIva	true		"body for CategoriaIva content"
+// @Param	idPlan		path 	string	true		"Id del plan"
+// @Success 201 {int} models.CategoriaIva
+// @Failure 403 body is empty
+// @router /:idPlan [post]
+func (c *ArbolPlanCuentasController) Post() {
+	idPlanStr := c.Ctx.Input.Param(":idPlan")
+	idPlan, _ := strconv.Atoi(idPlanStr)
+	var v models.ArbolPlanCuentas
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if err = models.AddBranchPlan(&v, idPlan); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
 	c.ServeJSON()
 }
