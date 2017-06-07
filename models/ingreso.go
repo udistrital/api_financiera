@@ -26,6 +26,7 @@ type Ingreso struct {
 	Aportante         int                `orm:"column(aportante);null"`
 	Reviso            int                `orm:"column(reviso);null"`
 	Elaboro           int                `orm:"column(elaboro)"`
+	MotivoRechazo     string             `orm:"column(motivo_rechazo)"`
 	IngresoConcepto   []*IngresoConcepto `orm:"reverse(many)"`
 }
 
@@ -35,6 +36,51 @@ func (t *Ingreso) TableName() string {
 
 func init() {
 	orm.RegisterModel(new(Ingreso))
+}
+
+func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = utilidades.FillStruct(m, &ingreso)
+	fmt.Println(ingreso)
+	ingreso.EstadoIngreso = &EstadoIngreso{Id: 3}
+	_, err = o.Update(&ingreso, "EstadoIngreso", "MotivoRechazo")
+	if err != nil {
+		o.Rollback()
+		return
+	}
+
+	o.Commit()
+	return
+}
+
+func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	fmt.Println(ingreso)
+	ingreso.EstadoIngreso = &EstadoIngreso{Id: 2}
+	_, err = o.Update(&ingreso, "EstadoIngreso")
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	var mov []MovimientoContable
+	err = utilidades.FillStruct(m["Movimientos"], &mov)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	for _, element := range mov {
+		element.Aprobado = true
+		_, err = o.Update(&element, "Aprobado")
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
+	o.Commit()
+	return
 }
 
 // AddIngreso insert a new Ingreso into database and returns

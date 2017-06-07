@@ -265,6 +265,20 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"],
+		beego.ControllerComments{
+			Method: "DeleteBranch",
+			Router: `/:idCuenta/:idPlan`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/:idPlan`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -1313,6 +1327,20 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
+		beego.ControllerComments{
+			Method: "AprobarIngreso",
+			Router: `/AprobarIngreso`,
+			AllowHTTPMethods: []string{"post"},
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
+		beego.ControllerComments{
+			Method: "RechazarIngreso",
+			Router: `/RechazarIngreso`,
+			AllowHTTPMethods: []string{"post"},
 			Params: nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
