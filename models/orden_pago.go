@@ -379,7 +379,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		fmt.Println(all_concepto_orden_pago[i].Concepto.Id)
 		fmt.Println(all_concepto_orden_pago[i].Valor)
 		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
-		// se tendra que validar el saldo del rubro??
+		// ¿se tendrá que validar el saldo del rubro??
 		// insertar concepto_orden_pago
 		_, err2 := o.Insert(&all_concepto_orden_pago[i])
 		if err2 != nil {
@@ -389,8 +389,27 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				return
 		}
 		// buscamos cuentas relacionadas al concepto para registrar movimientos
+		// Buscamos concepto kronos homologado
+		var data_concepto_cuenta_contable []*ConceptoCuentaContable
+		num, err3 := o.QueryTable("concepto_cuenta_contable").Filter("Concepto", all_concepto_orden_pago[i].Concepto).All(&data_concepto_cuenta_contable)
+		fmt.Printf("Returned Rows Num: %s, %s", num, err3)
+		//data_concepto_cuenta_contable := ConceptoCuentaContable{Concepto: all_concepto_orden_pago[i].Concepto}
+		//err3 := o.Read(&data_concepto_cuenta_contable, "Concepto")
+		if err1 != nil {
+			alerta = append(alerta, "ERROR_03 [RegistrarOpPlanta] No se Encontro las ConceptoCuentaContable")
+			err = err3
+			o.Rollback()
+		}
+		fmt.Println("\nCuentas")
+		for i:=0; i<len(data_concepto_cuenta_contable); i++{
+			fmt.Println(data_concepto_cuenta_contable[i].Id)
+			fmt.Println(data_concepto_cuenta_contable[i].CuentaContable.Naturaleza)
+			fmt.Println(data_concepto_cuenta_contable[i].Concepto)
+			fmt.Println(data_concepto_cuenta_contable[i].CuentaAcreedora)
+			fmt.Println("**")
+		}
 
-		fmt.Println("--")
+		fmt.Println("----------------------------")
 	}
 	fmt.Println("*****************FIN Totalizado**********************")
 	o.Commit()
