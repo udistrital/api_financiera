@@ -398,13 +398,15 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			for _,v := range l {
 				//registra movimientos
 				fmt.Println("Data para Movimientos")
-				fmt.Println(v.CuentaContable.Naturaleza)
-				fmt.Println(v.Id)
+				//fmt.Println(v.CuentaContable.Naturaleza)
+				//fmt.Println(v.Id)
 				new_movimiento_contable := MovimientoContable{}
 				if v.CuentaContable.Naturaleza == "debito" {
+					fmt.Println(v.CuentaContable.Naturaleza)
 					new_movimiento_contable.Debito = all_concepto_orden_pago[i].Valor
 					new_movimiento_contable.Credito = 0
 				}else{
+					fmt.Println(v.CuentaContable.Naturaleza)
 					new_movimiento_contable.Debito = 0
 					new_movimiento_contable.Credito = all_concepto_orden_pago[i].Valor
 				}
@@ -419,6 +421,8 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				if err4 != nil {
 						alerta = append(alerta, "ERROR_4 [RegistrarOpPlanta] No se puede registrar los Movimeitos Contables")
 						err = err4
+						fmt.Println("****ERRPR")
+						fmt.Println(err4.Error())
 						o.Rollback()
 						return
 				}
