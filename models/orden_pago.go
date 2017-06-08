@@ -270,7 +270,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 			Fecha:                    time.Now(),
 			Concepto:                 m.MovimientoContable[i].Concepto,
 			CuentaContable:           m.MovimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //quemado
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
 			Aprobado:                 false,
 		}
@@ -303,8 +303,8 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	new_orden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 	new_orden.Iva = &Iva{Id: 1} //1 iva del 0%
 	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
-	// insertar OP Planta
 
+	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(&new_orden)
 	if err1 != nil {
 			alerta = append(alerta, "ERROR_1 [RegistrarOpPlanta] No se puede registrar la Orden de Pago")
@@ -326,10 +326,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		if i == 0 {
 			// Buscamos concepto kronos homologado
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
-			err1 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
-			if err1 != nil {
-				alerta = append(alerta, "ERROR_01 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
-				err = err1
+			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
+			if err2 != nil {
+				alerta = append(alerta, "ERROR_02 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
+				err = err2
 				o.Rollback()
 			}
 			fmt.Println("***Priner append ***")
@@ -345,10 +345,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
-			err1 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
-			if err1 != nil {
-				alerta = append(alerta, "ERROR_01 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
-				err = err1
+			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
+			if err2 != nil {
+				alerta = append(alerta, "ERROR_02 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
+				err = err2
 				o.Rollback()
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
@@ -375,40 +375,55 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		//err = o.Read(&homologacion, "Vigencia, ConceptoTitan")
 	}
 	fmt.Println("*****************Totalizado**********************")
+	fmt.Println(len(all_concepto_orden_pago))
 	for i:=0; i< len(all_concepto_orden_pago); i++{
-		fmt.Println(all_concepto_orden_pago[i].Concepto.Id)
+		fmt.Println("************ ", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
 		fmt.Println(all_concepto_orden_pago[i].Valor)
 		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
 		// ¿se tendrá que validar el saldo del rubro??
 		// insertar concepto_orden_pago
-		_, err2 := o.Insert(&all_concepto_orden_pago[i])
-		if err2 != nil {
-				alerta = append(alerta, "ERROR_2 [RegistrarOpPlanta] No se puede registrar concepto_orden_pago")
-				err = err2
+		_, err3 := o.Insert(&all_concepto_orden_pago[i])
+		if err3 != nil {
+				alerta = append(alerta, "ERROR_3 [RegistrarOpPlanta] No se puede registrar concepto_orden_pago")
+				err = err3
 				o.Rollback()
 				return
 		}
-		// buscamos cuentas relacionadas al concepto para registrar movimientos
-		// Buscamos concepto kronos homologado
-		var data_concepto_cuenta_contable []*ConceptoCuentaContable
-		num, err3 := o.QueryTable("concepto_cuenta_contable").Filter("Concepto", all_concepto_orden_pago[i].Concepto).All(&data_concepto_cuenta_contable)
-		fmt.Printf("Returned Rows Num: %s, %s", num, err3)
-		//data_concepto_cuenta_contable := ConceptoCuentaContable{Concepto: all_concepto_orden_pago[i].Concepto}
-		//err3 := o.Read(&data_concepto_cuenta_contable, "Concepto")
-		if err1 != nil {
-			alerta = append(alerta, "ERROR_03 [RegistrarOpPlanta] No se Encontro las ConceptoCuentaContable")
-			err = err3
-			o.Rollback()
+		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
+		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
+		qs = qs.Filter("Concepto", all_concepto_orden_pago[i].Concepto.Id)
+		qs = qs.RelatedSel()
+		var l []ConceptoCuentaContable
+		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
+			for _,v := range l {
+				//registra movimientos
+				fmt.Println("Data para Movimientos")
+				fmt.Println(v.CuentaContable.Naturaleza)
+				fmt.Println(v.Id)
+				new_movimiento_contable := MovimientoContable{}
+				if v.CuentaContable.Naturaleza == "debito" {
+					new_movimiento_contable.Debito = all_concepto_orden_pago[i].Valor
+					new_movimiento_contable.Credito = 0
+				}else{
+					new_movimiento_contable.Debito = 0
+					new_movimiento_contable.Credito = all_concepto_orden_pago[i].Valor
+				}
+				new_movimiento_contable.Fecha = time.Now()
+				new_movimiento_contable.Concepto = v.Concepto
+				new_movimiento_contable.CuentaContable = v.CuentaContable
+				new_movimiento_contable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
+				new_movimiento_contable.CodigoDocumentoAfectante = int(id_OrdenPago)
+				new_movimiento_contable.Aprobado = false
+				// insertar OP Planta
+				_, err4 := o.Insert(&new_movimiento_contable)
+				if err4 != nil {
+						alerta = append(alerta, "ERROR_4 [RegistrarOpPlanta] No se puede registrar los Movimeitos Contables")
+						err = err4
+						o.Rollback()
+						return
+				}
+			}
 		}
-		fmt.Println("\nCuentas")
-		for i:=0; i<len(data_concepto_cuenta_contable); i++{
-			fmt.Println(data_concepto_cuenta_contable[i].Id)
-			fmt.Println(data_concepto_cuenta_contable[i].CuentaContable.Naturaleza)
-			fmt.Println(data_concepto_cuenta_contable[i].Concepto)
-			fmt.Println(data_concepto_cuenta_contable[i].CuentaAcreedora)
-			fmt.Println("**")
-		}
-
 		fmt.Println("----------------------------")
 	}
 	fmt.Println("*****************FIN Totalizado**********************")
