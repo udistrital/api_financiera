@@ -24,6 +24,10 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
+	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
+	c.Mapping("RegistrarOpPlanta", c.RegistrarOpPlanta)
+	c.Mapping("FechaActual", c.FechaActual)
 }
 
 // Post ...
@@ -204,4 +208,36 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
       c.Data["json"] = err
     }
     c.ServeJSON()
+}
+
+// personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
+func (c *OrdenPagoController) RegistrarOpPlanta() {
+		fmt.Println("controller kronos")
+    var v interface{}
+    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+				m := v.(map[string]interface{})
+        mensaje, err, id_orden := models.RegistrarOpPlanta(m)
+        if err != nil {
+          c.Data["json"] = err
+        } else {
+          c.Data["json"] = id_orden
+					fmt.Println(mensaje)
+        }
+    } else {
+        c.Data["json"] = err
+				fmt.Println(err)
+    }
+    c.ServeJSON()
+}
+
+// personalizado Retrona la fecha actual del servidor
+func (c *OrdenPagoController) FechaActual() {
+		formatoInput := c.Ctx.Input.Param(":formato")
+		fechaActual, err := models.FechaActual(formatoInput)
+		if err == nil{
+			c.Data["json"] = fechaActual
+		} else {
+			c.Data["json"] = err.Error()
+		}
+		c.ServeJSON()
 }

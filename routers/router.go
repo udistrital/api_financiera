@@ -464,6 +464,13 @@ func init() {
 				&controllers.CuentaEspecialController{},
 			),
 		),
+
+		beego.NSNamespace("/homologacion_concepto",
+			beego.NSInclude(
+				&controllers.HomologacionConceptoController{},
+			),
+		),
+
 	)
 	beego.AddNamespace(ns)
 }
