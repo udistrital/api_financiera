@@ -295,7 +295,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &new_orden)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
 	//homologacion := HomologacionConcepto{}
-	var all_concepto_orden_pago []ConceptoOrdenPago
+	//var all_concepto_orden_pago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
 	new_orden.FechaCreacion = time.Now()
@@ -304,6 +304,28 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	new_orden.Iva = &Iva{Id: 1} //1 iva del 0%
 	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 
+	// para debug
+	for i,element := range detalle{
+		det := element.(map[string]interface{})
+		var idconceptotitan int
+		var valorcalculado int64
+		fmt.Println("*******", i , "*******")
+		err11 := utilidades.FillStruct(det["ValorCalculado"], &valorcalculado)
+		if err11 != nil {
+			fmt.Println("valor calculado")
+			fmt.Println(err11.Error())
+		}
+		conc := det["Concepto"].(map[string]interface{})
+		err13 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		if err13 != nil {
+			fmt.Println("Concepto")
+			fmt.Println(err13.Error())
+		}
+		fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
+		fmt.Println(valorcalculado)
+	}
+	// fin para debug
+	/*
 	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(&new_orden)
 	if err1 != nil {
@@ -432,6 +454,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	}
 	fmt.Println("*****************FIN Totalizado**********************")
 	o.Commit()
+	*/
 	return
 }
 //
