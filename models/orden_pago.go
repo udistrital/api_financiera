@@ -304,6 +304,32 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	new_orden.Iva = &Iva{Id: 1} //1 iva del 0%
 	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 
+	// para debug
+	/*
+	for i,element := range detalle{
+		det := element.(map[string]interface{})
+		var idconceptotitan int
+		//var valorcalculado int64
+		fmt.Println("*******", i , "*******")
+
+		val, ok := det["ValorCalculado"]
+		fmt.Println(val, ok)
+		valorcalculadoFloat := val.(float64)
+		valorcalculado := int64(valorcalculadoFloat)
+		fmt.Println(valorcalculado)
+
+		conc := det["Concepto"].(map[string]interface{})
+		err13 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		if err13 != nil {
+			fmt.Println("Concepto")
+			fmt.Println(err13.Error())
+		}
+		fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
+		fmt.Println(valorcalculado)
+	}
+	*/
+	// fin para debug
+
 	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(&new_orden)
 	if err1 != nil {
@@ -313,16 +339,31 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			return
 	}
 
-	// Agrupar valores por conceptos del detalle de la liquidacionssss
+	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
 	for i,element := range detalle{
 		det := element.(map[string]interface{})
 		var idconceptotitan int
-		var valorcalculado int64
-		err = utilidades.FillStruct(det["ValorCalculado"], &valorcalculado)
+		// data valorCalculado
+		val, ok := det["ValorCalculado"]
+		if !ok {
+			fmt.Println("ERROR_01.1 [RegistrarOpPlanta] No se obtubo  ValorCalculado de titan")
+			alerta = append(alerta, "ERROR_01.1 [RegistrarOpPlanta] No se obtubo  ValorCalculado de titan")
+			o.Rollback()
+		}
+		valorcalculadoFloat := val.(float64)
+		valorcalculado := int64(valorcalculadoFloat)
+		// data concepto
 		conc := det["Concepto"].(map[string]interface{})
-		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		err1_2 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		if err1_2 != nil {
+			fmt.Println("Concepto")
+			fmt.Println(err1_2.Error())
+			alerta = append(alerta, "ERROR_01.1 [RegistrarOpPlanta] No se obtubo Id concepto titan")
+			err = err1_2
+			o.Rollback()
+		}
 
-		fmt.Println("****************************** ",strconv.Itoa(i), " ******************************" )
+		fmt.Println("****************************** ", strconv.Itoa(i) , " ******************************" )
 		if i == 0 {
 			// Buscamos concepto kronos homologado
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
@@ -334,10 +375,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			}
 			fmt.Println("***Priner append ***")
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
-			fmt.Println(float64(valorcalculado))
+			fmt.Println(valorcalculado)
 			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
 			new_concepto_orden := ConceptoOrdenPago {
-				Valor: float64(valorcalculado),
+				Valor: valorcalculado,
 				Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 			}
 			all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden)
@@ -352,32 +393,26 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				o.Rollback()
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
-			fmt.Println(float64(valorcalculado))
+			fmt.Println(valorcalculado)
 			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
 
 			if esta, idlista := estaConcepto(concepto_kronos_homologado.ConceptoKronos.Id, all_concepto_orden_pago); esta == true {
 				fmt.Println("---Sumar")
-				suma_valor := all_concepto_orden_pago[idlista].Valor + float64(valorcalculado)
+				suma_valor := all_concepto_orden_pago[idlista].Valor + valorcalculado
 				all_concepto_orden_pago[idlista].Valor = suma_valor
 			}else{
 				fmt.Println("---Append")
 				new_concepto_orden2 := ConceptoOrdenPago {
-					Valor: float64(valorcalculado),
+					Valor: valorcalculado,
 					Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 				}
 				all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden2)
 			}
 		}
-		// consulta tabla de homologacion
-		//homologacion = {}
-		//homologacion.Vigencia = m.Vigencia
-		//homologacion.ConceptoTitan = idconceptotitan
-		//err = o.Read(&homologacion, "Vigencia, ConceptoTitan")
 	}
-	fmt.Println("*****************Totalizado**********************")
-	fmt.Println(len(all_concepto_orden_pago))
+	fmt.Println("\n***************** Totalizado **********************")
 	for i:=0; i< len(all_concepto_orden_pago); i++{
-		fmt.Println("************ ", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
+		fmt.Println("\n************ Concepto kronos", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
 		fmt.Println(all_concepto_orden_pago[i].Valor)
 		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
 		// ¿se tendrá que validar el saldo del rubro??
@@ -398,8 +433,6 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			for _,v := range l {
 				//registra movimientos
 				fmt.Println("Data para Movimientos")
-				//fmt.Println(v.CuentaContable.Naturaleza)
-				//fmt.Println(v.Id)
 				new_movimiento_contable := MovimientoContable{}
 				if v.CuentaContable.Naturaleza == "debito" {
 					fmt.Println(v.CuentaContable.Naturaleza)
@@ -421,16 +454,13 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				if err4 != nil {
 						alerta = append(alerta, "ERROR_4 [RegistrarOpPlanta] No se puede registrar los Movimeitos Contables")
 						err = err4
-						fmt.Println("****ERRPR")
-						fmt.Println(err4.Error())
 						o.Rollback()
 						return
 				}
 			}
 		}
-		fmt.Println("----------------------------")
 	}
-	fmt.Println("*****************FIN Totalizado**********************")
+	fmt.Println("\n*****************FIN Totalizado**********************")
 	o.Commit()
 	return
 }
