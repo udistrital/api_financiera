@@ -334,10 +334,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			}
 			fmt.Println("***Priner append ***")
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
-			fmt.Println(float64(valorcalculado))
+			fmt.Println(valorcalculado)
 			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
 			new_concepto_orden := ConceptoOrdenPago {
-				Valor: float64(valorcalculado),
+				Valor: valorcalculado,
 				Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 			}
 			all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden)
@@ -352,17 +352,17 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				o.Rollback()
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
-			fmt.Println(float64(valorcalculado))
+			fmt.Println(valorcalculado)
 			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
 
 			if esta, idlista := estaConcepto(concepto_kronos_homologado.ConceptoKronos.Id, all_concepto_orden_pago); esta == true {
 				fmt.Println("---Sumar")
-				suma_valor := all_concepto_orden_pago[idlista].Valor + float64(valorcalculado)
+				suma_valor := all_concepto_orden_pago[idlista].Valor + valorcalculado
 				all_concepto_orden_pago[idlista].Valor = suma_valor
 			}else{
 				fmt.Println("---Append")
 				new_concepto_orden2 := ConceptoOrdenPago {
-					Valor: float64(valorcalculado),
+					Valor: valorcalculado,
 					Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 				}
 				all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden2)
