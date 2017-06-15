@@ -218,10 +218,11 @@ func (c *OrdenPagoController) RegistrarOpPlanta() {
 				m := v.(map[string]interface{})
         mensaje, err, id_orden := models.RegistrarOpPlanta(m)
         if err != nil {
-          c.Data["json"] = err
+					c.Data["json"] = mensaje
         } else {
-          c.Data["json"] = id_orden
-					fmt.Println(mensaje)
+					c.Ctx.Output.SetStatus(201)
+					alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: id_orden}
+					c.Data["json"] = alert
         }
     } else {
         c.Data["json"] = err

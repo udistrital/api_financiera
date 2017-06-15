@@ -286,7 +286,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, err error, id_OrdenPago int64) {
+func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err error, id_OrdenPago int64) {
 	fmt.Println("Models Registro OP Planta")
 	o := orm.NewOrm()
 	o.Begin()
@@ -304,36 +304,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 	new_orden.Iva = &Iva{Id: 1} //1 iva del 0%
 	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 
-	// para debug
-	/*
-	for i,element := range detalle{
-		det := element.(map[string]interface{})
-		var idconceptotitan int
-		//var valorcalculado int64
-		fmt.Println("*******", i , "*******")
-
-		val, ok := det["ValorCalculado"]
-		fmt.Println(val, ok)
-		valorcalculadoFloat := val.(float64)
-		valorcalculado := int64(valorcalculadoFloat)
-		fmt.Println(valorcalculado)
-
-		conc := det["Concepto"].(map[string]interface{})
-		err13 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
-		if err13 != nil {
-			fmt.Println("Concepto")
-			fmt.Println(err13.Error())
-		}
-		fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
-		fmt.Println(valorcalculado)
-	}
-	*/
-	// fin para debug
-
 	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(&new_orden)
 	if err1 != nil {
-			alerta = append(alerta, "ERROR_1 [RegistrarOpPlanta] No se puede registrar la Orden de Pago")
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = err1.Error()
 			err = err1
 			o.Rollback()
 			return
@@ -346,9 +322,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		// data valorCalculado
 		val, ok := det["ValorCalculado"]
 		if !ok {
-			fmt.Println("ERROR_01.1 [RegistrarOpPlanta] No se obtubo  ValorCalculado de titan")
-			alerta = append(alerta, "ERROR_01.1 [RegistrarOpPlanta] No se obtubo  ValorCalculado de titan")
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01_1"
 			o.Rollback()
+			return
 		}
 		valorcalculadoFloat := val.(float64)
 		valorcalculado := int64(valorcalculadoFloat)
@@ -356,11 +333,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		conc := det["Concepto"].(map[string]interface{})
 		err1_2 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
 		if err1_2 != nil {
-			fmt.Println("Concepto")
-			fmt.Println(err1_2.Error())
-			alerta = append(alerta, "ERROR_01.1 [RegistrarOpPlanta] No se obtubo Id concepto titan")
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01_2"
+			alerta.Body = err1_2
 			err = err1_2
 			o.Rollback()
+			return
 		}
 
 		fmt.Println("****************************** ", strconv.Itoa(i) , " ******************************" )
@@ -369,9 +347,13 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
 			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
 			if err2 != nil {
-				alerta = append(alerta, "ERROR_02 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_02"
+				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
+				alerta.Body = " El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString  + " No cuenta Con su Concepto Homologado del Sistema Kronos"
 				err = err2
 				o.Rollback()
+				return
 			}
 			fmt.Println("***Priner append ***")
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
@@ -388,9 +370,13 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
 			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
 			if err2 != nil {
-				alerta = append(alerta, "ERROR_02 [RegistrarOpPlanta] No se Encontro Concepto Homoloago")
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_02"
+				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
+				alerta.Body = "El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString  + "No cuenta Con su Concepto Homologado del Sistema Kronos"
 				err = err2
 				o.Rollback()
+				return
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
 			fmt.Println(valorcalculado)
@@ -415,11 +401,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 		fmt.Println("\n************ Concepto kronos", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
 		fmt.Println(all_concepto_orden_pago[i].Valor)
 		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
-		// ¿se tendrá que validar el saldo del rubro??
 		// insertar concepto_orden_pago
 		_, err3 := o.Insert(&all_concepto_orden_pago[i])
 		if err3 != nil {
-				alerta = append(alerta, "ERROR_3 [RegistrarOpPlanta] No se puede registrar concepto_orden_pago")
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_03"
+				alerta.Body = err3
 				err = err3
 				o.Rollback()
 				return
@@ -452,7 +439,9 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta []string, e
 				// insertar OP Planta
 				_, err4 := o.Insert(&new_movimiento_contable)
 				if err4 != nil {
-						alerta = append(alerta, "ERROR_4 [RegistrarOpPlanta] No se puede registrar los Movimeitos Contables")
+						alerta.Type = "error"
+						alerta.Code = "E_OPP_04"
+						alerta.Body = err4
 						err = err4
 						o.Rollback()
 						return
