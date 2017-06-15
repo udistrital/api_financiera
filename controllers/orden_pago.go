@@ -218,10 +218,11 @@ func (c *OrdenPagoController) RegistrarOpPlanta() {
 				m := v.(map[string]interface{})
         mensaje, err, id_orden := models.RegistrarOpPlanta(m)
         if err != nil {
-          c.Data["json"] = err
+					c.Data["json"] = mensaje
         } else {
-          c.Data["json"] = id_orden
-					fmt.Println(mensaje)
+					c.Ctx.Output.SetStatus(201)
+					alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: id_orden}
+					c.Data["json"] = alert
         }
     } else {
         c.Data["json"] = err
@@ -230,7 +231,13 @@ func (c *OrdenPagoController) RegistrarOpPlanta() {
     c.ServeJSON()
 }
 
-// personalizado Retrona la fecha actual del servidor
+// FechaActual ...
+// @Title FechaActual
+// @Description retorba fecga del servidor
+// @Param	formato		formato como quiere obtener la fecha
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /:formato
 func (c *OrdenPagoController) FechaActual() {
 		formatoInput := c.Ctx.Input.Param(":formato")
 		fechaActual, err := models.FechaActual(formatoInput)
