@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type SolicitudAvance struct {
@@ -38,6 +39,52 @@ func init() {
 	orm.RegisterModel(new(SolicitudAvance))
 }
 
+func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err error) {
+	var id int64
+	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
+	if err == nil{
+		fmt.Println("Solicitud: ", solicitud)
+		solicitud.Estado = "A"
+		//solicitud.Fecha = time.Now()
+		solicitud.Vigencia = float64(time.Now().Year())
+		o := orm.NewOrm()
+		o.Begin()
+		var consecutivo float64
+		err = o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.solicitud_avance WHERE vigencia = ?`, solicitud.Vigencia).QueryRow(&consecutivo)
+		if err == nil {
+			solicitud.Consecutivo = consecutivo
+			//insert ingreso
+			id, err = o.Insert(&solicitud)
+			if err == nil {
+				tipo_avance := SolicitudTipoAvance{}
+				err = utilidades.FillStruct(m["TipoAvance"], &tipo_avance)
+				if err == nil{
+					tipo_avance.SolicitudAvance = solicitud
+					_, err = o.Insert(&tipo_avance)
+					if err == nil{
+						o.Commit()
+						return
+					}else{
+						o.Rollback()
+						return
+					}
+				}else{
+					o.Rollback()
+					return
+				}
+			}else{
+				o.Rollback()
+				return
+			}
+		}else{
+			o.Rollback()
+			return
+		}
+	}else{
+		return
+	}
+}
 // AddSolicitudAvance insert a new SolicitudAvance into database and returns
 // last inserted Id on success.
 func AddSolicitudAvance(m *SolicitudAvance) (id int64, err error) {
