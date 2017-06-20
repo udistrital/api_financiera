@@ -5,60 +5,57 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type ConceptoOrdenPago struct {
-	Id                                               int                                                   `orm:"column(id);pk;auto"`
-	Valor                                            int64                                                 `orm:"column(valor)"`
-	Concepto                                         *Concepto                                             `orm:"column(concepto);rel(fk)"`
-	OrdenDePago                                      *OrdenPago                                            `orm:"column(orden_de_pago);rel(fk)"`
-	RegistroPresupuestalDisponibilidadApropiacion    *RegistroPresupuestalDisponibilidadApropiacion        `orm:"column(registro_presupuestal_disponibilidad_apropiacion);rel(fk);null"`
+type HomologacionConcepto struct {
+	Id             int       `orm:"column(id);pk;auto"`
+	Vigencia       float64   `orm:"column(vigencia)"`
+	FechaCreacion  time.Time `orm:"column(fecha_creacion);type(date)"`
+	ConceptoKronos *Concepto `orm:"column(concepto_kronos);rel(fk)"`
+	ConceptoTitan  int       `orm:"column(concepto_titan)"`
 }
 
-func (t *ConceptoOrdenPago) TableName() string {
-	return "concepto_orden_pago"
+func (t *HomologacionConcepto) TableName() string {
+	return "homologacion_concepto"
 }
 
 func init() {
-	orm.RegisterModel(new(ConceptoOrdenPago))
+	orm.RegisterModel(new(HomologacionConcepto))
 }
 
-// AddConceptoOrdenPago insert a new ConceptoOrdenPago into database and returns
+// AddHomologacionConcepto insert a new HomologacionConcepto into database and returns
 // last inserted Id on success.
-func AddConceptoOrdenPago(m *ConceptoOrdenPago) (id int64, err error) {
+func AddHomologacionConcepto(m *HomologacionConcepto) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetConceptoOrdenPagoById retrieves ConceptoOrdenPago by Id. Returns error if
+// GetHomologacionConceptoById retrieves HomologacionConcepto by Id. Returns error if
 // Id doesn't exist
-func GetConceptoOrdenPagoById(id int) (v *ConceptoOrdenPago, err error) {
+func GetHomologacionConceptoById(id int) (v *HomologacionConcepto, err error) {
 	o := orm.NewOrm()
-	v = &ConceptoOrdenPago{Id: id}
+	v = &HomologacionConcepto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllConceptoOrdenPago retrieves all ConceptoOrdenPago matches certain condition. Returns empty list if
+// GetAllHomologacionConcepto retrieves all HomologacionConcepto matches certain condition. Returns empty list if
 // no records exist
-func GetAllConceptoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllHomologacionConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ConceptoOrdenPago)).RelatedSel(5)
+	qs := o.QueryTable(new(HomologacionConcepto))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
-		if strings.Contains(k, "isnull") {
-			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else {
-			qs = qs.Filter(k, v)
-		}
+		qs = qs.Filter(k, v)
 	}
 	// order by:
 	var sortFields []string
@@ -99,7 +96,7 @@ func GetAllConceptoOrdenPago(query map[string]string, fields []string, sortby []
 		}
 	}
 
-	var l []ConceptoOrdenPago
+	var l []HomologacionConcepto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +119,11 @@ func GetAllConceptoOrdenPago(query map[string]string, fields []string, sortby []
 	return nil, err
 }
 
-// UpdateConceptoOrdenPago updates ConceptoOrdenPago by Id and returns error if
+// UpdateHomologacionConcepto updates HomologacionConcepto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateConceptoOrdenPagoById(m *ConceptoOrdenPago) (err error) {
+func UpdateHomologacionConceptoById(m *HomologacionConcepto) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoOrdenPago{Id: m.Id}
+	v := HomologacionConcepto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +134,15 @@ func UpdateConceptoOrdenPagoById(m *ConceptoOrdenPago) (err error) {
 	return
 }
 
-// DeleteConceptoOrdenPago deletes ConceptoOrdenPago by Id and returns error if
+// DeleteHomologacionConcepto deletes HomologacionConcepto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteConceptoOrdenPago(id int) (err error) {
+func DeleteHomologacionConcepto(id int) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoOrdenPago{Id: id}
+	v := HomologacionConcepto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ConceptoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&HomologacionConcepto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

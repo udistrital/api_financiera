@@ -12,8 +12,8 @@ import (
 
 type MovimientoContable struct {
 	Id                       int                     `orm:"column(id);pk;auto"`
-	Debito                   float64                 `orm:"column(debito)"`
-	Credito                  float64                 `orm:"column(credito)"`
+	Debito                   int64                   `orm:"column(debito)"`
+	Credito                  int64                   `orm:"column(credito)"`
 	Fecha                    time.Time               `orm:"column(fecha);type(timestamp without time zone)"`
 	Concepto                 *Concepto               `orm:"column(concepto);rel(fk)"`
 	CuentaContable           *CuentaContable         `orm:"column(cuenta_contable);rel(fk)"`
