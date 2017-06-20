@@ -4,14 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type SolicitudAvance struct {
-	Id                       int     `orm:"column(id);pk"`
+	Id                       int     `orm:"column(id);pk;auto"`
 	IdBeneficiario           int     `orm:"column(id_beneficiario)"`
 	Vigencia                 string  `orm:"column(vigencia)"`
 	Consecutivo              string  `orm:"column(consecutivo)"`
@@ -40,51 +42,53 @@ func init() {
 }
 
 func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err error) {
-	var id int64
+	//var id int64
 	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
-	if err == nil{
+	if err == nil {
 		fmt.Println("Solicitud: ", solicitud)
 		solicitud.Estado = "A"
 		//solicitud.Fecha = time.Now()
-		solicitud.Vigencia = float64(time.Now().Year())
+		solicitud.Vigencia = strconv.Itoa(time.Now().Year())
 		o := orm.NewOrm()
 		o.Begin()
 		var consecutivo float64
 		err = o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
 						FROM financiera.solicitud_avance WHERE vigencia = ?`, solicitud.Vigencia).QueryRow(&consecutivo)
 		if err == nil {
-			solicitud.Consecutivo = consecutivo
+			solicitud.Consecutivo = strconv.FormatFloat(consecutivo, 'E', -1, 64)
 			//insert ingreso
-			id, err = o.Insert(&solicitud)
+			_, err = o.Insert(&solicitud)
 			if err == nil {
-				tipo_avance := SolicitudTipoAvance{}
-				err = utilidades.FillStruct(m["TipoAvance"], &tipo_avance)
-				if err == nil{
-					tipo_avance.SolicitudAvance = solicitud
-					_, err = o.Insert(&tipo_avance)
-					if err == nil{
+				tipoAvance := SolicitudTipoAvance{}
+				err = utilidades.FillStruct(m["TipoAvance"], &tipoAvance)
+				if err == nil {
+					tipoAvance.Estado = "A"
+					tipoAvance.SolicitudAvance = &solicitud
+					_, err = o.Insert(&tipoAvance)
+					if err == nil {
 						o.Commit()
 						return
-					}else{
+					} else {
 						o.Rollback()
 						return
 					}
-				}else{
+				} else {
 					o.Rollback()
 					return
 				}
-			}else{
+			} else {
 				o.Rollback()
 				return
 			}
-		}else{
+		} else {
 			o.Rollback()
 			return
 		}
-	}else{
+	} else {
 		return
 	}
 }
+
 // AddSolicitudAvance insert a new SolicitudAvance into database and returns
 // last inserted Id on success.
 func AddSolicitudAvance(m *SolicitudAvance) (id int64, err error) {
