@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -168,6 +169,23 @@ func (c *RubroController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// RubroReporte ...
+// @Title RubroReporte
+// @Description Obtener reporte ingresos egresos de los rubros dada una vigencia
+// @Success 200 {object} []interface{}
+// @Failure 403 No se en contraron datos
+// @router RubroReporte/ [get]
+func (c *RubroController) RubroReporte() {
+	var v []interface{}
+	v, err := models.RubroReporte(2017)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
 	}
 	c.ServeJSON()
 }
