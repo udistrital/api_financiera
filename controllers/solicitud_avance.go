@@ -63,7 +63,6 @@ func (c *SolicitudAvanceController) TrSolicitudAvance() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = res
 		} else {
-			fmt.Println("error 1: ", err)
 			c.Data["json"] = err.Error()
 		}
 	} else {
