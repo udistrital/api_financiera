@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Rubro struct {
@@ -152,5 +153,120 @@ func DeleteRubro(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
+	o := orm.NewOrm()
+
+	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, apropiacion.vigencia, apropiacion.valor
+		FROM
+		financiera.apropiacion as apropiacion
+	JOIN
+		financiera.rubro as rubro
+	ON
+		rubro.id = apropiacion.rubro
+	JOIN
+		financiera.rubro_rubro as gerarquia
+	ON
+		gerarquia.rubro_hijo = rubro.id
+	AND
+		rubro.id NOT IN (SELECT rubro_padre FROM financiera.rubro_rubro)) as apropiacion
+		WHERE vigencia = ?`, vigencia).Values(&res)
+	return
+}
+
+func RubroReporte(vigencia int) (res []interface{}, err error) {
+	m, err := ListaApropiacionesHijo(vigencia)
+	for i := 0; i < len(m); i++ {
+		m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
+		m[i]["ingresos"], err = RubroIngreso(m[i]["id"])
+	}
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+// RubroOrdenPago informe ordenes de pago y total por orden
+func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT * FROM
+		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo FROM
+			financiera.orden_pago as orden
+		JOIN
+			financiera.concepto_orden_pago as orden_concepto
+		ON
+			orden_concepto.orden_de_pago = orden.id
+		JOIN
+			financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+		ON
+			rpda.id = orden_concepto.registro_presupuestal_disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad_apropiacion as disponibilidad
+		ON
+			disponibilidad.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.apropiacion as apropiacion
+		ON
+			apropiacion.id = disponibilidad.apropiacion
+		JOIN
+			financiera.rubro as rubro
+		ON      apropiacion.rubro = rubro.id
+		JOIN
+			financiera.estado_orden_pago as estado_ord
+		ON
+			estado_ord.id = orden.estado_orden_pago
+
+
+		GROUP BY
+			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id) as rubro
+		WHERE id_apr = ?`, apropiacion).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+// RubroOrdenPago informe ingresos
+func RubroIngreso(apropiacion interface{}) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT * FROM
+(
+	SELECT
+		ingreso.id , estadoingreso.nombre as estado, estadoingreso.id as id_estado,formaingreso.nombre as forma_ingreso, rubro.codigo as rubro, ingresoconcepto.valor_agregado as valor , apropiacion.id as id_aprop
+	FROM
+		financiera.ingreso as ingreso
+	JOIN
+		financiera.estado_ingreso as estadoingreso
+	ON
+		ingreso.estado_ingreso = estadoingreso.id
+	JOIN
+		financiera.forma_ingreso as formaingreso
+	ON
+		formaingreso.id = ingreso.forma_ingreso
+	JOIN
+		financiera.ingreso_concepto as ingresoconcepto
+	ON
+		ingresoconcepto.ingreso = ingreso.id
+	JOIN
+		financiera.concepto as concepto
+	ON
+		concepto.id = ingresoconcepto.concepto
+	JOIN
+		financiera.rubro as rubro
+	ON
+		rubro.id = concepto.rubro
+	JOIN
+		financiera.apropiacion as apropiacion
+	ON
+		apropiacion.rubro = rubro.id AND apropiacion.vigencia = ingreso.vigencia
+	JOIN
+		financiera.movimiento_contable as mov
+	ON
+		mov.tipo_documento_afectante = 2 AND mov.codigo_documento_afectante = ingreso.id
+	GROUP BY
+		ingreso.id , estadoingreso.nombre, estadoingreso.id,formaingreso.nombre, rubro.codigo, ingresoconcepto.valor_agregado,  apropiacion.id
+) AS ingreso
+WHERE id_aprop = ?`, apropiacion).Values(&m)
+	err = utilidades.FillStruct(m, &res)
 	return
 }

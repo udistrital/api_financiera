@@ -24,6 +24,10 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
+	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
+	c.Mapping("RegistrarOpPlanta", c.RegistrarOpPlanta)
+	c.Mapping("FechaActual", c.FechaActual)
 }
 
 // Post ...
@@ -204,4 +208,43 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
       c.Data["json"] = err
     }
     c.ServeJSON()
+}
+
+// personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
+func (c *OrdenPagoController) RegistrarOpPlanta() {
+		fmt.Println("controller kronos")
+    var v interface{}
+    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+				m := v.(map[string]interface{})
+        mensaje, err, id_orden := models.RegistrarOpPlanta(m)
+        if err != nil {
+					c.Data["json"] = mensaje
+        } else {
+					c.Ctx.Output.SetStatus(201)
+					alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: id_orden}
+					c.Data["json"] = alert
+        }
+    } else {
+        c.Data["json"] = err
+				fmt.Println(err)
+    }
+    c.ServeJSON()
+}
+
+// FechaActual ...
+// @Title FechaActual
+// @Description retorba fecga del servidor
+// @Param	formato		formato como quiere obtener la fecha
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /:formato
+func (c *OrdenPagoController) FechaActual() {
+		formatoInput := c.Ctx.Input.Param(":formato")
+		fechaActual, err := models.FechaActual(formatoInput)
+		if err == nil{
+			c.Data["json"] = fechaActual
+		} else {
+			c.Data["json"] = err.Error()
+		}
+		c.ServeJSON()
 }
