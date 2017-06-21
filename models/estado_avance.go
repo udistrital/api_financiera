@@ -11,7 +11,7 @@ import (
 )
 
 type EstadoAvance struct {
-	Id              int              `orm:"column(id);pk"`
+	Id              int              `orm:"column(id);pk;auto"`
 	Estados         *Estados         `orm:"column(estados);rel(fk)"`
 	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
 	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
