@@ -10,7 +10,7 @@ import (
 )
 
 type SolicitudTipoAvance struct {
-	Id              int              `orm:"column(id);pk"`
+	Id              int              `orm:"column(id);pk;auto"`
 	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
 	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
 	Descripcion     string           `orm:"column(descripcion)"`

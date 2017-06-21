@@ -265,6 +265,7 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params: nil})
 
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolPlanCuentasController"],
 		beego.ControllerComments{
 			Method: "DeleteBranch",
@@ -1259,6 +1260,7 @@ func init() {
 			AllowHTTPMethods: []string{"delete"},
 			Params: nil})
 
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -1331,6 +1333,7 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
 		beego.ControllerComments{
+
 			Method: "AprobarIngreso",
 			Router: `/AprobarIngreso`,
 			AllowHTTPMethods: []string{"post"},
@@ -1352,6 +1355,7 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoController"],
 		beego.ControllerComments{
+
 			Method: "Post",
 			Router: `/`,
 			AllowHTTPMethods: []string{"post"},
