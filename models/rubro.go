@@ -159,7 +159,7 @@ func DeleteRubro(id int) (err error) {
 func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, apropiacion.vigencia, apropiacion.valor
+	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, apropiacion.vigencia
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
@@ -203,7 +203,7 @@ func RubroReporte(vigencia int) (res []interface{}, err error) {
 func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	_, err = o.Raw(`SELECT * FROM
+	_, err = o.Raw(`SELECT codigo, SUM(valor) FROM
 		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo, rp.numero_registro_presupuestal AS RP,
 		cdp.numero_disponibilidad AS CDP, fuente.descripcion AS fuente
 
@@ -250,7 +250,9 @@ func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
 			disponibilidad.fuente_financiamiento = fuente.id
 		GROUP BY
 			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
-		WHERE id_apr = ?`, apropiacion).Values(&m)
+		WHERE id_apr = ?
+		GROUP BY
+		  codigo`, apropiacion).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
