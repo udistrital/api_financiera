@@ -158,8 +158,8 @@ func DeleteRubro(id int) (err error) {
 
 func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
 	o := orm.NewOrm()
-
-	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, apropiacion.vigencia, apropiacion.valor
+	//falta realizar proyeccion por cada rubro.
+	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, apropiacion.vigencia
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
@@ -176,13 +176,26 @@ func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
 	return
 }
 
+// RubroOrdenPago informe ordenes de pago y total por orden
 func RubroReporte(vigencia int) (res []interface{}, err error) {
 	m, err := ListaApropiacionesHijo(vigencia)
+	if err != nil {
+		return
+	}
 	for i := 0; i < len(m); i++ {
 		m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
+		if err != nil {
+			return
+		}
 		m[i]["ingresos"], err = RubroIngreso(m[i]["id"])
+		if err != nil {
+			return
+		}
 	}
 	err = utilidades.FillStruct(m, &res)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -190,8 +203,11 @@ func RubroReporte(vigencia int) (res []interface{}, err error) {
 func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	_, err = o.Raw(`SELECT * FROM
-		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo FROM
+	_, err = o.Raw(`SELECT codigo, SUM(valor) FROM
+		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo, rp.numero_registro_presupuestal AS RP,
+		cdp.numero_disponibilidad AS CDP, fuente.descripcion AS fuente
+
+		FROM
 			financiera.orden_pago as orden
 		JOIN
 			financiera.concepto_orden_pago as orden_concepto
@@ -216,16 +232,33 @@ func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
 			financiera.estado_orden_pago as estado_ord
 		ON
 			estado_ord.id = orden.estado_orden_pago
-
-
+		JOIN
+			financiera.registro_presupuestal as rp
+		ON
+			rp.id = rpda.registro_presupuestal
+		JOIN
+			financiera.disponibilidad_apropiacion AS disp_apr
+		ON
+		  disp_apr.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad as cdp
+		ON
+			cdp.id = disp_apr.disponibilidad
+		LEFT JOIN
+			financiera.fuente_financiacion AS fuente
+		ON
+			disponibilidad.fuente_financiamiento = fuente.id
 		GROUP BY
-			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id) as rubro
-		WHERE id_apr = ?`, apropiacion).Values(&m)
+			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
+		WHERE id_apr = ?
+		GROUP BY
+		  codigo`, apropiacion).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
 
 // RubroOrdenPago informe ingresos
+//falta filtro por fechas.
 func RubroIngreso(apropiacion interface{}) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params

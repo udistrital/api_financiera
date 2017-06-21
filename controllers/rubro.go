@@ -23,6 +23,7 @@ func (c *RubroController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("RubroReporte", c.RubroReporte)
 }
 
 // Post ...
@@ -179,6 +180,7 @@ func (c *RubroController) Delete() {
 // @Success 200 {object} []interface{}
 // @Failure 403 No se en contraron datos
 // @router RubroReporte/ [get]
+
 func (c *RubroController) RubroReporte() {
 	var v []interface{}
 	v, err := models.RubroReporte(2017)
