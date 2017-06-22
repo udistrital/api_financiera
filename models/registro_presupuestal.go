@@ -27,7 +27,7 @@ type DatosRubroRegistroPresupuestal struct {
 	Id                 int
 	Disponibilidad     *Disponibilidad
 	Apropiacion        *Apropiacion
-	FuenteFinanciacion *FuenteFinanciacion
+	FuenteFinanciacion *FuenteFinanciamiento
 	Valor              float64
 	ValorAsignado      float64
 }
@@ -39,7 +39,7 @@ type DatosRegistroPresupuestal struct { //estructura temporal para el registro c
 type DatosSaldoRp struct {
 	Rp                 *RegistroPresupuestal
 	Apropiacion        *Apropiacion
-	FuenteFinanciacion *FuenteFinanciacion
+	FuenteFinanciacion *FuenteFinanciamiento
 }
 type Info_rp_a_anular struct {
 	Anulacion      AnulacionRegistroPresupuestal
