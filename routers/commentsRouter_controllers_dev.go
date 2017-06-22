@@ -73,7 +73,7 @@ func init() {
 		beego.ControllerComments{
 			Method:           "RubroReporte",
 			Router:           `RubroReporte/`,
-			AllowHTTPMethods: []string{"get"},
+			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Params:           nil})
 
