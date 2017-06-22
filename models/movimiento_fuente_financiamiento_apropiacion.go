@@ -10,48 +10,49 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type FuenteFinanciacionApropiacion struct {
-	Id            int                 `orm:"auto;column(id);pk"`
-	FechaCreacion time.Time           `orm:"column(fecha_creacion);type(date)"`
-	Valor         float64             `orm:"column(valor)"`
-	Apropiacion   *Apropiacion        `orm:"column(apropiacion);rel(fk)"`
-	Fuente        *FuenteFinanciacion `orm:"column(fuente);rel(fk)"`
-	Dependencia   int                 `orm:"column(dependencia)"`
+type MovimientoFuenteFinanciamientoApropiacion struct {
+	Id                                        int                              `orm:"column(id);pk;auto"`
+	Fecha                                     time.Time                        `orm:"column(fecha);type(date)"`
+	Valor                                     float64                          `orm:"column(valor)"`
+	TipoMovimiento                            *TipoMovimiento                  `orm:"column(tipo_movimiento);rel(fk)"`
+	Descripcion                               string                           `orm:"column(descripcion);null"`
+	FuenteFinanciamientoApropiacion           *FuenteFinanciamientoApropiacion `orm:"column(fuente_financiamiento_apropiacion);rel(fk)"`
+	MovimientoFuenteFinanciamientoApropiacion int                              `orm:"column(movimiento_fuente_financiamiento_apropiacion);null"`
 }
 
-func (t *FuenteFinanciacionApropiacion) TableName() string {
-	return "fuente_financiacion_apropiacion"
+func (t *MovimientoFuenteFinanciamientoApropiacion) TableName() string {
+	return "movimiento_fuente_financiamiento_apropiacion"
 }
 
 func init() {
-	orm.RegisterModel(new(FuenteFinanciacionApropiacion))
+	orm.RegisterModel(new(MovimientoFuenteFinanciamientoApropiacion))
 }
 
-// AddFuenteFinanciacionApropiacion insert a new FuenteFinanciacionApropiacion into database and returns
+// AddMovimientoFuenteFinanciamientoApropiacion insert a new MovimientoFuenteFinanciamientoApropiacion into database and returns
 // last inserted Id on success.
-func AddFuenteFinanciacionApropiacion(m *FuenteFinanciacionApropiacion) (id int64, err error) {
+func AddMovimientoFuenteFinanciamientoApropiacion(m *MovimientoFuenteFinanciamientoApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetFuenteFinanciacionApropiacionById retrieves FuenteFinanciacionApropiacion by Id. Returns error if
+// GetMovimientoFuenteFinanciamientoApropiacionById retrieves MovimientoFuenteFinanciamientoApropiacion by Id. Returns error if
 // Id doesn't exist
-func GetFuenteFinanciacionApropiacionById(id int) (v *FuenteFinanciacionApropiacion, err error) {
+func GetMovimientoFuenteFinanciamientoApropiacionById(id int) (v *MovimientoFuenteFinanciamientoApropiacion, err error) {
 	o := orm.NewOrm()
-	v = &FuenteFinanciacionApropiacion{Id: id}
+	v = &MovimientoFuenteFinanciamientoApropiacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllFuenteFinanciacionApropiacion retrieves all FuenteFinanciacionApropiacion matches certain condition. Returns empty list if
+// GetAllMovimientoFuenteFinanciamientoApropiacion retrieves all MovimientoFuenteFinanciamientoApropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllFuenteFinanciacionApropiacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllMovimientoFuenteFinanciamientoApropiacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(FuenteFinanciacionApropiacion))
+	qs := o.QueryTable(new(MovimientoFuenteFinanciamientoApropiacion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -101,8 +102,8 @@ func GetAllFuenteFinanciacionApropiacion(query map[string]string, fields []strin
 		}
 	}
 
-	var l []FuenteFinanciacionApropiacion
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	var l []MovimientoFuenteFinanciamientoApropiacion
+	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -124,11 +125,11 @@ func GetAllFuenteFinanciacionApropiacion(query map[string]string, fields []strin
 	return nil, err
 }
 
-// UpdateFuenteFinanciacionApropiacion updates FuenteFinanciacionApropiacion by Id and returns error if
+// UpdateMovimientoFuenteFinanciamientoApropiacion updates MovimientoFuenteFinanciamientoApropiacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateFuenteFinanciacionApropiacionById(m *FuenteFinanciacionApropiacion) (err error) {
+func UpdateMovimientoFuenteFinanciamientoApropiacionById(m *MovimientoFuenteFinanciamientoApropiacion) (err error) {
 	o := orm.NewOrm()
-	v := FuenteFinanciacionApropiacion{Id: m.Id}
+	v := MovimientoFuenteFinanciamientoApropiacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -139,15 +140,15 @@ func UpdateFuenteFinanciacionApropiacionById(m *FuenteFinanciacionApropiacion) (
 	return
 }
 
-// DeleteFuenteFinanciacionApropiacion deletes FuenteFinanciacionApropiacion by Id and returns error if
+// DeleteMovimientoFuenteFinanciamientoApropiacion deletes MovimientoFuenteFinanciamientoApropiacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteFuenteFinanciacionApropiacion(id int) (err error) {
+func DeleteMovimientoFuenteFinanciamientoApropiacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := FuenteFinanciacionApropiacion{Id: id}
+	v := MovimientoFuenteFinanciamientoApropiacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&FuenteFinanciacionApropiacion{Id: id}); err == nil {
+		if num, err = o.Delete(&MovimientoFuenteFinanciamientoApropiacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

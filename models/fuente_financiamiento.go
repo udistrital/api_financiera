@@ -5,52 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type SolicitudTipoAvance struct {
-	Id              int              `orm:"column(id);pk;auto"`
-	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
-	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
-	Descripcion     string           `orm:"column(descripcion)"`
-	Valor           float64          `orm:"column(valor)"`
-	Estado          string           `orm:"column(estado)"`
+type FuenteFinanciamiento struct {
+	Id          int    `orm:"column(id);pk;auto"`
+	Descripcion string `orm:"column(descripcion);null"`
+	Sigla       string `orm:"column(sigla)"`
+	Codigo      string `orm:"column(codigo)"`
 }
 
-func (t *SolicitudTipoAvance) TableName() string {
-	return "solicitud_tipo_avance"
+func (t *FuenteFinanciamiento) TableName() string {
+	return "fuente_financiamiento"
 }
 
 func init() {
-	orm.RegisterModel(new(SolicitudTipoAvance))
+	orm.RegisterModel(new(FuenteFinanciamiento))
 }
 
-// AddSolicitudTipoAvance insert a new SolicitudTipoAvance into database and returns
+// AddFuenteFinanciamiento insert a new FuenteFinanciamiento into database and returns
 // last inserted Id on success.
-func AddSolicitudTipoAvance(m *SolicitudTipoAvance) (id int64, err error) {
+func AddFuenteFinanciamiento(m *FuenteFinanciamiento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSolicitudTipoAvanceById retrieves SolicitudTipoAvance by Id. Returns error if
+// GetFuenteFinanciamientoById retrieves FuenteFinanciamiento by Id. Returns error if
 // Id doesn't exist
-func GetSolicitudTipoAvanceById(id int) (v *SolicitudTipoAvance, err error) {
+func GetFuenteFinanciamientoById(id int) (v *FuenteFinanciamiento, err error) {
 	o := orm.NewOrm()
-	v = &SolicitudTipoAvance{Id: id}
+	v = &FuenteFinanciamiento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSolicitudTipoAvance retrieves all SolicitudTipoAvance matches certain condition. Returns empty list if
+// GetAllFuenteFinanciamiento retrieves all FuenteFinanciamiento matches certain condition. Returns empty list if
 // no records exist
-func GetAllSolicitudTipoAvance(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllFuenteFinanciamiento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SolicitudTipoAvance))
+	qs := o.QueryTable(new(FuenteFinanciamiento)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +99,7 @@ func GetAllSolicitudTipoAvance(query map[string]string, fields []string, sortby 
 		}
 	}
 
-	var l []SolicitudTipoAvance
+	var l []FuenteFinanciamiento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +122,11 @@ func GetAllSolicitudTipoAvance(query map[string]string, fields []string, sortby 
 	return nil, err
 }
 
-// UpdateSolicitudTipoAvance updates SolicitudTipoAvance by Id and returns error if
+// UpdateFuenteFinanciamiento updates FuenteFinanciamiento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSolicitudTipoAvanceById(m *SolicitudTipoAvance) (err error) {
+func UpdateFuenteFinanciamientoById(m *FuenteFinanciamiento) (err error) {
 	o := orm.NewOrm()
-	v := SolicitudTipoAvance{Id: m.Id}
+	v := FuenteFinanciamiento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +137,15 @@ func UpdateSolicitudTipoAvanceById(m *SolicitudTipoAvance) (err error) {
 	return
 }
 
-// DeleteSolicitudTipoAvance deletes SolicitudTipoAvance by Id and returns error if
+// DeleteFuenteFinanciamiento deletes FuenteFinanciamiento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSolicitudTipoAvance(id int) (err error) {
+func DeleteFuenteFinanciamiento(id int) (err error) {
 	o := orm.NewOrm()
-	v := SolicitudTipoAvance{Id: id}
+	v := FuenteFinanciamiento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SolicitudTipoAvance{Id: id}); err == nil {
+		if num, err = o.Delete(&FuenteFinanciamiento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

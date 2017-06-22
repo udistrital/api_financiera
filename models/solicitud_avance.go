@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type SolicitudAvance struct {
-	Id                       int     `orm:"column(id);pk"`
-	IdBeneficiario           int     `orm:"column(id_beneficiario)"`
-	Vigencia                 string  `orm:"column(vigencia)"`
-	Consecutivo              string  `orm:"column(consecutivo)"`
+	Id                       int     `orm:"column(id);pk;auto"`
+	IdBeneficiario           float64 `orm:"column(id_beneficiario)"`
+	Vigencia                 int     `orm:"column(vigencia)"`
+	Consecutivo              int     `orm:"column(consecutivo)"`
 	Objetivo                 string  `orm:"column(objetivo)"`
 	Justificacion            string  `orm:"column(justificacion)"`
 	ValorTotal               float64 `orm:"column(valor_total)"`
@@ -36,6 +38,74 @@ func (t *SolicitudAvance) TableName() string {
 
 func init() {
 	orm.RegisterModel(new(SolicitudAvance))
+}
+
+func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err error) {
+	//var id int64
+	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
+	if err == nil {
+		fmt.Println("Solicitud: ", solicitud)
+		solicitud.Estado = "A"
+		//solicitud.Fecha = time.Now()
+		solicitud.Vigencia = int(time.Now().Year())
+		o := orm.NewOrm()
+		o.Begin()
+		var consecutivo int
+		err = o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.solicitud_avance WHERE vigencia = ?`, solicitud.Vigencia).QueryRow(&consecutivo)
+		if err == nil {
+			solicitud.Consecutivo = consecutivo
+			//insert ingreso
+			_, err = o.Insert(&solicitud)
+			if err == nil {
+				solicitudTipoAvance := SolicitudTipoAvance{}
+				err = utilidades.FillStruct(m["TipoAvance"], &solicitudTipoAvance)
+				if err == nil {
+					tipoAvance := TipoAvance{}
+					tipoAvance.Id = solicitudTipoAvance.Id
+					solicitudTipoAvance.Estado = "A"
+					solicitudTipoAvance.SolicitudAvance = &solicitud
+					solicitudTipoAvance.TipoAvance = &tipoAvance
+					fmt.Println("tipo_avance: ", solicitudTipoAvance)
+					_, err = o.Insert(&solicitudTipoAvance)
+					if err == nil {
+						estado := Estados{}
+						estadoAvance := EstadoAvance{}
+						estado.Id = 4
+						estadoAvance.Estados = &estado
+						estadoAvance.SolicitudAvance = &solicitud
+						estadoAvance.FechaRegistro = time.Now()
+						estadoAvance.Observaciones = "Registro inicial de la Solicitud de Avance"
+						estadoAvance.Usuario = "System"
+						estadoAvance.Usuario = "System"
+						estadoAvance.Estado = "A"
+						_, err = o.Insert(&estadoAvance)
+						if err == nil {
+							o.Commit()
+							return
+						} else {
+							o.Rollback()
+							return
+						}
+					} else {
+						o.Rollback()
+						return
+					}
+				} else {
+					o.Rollback()
+					return
+				}
+			} else {
+				o.Rollback()
+				return
+			}
+		} else {
+			o.Rollback()
+			return
+		}
+	} else {
+		return
+	}
 }
 
 // AddSolicitudAvance insert a new SolicitudAvance into database and returns

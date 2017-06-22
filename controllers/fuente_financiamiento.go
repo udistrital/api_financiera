@@ -3,22 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
 
-// SolicitudAvanceController operations for SolicitudAvance
-type SolicitudAvanceController struct {
+// FuenteFinanciamientoController operations for FuenteFinanciamiento
+type FuenteFinanciamientoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *SolicitudAvanceController) URLMapping() {
+func (c *FuenteFinanciamientoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -28,15 +26,15 @@ func (c *SolicitudAvanceController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create SolicitudAvance
-// @Param	body		body 	models.SolicitudAvance	true		"body for SolicitudAvance content"
-// @Success 201 {int} models.SolicitudAvance
+// @Description create FuenteFinanciamiento
+// @Param	body		body 	models.FuenteFinanciamiento	true		"body for FuenteFinanciamiento content"
+// @Success 201 {int} models.FuenteFinanciamiento
 // @Failure 403 body is empty
 // @router / [post]
-func (c *SolicitudAvanceController) Post() {
-	var v models.SolicitudAvance
+func (c *FuenteFinanciamientoController) Post() {
+	var v models.FuenteFinanciamiento
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddSolicitudAvance(&v); err == nil {
+		if _, err := models.AddFuenteFinanciamiento(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,42 +46,17 @@ func (c *SolicitudAvanceController) Post() {
 	c.ServeJSON()
 }
 
-// TrSolicitudAvance ...
-// @Title TrSolicitudAvance
-// @Description create SolicitudAvance
-// @Param	body		body 	interface	true		"body for SolicitudAvance content"
-// @Success 201 {int} models.SolicitudAvance
-// @Failure 403 body is empty
-// @router TrSolicitudAvance/ [post]
-func (c *SolicitudAvanceController) TrSolicitudAvance() {
-	var v interface{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		m := v.(map[string]interface{})
-		if res, err := models.TrSolicitudAvance(m); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = res
-		} else {
-			c.Data["json"] = err.Error()
-		}
-	} else {
-		c.Data["json"] = err.Error()
-		fmt.Println("error 2: ", err)
-
-	}
-	c.ServeJSON()
-}
-
 // GetOne ...
 // @Title Get One
-// @Description get SolicitudAvance by id
+// @Description get FuenteFinanciamiento by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.SolicitudAvance
+// @Success 200 {object} models.FuenteFinanciamiento
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *SolicitudAvanceController) GetOne() {
+func (c *FuenteFinanciamientoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetSolicitudAvanceById(id)
+	v, err := models.GetFuenteFinanciamientoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -94,17 +67,17 @@ func (c *SolicitudAvanceController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get SolicitudAvance
+// @Description get FuenteFinanciamiento
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.SolicitudAvance
+// @Success 200 {object} models.FuenteFinanciamiento
 // @Failure 403
 // @router / [get]
-func (c *SolicitudAvanceController) GetAll() {
+func (c *FuenteFinanciamientoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -146,7 +119,7 @@ func (c *SolicitudAvanceController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllSolicitudAvance(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllFuenteFinanciamiento(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -157,18 +130,18 @@ func (c *SolicitudAvanceController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the SolicitudAvance
+// @Description update the FuenteFinanciamiento
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.SolicitudAvance	true		"body for SolicitudAvance content"
-// @Success 200 {object} models.SolicitudAvance
+// @Param	body		body 	models.FuenteFinanciamiento	true		"body for FuenteFinanciamiento content"
+// @Success 200 {object} models.FuenteFinanciamiento
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *SolicitudAvanceController) Put() {
+func (c *FuenteFinanciamientoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.SolicitudAvance{Id: id}
+	v := models.FuenteFinanciamiento{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateSolicitudAvanceById(&v); err == nil {
+		if err := models.UpdateFuenteFinanciamientoById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -181,15 +154,15 @@ func (c *SolicitudAvanceController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the SolicitudAvance
+// @Description delete the FuenteFinanciamiento
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *SolicitudAvanceController) Delete() {
+func (c *FuenteFinanciamientoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteSolicitudAvance(id); err == nil {
+	if err := models.DeleteFuenteFinanciamiento(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
