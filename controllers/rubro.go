@@ -3,10 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -177,17 +180,35 @@ func (c *RubroController) Delete() {
 // RubroReporte ...
 // @Title RubroReporte
 // @Description Obtener reporte ingresos egresos de los rubros dada una vigencia
-// @Success 200 {object} []interface{}
+// @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
+// @Param	ffin		path 	string	true		"fecha final para el reporte"
+// @Success 200 {object} interface{}
 // @Failure 403 No se en contraron datos
-// @router RubroReporte/ [get]
+// @router RubroReporte/ [post]
 
 func (c *RubroController) RubroReporte() {
-	var v []interface{}
-	v, err := models.RubroReporte(2017)
-	if err != nil {
-		c.Data["json"] = err.Error()
+	var v interface{}
+	var p interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &p); err == nil {
+		m := p.(map[string]interface{})
+		fmt.Println("inicio: ", m["inicio"])
+		fmt.Println("inicio: ", m["fin"])
+		var inicio time.Time
+		err = utilidades.FillStruct(m["inicio"], &inicio)
+		var fin time.Time
+		err = utilidades.FillStruct(m["fin"], &fin)
+		fmt.Println("format inicio: ", int(inicio.Year()))
+		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
+		v, err = models.RubroReporte(inicio, fin)
+		if err != nil {
+			c.Data["json"] = err.Error()
+		} else {
+			c.Data["json"] = v
+		}
 	} else {
-		c.Data["json"] = v
+		e := models.Alert{Type: "error", Code: "E_0458", Body: p}
+		c.Data["json"] = e
 	}
+
 	c.ServeJSON()
 }
