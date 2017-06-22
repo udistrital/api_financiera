@@ -10,11 +10,11 @@ import (
 )
 
 type DisponibilidadApropiacion struct {
-	Id                   int                 `orm:"auto;column(id);pk"`
-	Disponibilidad       *Disponibilidad     `orm:"column(disponibilidad);rel(fk)"`
-	Apropiacion          *Apropiacion        `orm:"column(apropiacion);rel(fk)"`
-	Valor                float64             `orm:"column(valor);null"`
-	FuenteFinanciamiento *FuenteFinanciacion `orm:"column(fuente_financiamiento);rel(fk);null"`
+	Id                   int                   `orm:"auto;column(id);pk"`
+	Disponibilidad       *Disponibilidad       `orm:"column(disponibilidad);rel(fk)"`
+	Apropiacion          *Apropiacion          `orm:"column(apropiacion);rel(fk)"`
+	Valor                float64               `orm:"column(valor);null"`
+	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 }
 
 func (t *DisponibilidadApropiacion) TableName() string {
