@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -61,9 +63,14 @@ func (c *SolicitudAvanceController) TrSolicitudAvance() {
 		m := v.(map[string]interface{})
 		if res, err := models.TrSolicitudAvance(m); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = res
+			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = err.Error()
