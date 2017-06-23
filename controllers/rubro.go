@@ -200,6 +200,7 @@ func (c *RubroController) RubroReporte() {
 		fmt.Println("format inicio: ", int(inicio.Year()))
 		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
 		v, err = models.RubroReporte(inicio, fin)
+		//v, err = models.ListaApropiacionesHijo(2017)
 		if err != nil {
 			c.Data["json"] = err.Error()
 		} else {
