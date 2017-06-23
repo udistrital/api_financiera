@@ -157,10 +157,19 @@ func DeleteRubro(id int) (err error) {
 	return
 }
 
+func ListaFuentes() (res interface{}, err error) {
+	o := orm.NewOrm()
+	var fuentes []*FuenteFinanciamiento
+	_, err = o.QueryTable("fuente_financiamiento").All(&fuentes)
+	res = fuentes
+
+	return
+}
+
 func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT* FROM (SELECT apropiacion.id , rubro.codigo, rubro.descripcion, apropiacion.vigencia
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id , rubro.codigo, rubro.descripcion, apropiacion.vigencia, fuente.descripcion as fdescrip, fuente.id as idfuente
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
@@ -168,12 +177,17 @@ func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
 	ON
 		rubro.id = apropiacion.rubro
 	JOIN
-		financiera.rubro_rubro as gerarquia
+		financiera.fuente_financiamiento_apropiacion as ffa
 	ON
-		gerarquia.rubro_hijo = rubro.id
-	WHERE
-		(rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro))) as apropiacion
-		WHERE vigencia = ?`, vigencia).Values(&res)
+		apropiacion.id = ffa.apropiacion
+	JOIN
+		financiera.fuente_financiamiento as fuente
+	ON
+		fuente.id = ffa.fuente_financiamiento
+             ) as apropiacion
+
+		WHERE vigencia = ?
+	`, vigencia).Values(&res)
 	return
 }
 
@@ -199,11 +213,25 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 			}
 			ingr, _ := RubroIngreso(m[i]["id"], finicio, ffin)
 
-			egresos, _ := RubroOrdenPago(m[i]["id"])
+			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
 			aux["mes"] = finicio.Month()
-			aux["ingresos"] = ingr
-			aux["egresos"] = egresos
+			val := make(map[string]interface{})
+			if ingr == nil {
+
+				val["valor"] = 0
+				aux["ingresos"] = val
+			} else {
+				aux["ingresos"] = ingr[0]
+			}
+			if egresos == nil {
+
+				val["valor"] = 0
+				aux["egresos"] = val
+			} else {
+				aux["egresos"] = egresos[0]
+			}
+
 			fechas = append(fechas, aux)
 
 		}
@@ -222,11 +250,11 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 }
 
 // RubroOrdenPago informe ordenes de pago y total por orden
-func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
+func RubroOrdenPago(apropiacion interface{}, fuente interface{}) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	_, err = o.Raw(`SELECT codigo, fdescr,SUM(valor) FROM
-		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo, fuente.descripcion as fdescr,rp.numero_registro_presupuestal AS RP,
+	_, err = o.Raw(`SELECT codigo,idfuente,SUM(valor) as valor FROM
+		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo, fuente.id as idfuente,rp.numero_registro_presupuestal AS RP,
 		cdp.numero_disponibilidad AS CDP, fuente.descripcion AS fuente
 
 		FROM
@@ -271,11 +299,13 @@ func RubroOrdenPago(apropiacion interface{}) (res []interface{}, err error) {
 		ON
 			disponibilidad.fuente_financiamiento = fuente.id
 		GROUP BY
-			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.descripcion, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
+			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
 		WHERE id_apr = ?
+		AND
+		idfuente = ?
 		GROUP BY
 		  codigo,
-			fdescr`, apropiacion).Values(&m)
+			idfuente`, apropiacion, fuente).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
