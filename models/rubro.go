@@ -215,24 +215,27 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 
 			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
-			aux["mes"] = finicio.Month()
-			val := make(map[string]interface{})
-			if ingr == nil {
+			aux["mes"] = finicio.Format("Jan")
 
-				val["valor"] = 0
+			if ingr == nil {
+				val := make(map[string]interface{})
+				val["valor"] = "0"
 				aux["ingresos"] = val
 			} else {
 				aux["ingresos"] = ingr[0]
+
 			}
 			if egresos == nil {
-
-				val["valor"] = 0
+				val := make(map[string]interface{})
+				val["valor"] = "0"
 				aux["egresos"] = val
 			} else {
 				aux["egresos"] = egresos[0]
-			}
 
-			fechas = append(fechas, aux)
+			}
+			if aux != nil {
+				fechas = append(fechas, aux)
+			}
 
 		}
 		m[i]["reporte"] = fechas
