@@ -1836,6 +1836,7 @@ func init() {
 			Method: "FechaActual",
 			Router: `/:formato`,
 			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
 			Params: nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:PeriodoContableController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:PeriodoContableController"],
@@ -2347,6 +2348,7 @@ func init() {
 			Method: "TrSolicitudAvance",
 			Router: `TrSolicitudAvance/`,
 			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
 			Params: nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:SolicitudAvanceController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:SolicitudAvanceController"],
