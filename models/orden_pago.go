@@ -4,11 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
-	"github.com/udistrital/api_financiera/utilidades"
+
 	"github.com/astaxie/beego/orm"
-	"strconv"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Data_OrdenPago_Concepto struct {
@@ -286,7 +287,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err error, id_OrdenPago int64) {
+func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err error, id_OrdenPago int64) {
 	fmt.Println("Models Registro OP Planta")
 	o := orm.NewOrm()
 	o.Begin()
@@ -301,22 +302,22 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 	new_orden.FechaCreacion = time.Now()
 	new_orden.Nomina = "PLANTA"
 	new_orden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	new_orden.Iva = &Iva{Id: 1} //1 iva del 0%
-	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
+	new_orden.Iva = &Iva{Id: 1}                         //1 iva del 0%
+	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
 
 	// insertar OP Planta
 	id_OrdenPago, err1 := o.Insert(&new_orden)
 	if err1 != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = err1.Error()
-			err = err1
-			o.Rollback()
-			return
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err1.Error()
+		err = err1
+		o.Rollback()
+		return
 	}
 
 	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
-	for i,element := range detalle{
+	for i, element := range detalle {
 		det := element.(map[string]interface{})
 		var idconceptotitan int
 		// data valorCalculado
@@ -341,7 +342,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 			return
 		}
 
-		fmt.Println("****************************** ", strconv.Itoa(i) , " ******************************" )
+		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
 		if i == 0 {
 			// Buscamos concepto kronos homologado
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
@@ -350,7 +351,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 				alerta.Type = "error"
 				alerta.Code = "E_OPP_02"
 				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
-				alerta.Body = " El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString  + " No cuenta Con su Concepto Homologado del Sistema Kronos"
+				alerta.Body = " El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString + " No cuenta Con su Concepto Homologado del Sistema Kronos"
 				err = err2
 				o.Rollback()
 				return
@@ -359,12 +360,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
 			fmt.Println(valorcalculado)
 			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
-			new_concepto_orden := ConceptoOrdenPago {
-				Valor: valorcalculado,
+			new_concepto_orden := ConceptoOrdenPago{
+				Valor:    valorcalculado,
 				Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 			}
 			all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden)
-		}else{
+		} else {
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
 			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
@@ -373,7 +374,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 				alerta.Type = "error"
 				alerta.Code = "E_OPP_02"
 				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
-				alerta.Body = "El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString  + "No cuenta Con su Concepto Homologado del Sistema Kronos"
+				alerta.Body = "El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString + "No cuenta Con su Concepto Homologado del Sistema Kronos"
 				err = err2
 				o.Rollback()
 				return
@@ -386,10 +387,10 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 				fmt.Println("---Sumar")
 				suma_valor := all_concepto_orden_pago[idlista].Valor + valorcalculado
 				all_concepto_orden_pago[idlista].Valor = suma_valor
-			}else{
+			} else {
 				fmt.Println("---Append")
-				new_concepto_orden2 := ConceptoOrdenPago {
-					Valor: valorcalculado,
+				new_concepto_orden2 := ConceptoOrdenPago{
+					Valor:    valorcalculado,
 					Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
 				}
 				all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden2)
@@ -397,19 +398,19 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 		}
 	}
 	fmt.Println("\n***************** Totalizado **********************")
-	for i:=0; i< len(all_concepto_orden_pago); i++{
+	for i := 0; i < len(all_concepto_orden_pago); i++ {
 		fmt.Println("\n************ Concepto kronos", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
 		fmt.Println(all_concepto_orden_pago[i].Valor)
 		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
 		// insertar concepto_orden_pago
 		_, err3 := o.Insert(&all_concepto_orden_pago[i])
 		if err3 != nil {
-				alerta.Type = "error"
-				alerta.Code = "E_OPP_03"
-				alerta.Body = err3
-				err = err3
-				o.Rollback()
-				return
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_03"
+			alerta.Body = err3
+			err = err3
+			o.Rollback()
+			return
 		}
 		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
 		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
@@ -417,7 +418,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 		qs = qs.RelatedSel()
 		var l []ConceptoCuentaContable
 		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
-			for _,v := range l {
+			for _, v := range l {
 				//registra movimientos
 				fmt.Println("Data para Movimientos")
 				new_movimiento_contable := MovimientoContable{}
@@ -425,7 +426,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 					fmt.Println(v.CuentaContable.Naturaleza)
 					new_movimiento_contable.Debito = all_concepto_orden_pago[i].Valor
 					new_movimiento_contable.Credito = 0
-				}else{
+				} else {
 					fmt.Println(v.CuentaContable.Naturaleza)
 					new_movimiento_contable.Debito = 0
 					new_movimiento_contable.Credito = all_concepto_orden_pago[i].Valor
@@ -439,12 +440,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 				// insertar OP Planta
 				_, err4 := o.Insert(&new_movimiento_contable)
 				if err4 != nil {
-						alerta.Type = "error"
-						alerta.Code = "E_OPP_04"
-						alerta.Body = err4
-						err = err4
-						o.Rollback()
-						return
+					alerta.Type = "error"
+					alerta.Code = "E_OPP_04"
+					alerta.Body = err4
+					err = err4
+					o.Rollback()
+					return
 				}
 			}
 		}
@@ -453,6 +454,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{} ) (alerta Alert, err 
 	o.Commit()
 	return
 }
+
 //
 func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista int) {
 	for or := 0; or < len(lista); or++ {
@@ -464,7 +466,7 @@ func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista
 }
 
 // personalizado Retrona la fecha actual del servidor
-func FechaActual(formato string)(fechaActual string, err error){
+func FechaActual(formato string) (fechaActual string, err error) {
 	hoy := time.Now()
 	fechaActual = hoy.Format(formato)
 	return
