@@ -166,28 +166,135 @@ func ListaFuentes() (res interface{}, err error) {
 	return
 }
 
-func ListaApropiacionesHijo(vigencia int) (res []orm.Params, err error) {
+func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id , rubro.codigo, rubro.descripcion, apropiacion.vigencia, fuente.descripcion as fdescrip, fuente.id as idfuente
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id , rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, fuente.id as idfuente
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
 		financiera.rubro as rubro
 	ON
 		rubro.id = apropiacion.rubro
-	JOIN
+	LEFT JOIN
 		financiera.fuente_financiamiento_apropiacion as ffa
 	ON
 		apropiacion.id = ffa.apropiacion
-	JOIN
+	LEFT JOIN
 		financiera.fuente_financiamiento as fuente
 	ON
 		fuente.id = ffa.fuente_financiamiento
+	WHERE
+		rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
              ) as apropiacion
 
 		WHERE vigencia = ?
-	`, vigencia).Values(&res)
+		AND codigo LIKE ?
+	`, vigencia, codigo).Values(&res)
+	return
+}
+
+// RubroOrdenPago informe ordenes de pago y total por orden
+func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, err error) {
+	vigencia := int(inicio.Year())
+	mesinicio := int(inicio.Month())
+	mesfin := int(fin.Month())
+
+	m, err := ListaApropiacionesHijo(vigencia, "3%")
+	if err != nil {
+		return
+	}
+	for i := 0; i < len(m); i++ {
+		var fechas []map[string]interface{}
+		for j := 0; j <= (mesfin - mesinicio); j++ {
+			var ffin time.Time
+			fmt.Println(ffin)
+			finicio := inicio.AddDate(0, j, 0)
+			if mesfin-mesinicio == 0 || j == mesfin-mesinicio {
+				ffin = fin
+			} else {
+				ffin = inicio.AddDate(0, j+1, 0)
+			}
+			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
+			aux := make(map[string]interface{})
+			fmt.Println("aux: ", aux["valores"])
+			if egresos == nil {
+				val := make(map[string]interface{})
+				val["valor"] = "0"
+				aux["valores"] = val
+			} else {
+				aux["valores"] = egresos[0]
+
+			}
+			if aux != nil {
+				aux["mes"] = finicio.Format("Jan")
+				fechas = append(fechas, aux)
+			}
+
+		}
+		m[i]["reporte"] = fechas
+		//m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
+		if err != nil {
+			return
+		}
+
+	}
+	err = utilidades.FillStruct(m, &res)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// RubroOrdenPago informe ordenes de pago y total por orden
+func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, err error) {
+	vigencia := int(inicio.Year())
+	mesinicio := int(inicio.Month())
+	mesfin := int(fin.Month())
+
+	m, err := ListaApropiacionesHijo(vigencia, "3")
+	if err != nil {
+		return
+	}
+	for i := 0; i < len(m); i++ {
+		var fechas []map[string]interface{}
+		for j := 0; j <= (mesfin - mesinicio); j++ {
+			var ffin time.Time
+			fmt.Println(ffin)
+			finicio := inicio.AddDate(0, j, 0)
+			if mesfin-mesinicio == 0 || j == mesfin-mesinicio {
+				ffin = fin
+			} else {
+				ffin = inicio.AddDate(0, j+1, 0)
+			}
+			ingr, _ := RubroIngreso(m[i]["id"], finicio, ffin)
+			aux := make(map[string]interface{})
+			fmt.Println("aux: ", aux["valores"])
+			if ingr == nil {
+				val := make(map[string]interface{})
+				val["valor"] = "0"
+				aux["valores"] = val
+			} else {
+				aux["valores"] = ingr[0]
+
+			}
+			if aux != nil {
+				aux["mes"] = finicio.Format("Jan")
+				fechas = append(fechas, aux)
+			}
+
+		}
+		m[i]["reporte"] = fechas
+		//m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
+		if err != nil {
+			return
+		}
+
+	}
+	err = utilidades.FillStruct(m, &res)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -197,7 +304,7 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 	mesinicio := int(inicio.Month())
 	mesfin := int(fin.Month())
 
-	m, err := ListaApropiacionesHijo(vigencia)
+	m, err := ListaApropiacionesHijo(vigencia, "")
 	if err != nil {
 		return
 	}
@@ -215,25 +322,25 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 
 			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
-			aux["mes"] = finicio.Format("Jan")
-
+			fmt.Println("aux: ", aux)
 			if ingr == nil {
-				val := make(map[string]interface{})
+				/*val := make(map[string]interface{})
 				val["valor"] = "0"
-				aux["ingresos"] = val
+				aux["ingresos"] = val*/
 			} else {
 				aux["ingresos"] = ingr[0]
 
 			}
 			if egresos == nil {
-				val := make(map[string]interface{})
+				/*val := make(map[string]interface{})
 				val["valor"] = "0"
-				aux["egresos"] = val
+				aux["egresos"] = val*/
 			} else {
 				aux["egresos"] = egresos[0]
 
 			}
 			if aux != nil {
+				aux["mes"] = finicio.Format("Jan")
 				fechas = append(fechas, aux)
 			}
 

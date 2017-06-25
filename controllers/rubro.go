@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/api_financiera/utilidades"
 
@@ -199,10 +200,14 @@ func (c *RubroController) RubroReporte() {
 		err = utilidades.FillStruct(m["fin"], &fin)
 		fmt.Println("format inicio: ", int(inicio.Year()))
 		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
-		v, err = models.RubroReporte(inicio, fin)
+		v, err = models.RubroReporteEgresos(inicio, fin)
 		//v, err = models.ListaApropiacionesHijo(2017)
 		if err != nil {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		} else {
 			c.Data["json"] = v
 		}
