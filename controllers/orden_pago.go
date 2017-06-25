@@ -27,7 +27,7 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
 	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
-	c.Mapping("RegistrarOpPlanta", c.RegistrarOpPlanta)
+	c.Mapping("RegistrarOpNomina", c.RegistrarOpNomina)
 	c.Mapping("FechaActual", c.FechaActual)
 }
 
@@ -211,8 +211,14 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 	c.ServeJSON()
 }
 
-// personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func (c *OrdenPagoController) RegistrarOpPlanta() {
+// RegistrarOpNomina ...
+// @Title RegistrarOpNomina
+// @Description Registrar orden_pago nomina planta, concepto_ordenpago, transacciones y homologa conceptos titan-kronos
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router RegistrarOpNomina [post]
+func (c *OrdenPagoController) RegistrarOpNomina() {
 	fmt.Println("controller kronos")
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
