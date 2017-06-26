@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -169,7 +170,7 @@ func ListaFuentes() (res interface{}, err error) {
 func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id , rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, fuente.id as idfuente
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, fuente.id as idfuente
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
@@ -216,14 +217,38 @@ func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, er
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
 			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
+			proy, _ := RubroReporteEgresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
+			fmt.Println("sss ", proy)
 			aux := make(map[string]interface{})
-			fmt.Println("aux: ", aux["valores"])
+			fmt.Println("aux: ", finicio.AddDate(-1, 0, 0))
 			if egresos == nil {
 				val := make(map[string]interface{})
 				val["valor"] = "0"
+				val["proyeccion"] = "0"
+				val["variacion"] = "0"
 				aux["valores"] = val
 			} else {
-				aux["valores"] = egresos[0]
+				fll := egresos[0].(map[string]interface{})
+
+				var ejstr string
+				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				fmt.Println("err ", err)
+				ej, err := strconv.ParseFloat(ejstr, 64)
+				fmt.Println("err ", err)
+				var variacion float64
+				if proy <= 0 {
+					variacion = 0
+				} else {
+					variacion = ej - proy
+					variacion = variacion / proy
+				}
+
+				fmt.Println("vac ", variacion)
+				fll["proyeccion"] = proy
+				var mp interface{}
+				err = utilidades.FillStruct(variacion, &mp)
+				fll["variacion"] = mp
+				aux["valores"] = fll
 
 			}
 			if aux != nil {
@@ -235,14 +260,47 @@ func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, er
 		m[i]["reporte"] = fechas
 		//m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
 		if err != nil {
+			fmt.Println("err1 ", err)
 			return
 		}
 
 	}
 	err = utilidades.FillStruct(m, &res)
 	if err != nil {
+		fmt.Println("err2 ", err)
 		return
 	}
+	fmt.Println("err3 ", err)
+	return
+}
+
+func RubroReporteEgresosProyeccion(inicio time.Time, fin time.Time, nperiodos int, idrubro interface{}, idfuente interface{}) (res float64, err error) {
+	o := orm.NewOrm()
+	proy := 0.0
+	for i := 1; i <= nperiodos; i++ {
+		apropiacion := []Apropiacion{}
+		vigencia := int(inicio.AddDate(-i, 0, 0).Year())
+		_, err = o.QueryTable("apropiacion").Filter("vigencia", vigencia).Filter("rubro", idrubro).All(&apropiacion)
+		fmt.Println("ap ", apropiacion)
+		if len(apropiacion) <= 0 {
+
+		} else {
+			aux, _ := RubroOrdenPago(apropiacion[0].Id, idfuente)
+			if aux != nil {
+				for _, m := range aux {
+					p := m.(map[string]interface{})
+					var val float64
+					err = utilidades.FillStruct(p["valor"], &val)
+					proy = proy + val
+					fmt.Println("proy: ", proy)
+				}
+			}
+
+		}
+
+	}
+	res = proy / float64(nperiodos)
+
 	return
 }
 
