@@ -200,8 +200,10 @@ func (c *RubroController) RubroReporte() {
 		err = utilidades.FillStruct(m["fin"], &fin)
 		fmt.Println("format inicio: ", int(inicio.Year()))
 		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
-		v, err = models.RubroReporteEgresos(inicio, fin)
+		reporte := make(map[string]interface{})
+		reporte["egresos"], err = models.RubroReporteEgresos(inicio, fin)
 		//v, err = models.ListaApropiacionesHijo(2017)
+		v = reporte
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
