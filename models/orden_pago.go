@@ -170,7 +170,7 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, idOrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
 	// Inserta datos Orden de pago
@@ -178,7 +178,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 	m.OrdenPago.Nomina = "PROVEEDOR"
 	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 
-	id_OrdenPago, err1 := o.Insert(&m.OrdenPago)
+	idOrdenPago, err1 := o.Insert(&m.OrdenPago)
 	if err1 != nil {
 		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
 		err = err1
@@ -187,7 +187,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 	}
 	// Insertar data Conceptos
 	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
-		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
+		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
 		_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
 		if err2 != nil {
 			alerta = append(alerta, "ERROR_2 [RegistrarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
@@ -204,7 +204,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 			Concepto:                 m.MovimientoContable[i].Concepto,
 			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
-			CodigoDocumentoAfectante: int(id_OrdenPago),
+			CodigoDocumentoAfectante: int(idOrdenPago),
 			Aprobado:                 false,
 		}
 		_, err3 := o.Insert(&movimiento_contable)
@@ -219,7 +219,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 }
 
 // personalizado Actualiza orden_pago, concepto_ordenpago y movimeintos contalbes
-func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, id_OrdenPago int64) {
+func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, idOrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
 	// Actualizar datos de la Orden
@@ -287,29 +287,28 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err error, id_OrdenPago int64) {
-	fmt.Println("Models Registro OP Planta")
+func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
-	new_orden := OrdenPago{}
+	newOrden := OrdenPago{}
 	var detalle []interface{}
-	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &new_orden)
+	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
 	//homologacion := HomologacionConcepto{}
-	var all_concepto_orden_pago []ConceptoOrdenPago
+	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
-	new_orden.FechaCreacion = time.Now()
-	new_orden.Nomina = "PLANTA"
-	new_orden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	new_orden.Iva = &Iva{Id: 1}                         //1 iva del 0%
-	new_orden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
+	newOrden.FechaCreacion = time.Now()
+	newOrden.Nomina = "PLANTA"
+	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
 
 	// insertar OP Planta
-	id_OrdenPago, err1 := o.Insert(&new_orden)
+	idOrdenPago, err1 := o.Insert(&newOrden)
 	if err1 != nil {
 		alerta.Type = "error"
-		alerta.Code = "E_OPP_01"
+		alerta.Code = "E_OPN_02"
 		alerta.Body = err1.Error()
 		err = err1
 		o.Rollback()
@@ -324,7 +323,8 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		val, ok := det["ValorCalculado"]
 		if !ok {
 			alerta.Type = "error"
-			alerta.Code = "E_OPP_01_1"
+			alerta.Code = "E_OPN_02_1"
+			alerta.Body = ""
 			o.Rollback()
 			return
 		}
@@ -335,7 +335,7 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		err1_2 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
 		if err1_2 != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPP_01_2"
+			alerta.Code = "E_OPN_02_2"
 			alerta.Body = err1_2
 			err = err1_2
 			o.Rollback()
@@ -345,13 +345,12 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
 		if i == 0 {
 			// Buscamos concepto kronos homologado
-			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
-			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
+			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err2 != nil {
 				alerta.Type = "error"
-				alerta.Code = "E_OPP_02"
-				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
-				alerta.Body = " El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString + " No cuenta Con su Concepto Homologado del Sistema Kronos"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idconceptotitan)
 				err = err2
 				o.Rollback()
 				return
@@ -359,54 +358,53 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 			fmt.Println("***Priner append ***")
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
 			fmt.Println(valorcalculado)
-			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
-			new_concepto_orden := ConceptoOrdenPago{
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
+			newConceptoOrden := ConceptoOrdenPago{
 				Valor:    valorcalculado,
-				Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
+				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 			}
-			all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden)
+			allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden)
 		} else {
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
-			concepto_kronos_homologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: new_orden.Vigencia}
-			err2 := o.Read(&concepto_kronos_homologado, "ConceptoTitan", "Vigencia")
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
+			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err2 != nil {
 				alerta.Type = "error"
-				alerta.Code = "E_OPP_02"
-				vigenciaString := strconv.FormatFloat(new_orden.Vigencia, 'f', -1, 64)
-				alerta.Body = "El Concepto No. " + strconv.Itoa(idconceptotitan) + " Del sistema Titan en la Vigencia " + vigenciaString + "No cuenta Con su Concepto Homologado del Sistema Kronos"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idconceptotitan)
 				err = err2
 				o.Rollback()
 				return
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
 			fmt.Println(valorcalculado)
-			fmt.Println("Concepto Kronos:", strconv.Itoa(concepto_kronos_homologado.ConceptoKronos.Id))
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
 
-			if esta, idlista := estaConcepto(concepto_kronos_homologado.ConceptoKronos.Id, all_concepto_orden_pago); esta == true {
+			if esta, idlista := estaConcepto(conceptoKronosHomologado.ConceptoKronos.Id, allConceptoOrdenPago); esta == true {
 				fmt.Println("---Sumar")
-				suma_valor := all_concepto_orden_pago[idlista].Valor + valorcalculado
-				all_concepto_orden_pago[idlista].Valor = suma_valor
+				sumaValor := allConceptoOrdenPago[idlista].Valor + valorcalculado
+				allConceptoOrdenPago[idlista].Valor = sumaValor
 			} else {
 				fmt.Println("---Append")
-				new_concepto_orden2 := ConceptoOrdenPago{
+				newConceptoOrden2 := ConceptoOrdenPago{
 					Valor:    valorcalculado,
-					Concepto: &Concepto{Id: concepto_kronos_homologado.ConceptoKronos.Id},
+					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 				}
-				all_concepto_orden_pago = append(all_concepto_orden_pago, new_concepto_orden2)
+				allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden2)
 			}
 		}
 	}
 	fmt.Println("\n***************** Totalizado **********************")
-	for i := 0; i < len(all_concepto_orden_pago); i++ {
-		fmt.Println("\n************ Concepto kronos", strconv.Itoa(all_concepto_orden_pago[i].Concepto.Id), " ************")
-		fmt.Println(all_concepto_orden_pago[i].Valor)
-		all_concepto_orden_pago[i].OrdenDePago = &OrdenPago{Id: int(id_OrdenPago)}
+	for i := 0; i < len(allConceptoOrdenPago); i++ {
+		fmt.Println("\n************ Concepto kronos", strconv.Itoa(allConceptoOrdenPago[i].Concepto.Id), " ************")
+		fmt.Println(allConceptoOrdenPago[i].Valor)
+		allConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
 		// insertar concepto_orden_pago
-		_, err3 := o.Insert(&all_concepto_orden_pago[i])
+		_, err3 := o.Insert(&allConceptoOrdenPago[i])
 		if err3 != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPP_03"
+			alerta.Code = "E_OPN_02_4"
 			alerta.Body = err3
 			err = err3
 			o.Rollback()
@@ -414,34 +412,34 @@ func RegistrarOpPlanta(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		}
 		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
 		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
-		qs = qs.Filter("Concepto", all_concepto_orden_pago[i].Concepto.Id)
+		qs = qs.Filter("Concepto", allConceptoOrdenPago[i].Concepto.Id)
 		qs = qs.RelatedSel()
 		var l []ConceptoCuentaContable
 		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
 			for _, v := range l {
 				//registra movimientos
 				fmt.Println("Data para Movimientos")
-				new_movimiento_contable := MovimientoContable{}
+				newMovimientoContable := MovimientoContable{}
 				if v.CuentaContable.Naturaleza == "debito" {
 					fmt.Println(v.CuentaContable.Naturaleza)
-					new_movimiento_contable.Debito = all_concepto_orden_pago[i].Valor
-					new_movimiento_contable.Credito = 0
+					newMovimientoContable.Debito = allConceptoOrdenPago[i].Valor
+					newMovimientoContable.Credito = 0
 				} else {
 					fmt.Println(v.CuentaContable.Naturaleza)
-					new_movimiento_contable.Debito = 0
-					new_movimiento_contable.Credito = all_concepto_orden_pago[i].Valor
+					newMovimientoContable.Debito = 0
+					newMovimientoContable.Credito = allConceptoOrdenPago[i].Valor
 				}
-				new_movimiento_contable.Fecha = time.Now()
-				new_movimiento_contable.Concepto = v.Concepto
-				new_movimiento_contable.CuentaContable = v.CuentaContable
-				new_movimiento_contable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
-				new_movimiento_contable.CodigoDocumentoAfectante = int(id_OrdenPago)
-				new_movimiento_contable.Aprobado = false
+				newMovimientoContable.Fecha = time.Now()
+				newMovimientoContable.Concepto = v.Concepto
+				newMovimientoContable.CuentaContable = v.CuentaContable
+				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
+				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
+				newMovimientoContable.Aprobado = false
 				// insertar OP Planta
-				_, err4 := o.Insert(&new_movimiento_contable)
+				_, err4 := o.Insert(&newMovimientoContable)
 				if err4 != nil {
 					alerta.Type = "error"
-					alerta.Code = "E_OPP_04"
+					alerta.Code = "E_OPN_02_5"
 					alerta.Body = err4
 					err = err4
 					o.Rollback()
