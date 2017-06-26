@@ -223,7 +223,7 @@ func (c *OrdenPagoController) RegistrarOpNomina() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, id_orden := models.RegistrarOpPlanta(m)
+		mensaje, err, id_orden := models.RegistrarOpNomina(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
