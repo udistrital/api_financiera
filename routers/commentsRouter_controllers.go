@@ -1359,7 +1359,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"],
 		beego.ControllerComments{
 			Method: "Post",
 			Router: `/`,
@@ -1367,7 +1367,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"],
 		beego.ControllerComments{
 			Method: "GetOne",
 			Router: `/:id`,
@@ -1375,7 +1375,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"],
 		beego.ControllerComments{
 			Method: "GetAll",
 			Router: `/`,
@@ -1383,7 +1383,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"],
 		beego.ControllerComments{
 			Method: "Put",
 			Router: `/:id`,
@@ -1391,7 +1391,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionApropiacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoApropiacionController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
@@ -1399,7 +1399,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
 			Method: "Post",
 			Router: `/`,
@@ -1407,7 +1407,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
 			Method: "GetOne",
 			Router: `/:id`,
@@ -1415,7 +1415,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
 			Method: "GetAll",
 			Router: `/`,
@@ -1423,7 +1423,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
 			Method: "Put",
 			Router: `/:id`,
@@ -1431,7 +1431,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciacionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
@@ -1743,6 +1743,46 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoFuenteFinanciamientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:NivelClasificacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:NivelClasificacionController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -1828,6 +1868,14 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
+		beego.ControllerComments{
+			Method: "RegistrarOpNomina",
+			Router: `RegistrarOpNomina`,
+			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -2252,14 +2300,6 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
-		beego.ControllerComments{
-			Method: "RubroReporte",
-			Router: `RubroReporte/`,
-			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -2784,6 +2824,46 @@ func init() {
 			Params: nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoEntidadController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoEntidadController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoMovimientoController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
