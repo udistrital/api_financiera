@@ -32,6 +32,7 @@ type OrdenPago struct {
 	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
 	Nomina               string                `orm:"column(nomina)"`
 	Liquidacion          int                   `orm:"column(liquidacion);null"`
+	EntradaAlmacen       int                   `orm:"column(entrada_almacen);null"`
 }
 
 func (t *OrdenPago) TableName() string {
