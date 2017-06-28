@@ -66,6 +66,7 @@ func (c *SolicitudAvanceController) TrSolicitudAvance() {
 			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
 			c.Data["json"] = alert
 		} else {
+			fmt.Println(err.Error())
 			alertdb := structs.Map(err)
 			var code string
 			utilidades.FillStruct(alertdb["Code"], &code)
