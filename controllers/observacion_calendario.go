@@ -3,21 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
 
-// SolicitudTipoAvanceController operations for SolicitudTipoAvance
-type SolicitudTipoAvanceController struct {
+// ObservacionCalendarioController operations for ObservacionCalendario
+type ObservacionCalendarioController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *SolicitudTipoAvanceController) URLMapping() {
+func (c *ObservacionCalendarioController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -27,15 +26,15 @@ func (c *SolicitudTipoAvanceController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create SolicitudTipoAvance
-// @Param	body		body 	models.SolicitudTipoAvance	true		"body for SolicitudTipoAvance content"
-// @Success 201 {int} models.SolicitudTipoAvance
+// @Description create ObservacionCalendario
+// @Param	body		body 	models.ObservacionCalendario	true		"body for ObservacionCalendario content"
+// @Success 201 {int} models.ObservacionCalendario
 // @Failure 403 body is empty
 // @router / [post]
-func (c *SolicitudTipoAvanceController) Post() {
-	var v models.SolicitudTipoAvance
+func (c *ObservacionCalendarioController) Post() {
+	var v models.ObservacionCalendario
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddSolicitudTipoAvance(&v); err == nil {
+		if _, err := models.AddObservacionCalendario(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -49,15 +48,15 @@ func (c *SolicitudTipoAvanceController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get SolicitudTipoAvance by id
+// @Description get ObservacionCalendario by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.SolicitudTipoAvance
+// @Success 200 {object} models.ObservacionCalendario
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *SolicitudTipoAvanceController) GetOne() {
+func (c *ObservacionCalendarioController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetSolicitudTipoAvanceById(id)
+	v, err := models.GetObservacionCalendarioById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -68,17 +67,17 @@ func (c *SolicitudTipoAvanceController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get SolicitudTipoAvance
+// @Description get ObservacionCalendario
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.SolicitudTipoAvance
+// @Success 200 {object} models.ObservacionCalendario
 // @Failure 403
 // @router / [get]
-func (c *SolicitudTipoAvanceController) GetAll() {
+func (c *ObservacionCalendarioController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -120,7 +119,7 @@ func (c *SolicitudTipoAvanceController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllSolicitudTipoAvance(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllObservacionCalendario(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -131,18 +130,18 @@ func (c *SolicitudTipoAvanceController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the SolicitudTipoAvance
+// @Description update the ObservacionCalendario
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.SolicitudTipoAvance	true		"body for SolicitudTipoAvance content"
-// @Success 200 {object} models.SolicitudTipoAvance
+// @Param	body		body 	models.ObservacionCalendario	true		"body for ObservacionCalendario content"
+// @Success 200 {object} models.ObservacionCalendario
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *SolicitudTipoAvanceController) Put() {
+func (c *ObservacionCalendarioController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.SolicitudTipoAvance{Id: id}
+	v := models.ObservacionCalendario{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateSolicitudTipoAvanceById(&v); err == nil {
+		if err := models.UpdateObservacionCalendarioById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -155,15 +154,15 @@ func (c *SolicitudTipoAvanceController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the SolicitudTipoAvance
+// @Description delete the ObservacionCalendario
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *SolicitudTipoAvanceController) Delete() {
+func (c *ObservacionCalendarioController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteSolicitudTipoAvance(id); err == nil {
+	if err := models.DeleteObservacionCalendario(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

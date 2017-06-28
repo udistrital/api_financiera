@@ -5,54 +5,49 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type EstadoAvance struct {
-	Id              int              `orm:"column(id);pk;auto"`
-	Estados         *Estados         `orm:"column(estados);rel(fk)"`
-	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
-	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
-	Observaciones   string           `orm:"column(observaciones)"`
-	Usuario         string           `orm:"column(usuario)"`
-	Estado          string           `orm:"column(estado)"`
+type EstadoCalendario struct {
+	Id          int    `orm:"column(id);pk;auto"`
+	Nombre      string `orm:"column(nombre)"`
+	Descripcion string `orm:"column(descripcion);null"`
 }
 
-func (t *EstadoAvance) TableName() string {
-	return "estado_avance"
+func (t *EstadoCalendario) TableName() string {
+	return "estado_calendario"
 }
 
 func init() {
-	orm.RegisterModel(new(EstadoAvance))
+	orm.RegisterModel(new(EstadoCalendario))
 }
 
-// AddEstadoAvance insert a new EstadoAvance into database and returns
+// AddEstadoCalendario insert a new EstadoCalendario into database and returns
 // last inserted Id on success.
-func AddEstadoAvance(m *EstadoAvance) (id int64, err error) {
+func AddEstadoCalendario(m *EstadoCalendario) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadoAvanceById retrieves EstadoAvance by Id. Returns error if
+// GetEstadoCalendarioById retrieves EstadoCalendario by Id. Returns error if
 // Id doesn't exist
-func GetEstadoAvanceById(id int) (v *EstadoAvance, err error) {
+func GetEstadoCalendarioById(id int) (v *EstadoCalendario, err error) {
 	o := orm.NewOrm()
-	v = &EstadoAvance{Id: id}
+	v = &EstadoCalendario{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstadoAvance retrieves all EstadoAvance matches certain condition. Returns empty list if
+// GetAllEstadoCalendario retrieves all EstadoCalendario matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstadoAvance(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoCalendario(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(EstadoAvance)).RelatedSel()
+	qs := o.QueryTable(new(EstadoCalendario)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +97,7 @@ func GetAllEstadoAvance(query map[string]string, fields []string, sortby []strin
 		}
 	}
 
-	var l []EstadoAvance
+	var l []EstadoCalendario
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +120,11 @@ func GetAllEstadoAvance(query map[string]string, fields []string, sortby []strin
 	return nil, err
 }
 
-// UpdateEstadoAvance updates EstadoAvance by Id and returns error if
+// UpdateEstadoCalendario updates EstadoCalendario by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadoAvanceById(m *EstadoAvance) (err error) {
+func UpdateEstadoCalendarioById(m *EstadoCalendario) (err error) {
 	o := orm.NewOrm()
-	v := EstadoAvance{Id: m.Id}
+	v := EstadoCalendario{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +135,15 @@ func UpdateEstadoAvanceById(m *EstadoAvance) (err error) {
 	return
 }
 
-// DeleteEstadoAvance deletes EstadoAvance by Id and returns error if
+// DeleteEstadoCalendario deletes EstadoCalendario by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstadoAvance(id int) (err error) {
+func DeleteEstadoCalendario(id int) (err error) {
 	o := orm.NewOrm()
-	v := EstadoAvance{Id: id}
+	v := EstadoCalendario{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&EstadoAvance{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoCalendario{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
