@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"fmt"
 
@@ -26,7 +27,7 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
 	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
-	c.Mapping("RegistrarOpPlanta", c.RegistrarOpPlanta)
+	c.Mapping("RegistrarOpNomina", c.RegistrarOpNomina)
 	c.Mapping("FechaActual", c.FechaActual)
 }
 
@@ -178,57 +179,63 @@ func (c *OrdenPagoController) Delete() {
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
 func (c *OrdenPagoController) RegistrarOpProveedor() {
-    var v models.Data_OrdenPago_Concepto
-    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-        mensaje, err, id_orden := models.RegistrarOpProveedor(&v)
-        if err != nil {
-          fmt.Println(mensaje)
-          c.Data["json"] = err
-        } else {
-          c.Data["json"] = id_orden
-        }
-    } else {
-        c.Data["json"] = err
-    }
-    c.ServeJSON()
+	var v models.Data_OrdenPago_Concepto
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		mensaje, err, id_orden := models.RegistrarOpProveedor(&v)
+		if err != nil {
+			fmt.Println(mensaje)
+			c.Data["json"] = err
+		} else {
+			c.Data["json"] = id_orden
+		}
+	} else {
+		c.Data["json"] = err
+	}
+	c.ServeJSON()
 }
 
 // personalizado Actualizar orden_pago, concepto_ordenpago y Movimientos Contables
 func (c *OrdenPagoController) ActualizarOpProveedor() {
-    var v models.Data_OrdenPago_Concepto
-    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-        mensaje, err, id_orden := models.ActualizarOpProveedor(&v)
-        if err != nil {
-          fmt.Println(mensaje)
-          c.Data["json"] = err
-        } else {
-          c.Data["json"] = id_orden
-        }
-    } else {
-      c.Data["json"] = err
-    }
-    c.ServeJSON()
+	var v models.Data_OrdenPago_Concepto
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		mensaje, err, id_orden := models.ActualizarOpProveedor(&v)
+		if err != nil {
+			fmt.Println(mensaje)
+			c.Data["json"] = err
+		} else {
+			c.Data["json"] = id_orden
+		}
+	} else {
+		c.Data["json"] = err
+	}
+	c.ServeJSON()
 }
 
-// personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func (c *OrdenPagoController) RegistrarOpPlanta() {
-		fmt.Println("controller kronos")
-    var v interface{}
-    if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-				m := v.(map[string]interface{})
-        mensaje, err, id_orden := models.RegistrarOpPlanta(m)
-        if err != nil {
-					c.Data["json"] = mensaje
-        } else {
-					c.Ctx.Output.SetStatus(201)
-					alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: id_orden}
-					c.Data["json"] = alert
-        }
-    } else {
-        c.Data["json"] = err
-				fmt.Println(err)
-    }
-    c.ServeJSON()
+// RegistrarOpNomina ...
+// @Title RegistrarOpNomina
+// @Description Registrar orden_pago nomina planta, concepto_ordenpago, transacciones y homologa conceptos titan-kronos
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router RegistrarOpNomina [post]
+func (c *OrdenPagoController) RegistrarOpNomina() {
+	fmt.Println("controller kronos")
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		mensaje, err, id_orden := models.RegistrarOpNomina(m)
+		if err != nil {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: id_orden}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err
+		fmt.Println(err)
+	}
+	c.ServeJSON()
 }
 
 // FechaActual ...
@@ -239,12 +246,12 @@ func (c *OrdenPagoController) RegistrarOpPlanta() {
 // @Failure 403 id is empty
 // @router /:formato
 func (c *OrdenPagoController) FechaActual() {
-		formatoInput := c.Ctx.Input.Param(":formato")
-		fechaActual, err := models.FechaActual(formatoInput)
-		if err == nil{
-			c.Data["json"] = fechaActual
-		} else {
-			c.Data["json"] = err.Error()
-		}
-		c.ServeJSON()
+	formatoInput := c.Ctx.Input.Param(":formato")
+	fechaActual, err := models.FechaActual(formatoInput)
+	if err == nil {
+		c.Data["json"] = fechaActual
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
 }
