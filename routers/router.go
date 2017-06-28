@@ -28,14 +28,14 @@ func init() {
 		),
 
 		beego.NSNamespace("/fuente_financiamiento",
-		  beego.NSInclude(
-		    &controllers.FuenteFinanciamientoController{},
-		  ),
+			beego.NSInclude(
+				&controllers.FuenteFinanciamientoController{},
+			),
 		),
 		beego.NSNamespace("/fuente_financiamiento_apropiacion",
-		  beego.NSInclude(
-		    &controllers.FuenteFinanciamientoApropiacionController{},
-		  ),
+			beego.NSInclude(
+				&controllers.FuenteFinanciamientoApropiacionController{},
+			),
 		),
 
 		beego.NSNamespace("/requisito_avance",
@@ -482,6 +482,23 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/estado_calendario",
+			beego.NSInclude(
+				&controllers.EstadoCalendarioController{},
+			),
+		),
+
+		beego.NSNamespace("/calendario_tributario",
+			beego.NSInclude(
+				&controllers.CalendarioTributarioController{},
+			),
+		),
+
+		beego.NSNamespace("/observacion_calendario",
+			beego.NSInclude(
+				&controllers.ObservacionCalendarioController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
