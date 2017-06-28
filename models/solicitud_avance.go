@@ -58,16 +58,16 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 			//insert ingreso
 			_, err = o.Insert(&solicitud)
 			if err == nil {
-				solicitudTipoAvance := SolicitudTipoAvance{}
+				solicitudTipoAvance := []SolicitudTipoAvance{}
 				err = utilidades.FillStruct(m["TipoAvance"], &solicitudTipoAvance)
 				if err == nil {
-					tipoAvance := TipoAvance{}
-					tipoAvance.Id = solicitudTipoAvance.Id
-					solicitudTipoAvance.Estado = "A"
-					solicitudTipoAvance.SolicitudAvance = &solicitud
-					solicitudTipoAvance.TipoAvance = &tipoAvance
-					fmt.Println("tipo_avance: ", solicitudTipoAvance)
-					_, err = o.Insert(&solicitudTipoAvance)
+					for _, data := range solicitudTipoAvance {
+						data.Estado = "A"
+						data.SolicitudAvance = &solicitud
+						fmt.Println("tipo_avance: ", data)
+						_, err = o.Insert(&data)
+					}
+
 					if err == nil {
 						estado := Estados{}
 						estadoAvance := EstadoAvance{}
@@ -84,26 +84,32 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 							o.Commit()
 							return
 						} else {
+							fmt.Println(err.Error())
 							o.Rollback()
 							return
 						}
 					} else {
+						fmt.Println(err.Error())
 						o.Rollback()
 						return
 					}
 				} else {
+					fmt.Println(err.Error())
 					o.Rollback()
 					return
 				}
 			} else {
+				fmt.Println(err.Error())
 				o.Rollback()
 				return
 			}
 		} else {
+			fmt.Println(err.Error())
 			o.Rollback()
 			return
 		}
 	} else {
+		fmt.Println(err.Error())
 		return
 	}
 }
