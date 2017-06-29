@@ -52,7 +52,7 @@ func GetRubroById(id int) (v *Rubro, err error) {
 
 // GetAllRubro retrieves all Rubro matches certain condition. Returns empty list if
 // no records exist
-func GetAllRubro(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllRubro(query map[string]string, group []string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(Rubro))
@@ -104,9 +104,10 @@ func GetAllRubro(query map[string]string, fields []string, sortby []string, orde
 			return nil, errors.New("Error: unused 'order' fields")
 		}
 	}
-
 	var l []Rubro
+
 	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -310,7 +311,8 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 	mesinicio := int(inicio.Month())
 	mesfin := int(fin.Month())
 
-	m, err := ListaApropiacionesHijo(vigencia, "3")
+	m, err := ListaApropiacionesHijo(vigencia, "3%")
+	fmt.Println("err: ", m)
 	if err != nil {
 		return
 	}
@@ -325,7 +327,7 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 			} else {
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
-			ingr, _ := RubroIngreso(m[i]["id"], finicio, ffin)
+			ingr, _ := RubroIngreso(m[i]["id"], m[i]["idfuente"], finicio, ffin)
 			aux := make(map[string]interface{})
 			fmt.Println("aux: ", aux["valores"])
 			if ingr == nil {
@@ -376,7 +378,7 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 			} else {
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
-			ingr, _ := RubroIngreso(m[i]["id"], finicio, ffin)
+			ingr, _ := RubroIngreso(m[i]["id"], m[i]["idfuente"], finicio, ffin)
 
 			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
@@ -470,7 +472,7 @@ func RubroOrdenPago(apropiacion interface{}, fuente interface{}) (res []interfac
 			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
 		WHERE id_apr = ?
 		AND
-		idfuente = ?
+		(idfuente is null or idfuente = ?)
 		GROUP BY
 		  codigo,
 			idfuente`, apropiacion, fuente).Values(&m)
@@ -480,13 +482,13 @@ func RubroOrdenPago(apropiacion interface{}, fuente interface{}) (res []interfac
 
 // RubroOrdenPago informe ingresos
 //falta filtro por fechas.
-func RubroIngreso(apropiacion interface{}, inicio time.Time, fin time.Time) (res []interface{}, err error) {
+func RubroIngreso(apropiacion interface{}, fuente interface{}, inicio time.Time, fin time.Time) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	_, err = o.Raw(`SELECT codigo, SUM(valor) as valor FROM
+	_, err = o.Raw(`SELECT codigo,idfuente, SUM(valor) as valor FROM
 (
 	SELECT
-		ingreso.id ,ingreso.fecha_ingreso, estadoingreso.nombre as estado, estadoingreso.id as id_estado,formaingreso.nombre as forma_ingreso, rubro.codigo as codigo, ingresoconcepto.valor_agregado as valor , apropiacion.id as id_aprop
+		ingreso.id ,ingreso.fecha_ingreso, estadoingreso.nombre as estado, estadoingreso.id as id_estado,formaingreso.nombre as forma_ingreso, rubro.codigo as codigo,fuente.id as idfuente, ingresoconcepto.valor_agregado as valor , apropiacion.id as id_aprop
 	FROM
 		financiera.ingreso as ingreso
 	JOIN
@@ -517,14 +519,21 @@ func RubroIngreso(apropiacion interface{}, inicio time.Time, fin time.Time) (res
 		financiera.movimiento_contable as mov
 	ON
 		mov.tipo_documento_afectante = 2 AND mov.codigo_documento_afectante = ingreso.id
+	LEFT JOIN
+		financiera.fuente_financiamiento AS fuente
+	ON
+		ingreso.fuente_financiamiento = fuente.id
 	GROUP BY
-		ingreso.id , ingreso.fecha_ingreso,estadoingreso.nombre, estadoingreso.id,formaingreso.nombre, rubro.codigo , ingresoconcepto.valor_agregado,  apropiacion.id
+		ingreso.id ,fuente.id, ingreso.fecha_ingreso,estadoingreso.nombre, estadoingreso.id,formaingreso.nombre, rubro.codigo , ingresoconcepto.valor_agregado,  apropiacion.id
 ) AS ingreso
 WHERE id_aprop = ?
 AND
+(idfuente is null or idfuente = ?)
+AND
 ingreso.fecha_ingreso BETWEEN ? AND ?
 GROUP BY
-	codigo`, apropiacion, inicio, fin).Values(&m)
+	codigo,
+	idfuente`, apropiacion, fuente, inicio, fin).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
