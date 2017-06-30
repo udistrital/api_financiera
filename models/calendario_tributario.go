@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/core_api/utilidades"
 )
 
 type CalendarioTributario struct {
@@ -153,6 +154,24 @@ func DeleteCalendarioTributario(id int) (err error) {
 		if num, err = o.Delete(&CalendarioTributario{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
+	}
+	return
+}
+
+// RubroOrdenPago informe ingresos
+//falta filtro por fechas.
+func GetImpuestosCalendario(idcalendario int) (calendario interface{}, err error) {
+	var info_calendario CalendarioTributario
+	info_calendario = CalendarioTributario{Id: idcalendario}
+	//info_calendario.Id = idcalendario
+	o := orm.NewOrm()
+	var m []orm.Params
+	if err = o.Read(&info_calendario); err == nil {
+		o.Raw(`SELECT M.*
+			FROM financiera.movimiento_contable M inner join  (select * from financiera.cuenta_especial where tipo_cuenta_especial = 2) E
+			on E.cuenta_contable = M.cuenta_contable where M.aprobado = true and
+			M.fecha BETWEEN '2009-09-01'::DATE AND '2020-09-30'::DATE `, info_calendario.FechaInicio, info_calendario.FechaFin).Values(&m)
+		err = utilidades.FillStruct(m, &calendario)
 	}
 	return
 }
