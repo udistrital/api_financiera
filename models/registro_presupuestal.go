@@ -12,16 +12,17 @@ import (
 )
 
 type RegistroPresupuestal struct {
-	Id                         int                         `orm:"column(id);pk;auto"`
-	UnidadEjecutora            *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	Vigencia                   float64                     `orm:"column(vigencia)"`
-	FechaMovimiento            time.Time                   `orm:"column(fecha_movimiento);type(date);null"`
-	Responsable                int                         `orm:"column(responsable);null"`
-	Estado                     *EstadoRegistroPresupuestal `orm:"column(estado);rel(fk)"`
-	NumeroRegistroPresupuestal int                         `orm:"column(numero_registro_presupuestal)"`
-	Beneficiario               int                         `orm:"column(beneficiario);null"`
-	Compromiso                 *Compromiso                 `orm:"column(compromiso);rel(fk)"`
-	Solicitud                  int                         `orm:"column(solicitud)"`
+	Id                                            int                                              `orm:"column(id);pk;auto"`
+	UnidadEjecutora                               *UnidadEjecutora                                 `orm:"column(unidad_ejecutora);rel(fk)"`
+	Vigencia                                      float64                                          `orm:"column(vigencia)"`
+	FechaMovimiento                               time.Time                                        `orm:"column(fecha_movimiento);type(date);null"`
+	Responsable                                   int                                              `orm:"column(responsable);null"`
+	Estado                                        *EstadoRegistroPresupuestal                      `orm:"column(estado);rel(fk)"`
+	NumeroRegistroPresupuestal                    int                                              `orm:"column(numero_registro_presupuestal)"`
+	Beneficiario                                  int                                              `orm:"column(beneficiario);null"`
+	Compromiso                                    *Compromiso                                      `orm:"column(compromiso);rel(fk)"`
+	Solicitud                                     int                                              `orm:"column(solicitud)"`
+	RegistroPresupuestalDisponibilidadApropiacion []*RegistroPresupuestalDisponibilidadApropiacion `orm:"reverse(many)"`
 }
 type DatosRubroRegistroPresupuestal struct {
 	Id                 int
@@ -167,6 +168,7 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "RegistroPresupuestalDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
