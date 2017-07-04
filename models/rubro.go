@@ -305,6 +305,36 @@ func RubroReporteEgresosProyeccion(inicio time.Time, fin time.Time, nperiodos in
 	return
 }
 
+func RubroReporteIngresosProyeccion(inicio time.Time, fin time.Time, nperiodos int, idrubro interface{}, idfuente interface{}) (res float64, err error) {
+	o := orm.NewOrm()
+	proy := 0.0
+	for i := 1; i <= nperiodos; i++ {
+		apropiacion := []Apropiacion{}
+		vigencia := int(inicio.AddDate(-i, 0, 0).Year())
+		_, err = o.QueryTable("apropiacion").Filter("vigencia", vigencia).Filter("rubro", idrubro).All(&apropiacion)
+		fmt.Println("ap ", apropiacion)
+		if len(apropiacion) <= 0 {
+
+		} else {
+			aux, _ := RubroIngreso(apropiacion[0].Id, idfuente, inicio, fin)
+			if aux != nil {
+				for _, m := range aux {
+					p := m.(map[string]interface{})
+					var val float64
+					err = utilidades.FillStruct(p["valor"], &val)
+					proy = proy + val
+					fmt.Println("proy: ", proy)
+				}
+			}
+
+		}
+
+	}
+	res = proy / float64(nperiodos)
+
+	return
+}
+
 // RubroOrdenPago informe ordenes de pago y total por orden
 func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, err error) {
 	vigencia := int(inicio.Year())
@@ -328,14 +358,36 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
 			ingr, _ := RubroIngreso(m[i]["id"], m[i]["idfuente"], finicio, ffin)
+			proy, _ := RubroReporteIngresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
 			fmt.Println("aux: ", aux["valores"])
 			if ingr == nil {
 				val := make(map[string]interface{})
 				val["valor"] = "0"
+				val["proyeccion"] = "0"
+				val["variacion"] = "0"
 				aux["valores"] = val
 			} else {
-				aux["valores"] = ingr[0]
+				fll := ingr[0].(map[string]interface{})
+				var ejstr string
+				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				fmt.Println("err ", err)
+				ej, err := strconv.ParseFloat(ejstr, 64)
+				fmt.Println("err ", err)
+				var variacion float64
+				if proy <= 0 {
+					variacion = 0
+				} else {
+					variacion = ej - proy
+					variacion = variacion / proy
+				}
+
+				fmt.Println("vac ", variacion)
+				fll["proyeccion"] = proy
+				var mp interface{}
+				err = utilidades.FillStruct(variacion, &mp)
+				fll["variacion"] = mp
+				aux["valores"] = fll
 
 			}
 			if aux != nil {
