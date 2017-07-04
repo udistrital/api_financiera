@@ -523,6 +523,8 @@ func RubroIngreso(apropiacion interface{}, fuente interface{}, inicio time.Time,
 		financiera.fuente_financiamiento AS fuente
 	ON
 		ingreso.fuente_financiamiento = fuente.id
+	WHERE
+		estadoingreso.nombre = 'Aprobado'
 	GROUP BY
 		ingreso.id ,fuente.id, ingreso.fecha_ingreso,estadoingreso.nombre, estadoingreso.id,formaingreso.nombre, rubro.codigo , ingresoconcepto.valor_agregado,  apropiacion.id
 ) AS ingreso
