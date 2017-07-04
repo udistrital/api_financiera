@@ -23,6 +23,11 @@ type CalendarioTributario struct {
 	Responsable      int64             `orm:"column(responsable)"`
 }
 
+type MovsCalendario struct {
+	Impuesto    CuentaEspecial
+	Movimientos []MovimientoContable
+}
+
 func (t *CalendarioTributario) TableName() string {
 	return "calendario_tributario"
 }
@@ -158,20 +163,52 @@ func DeleteCalendarioTributario(id int) (err error) {
 	return
 }
 
-// RubroOrdenPago informe ingresos
-//falta filtro por fechas.
+//GetImpuestosCalendario informe  movimientos del calendario
 func GetImpuestosCalendario(idcalendario int) (calendario interface{}, err error) {
 	var info_calendario CalendarioTributario
+	//var movimientos []MovimientoContable
+	//var cuentas []CuentaContable
 	info_calendario = CalendarioTributario{Id: idcalendario}
 	//info_calendario.Id = idcalendario
 	o := orm.NewOrm()
-	var m []orm.Params
+	var cuentas []int
+	var movs []MovsCalendario
+	var calmov MovsCalendario
 	if err = o.Read(&info_calendario); err == nil {
-		o.Raw(`SELECT M.*
-			FROM financiera.movimiento_contable M inner join  (select * from financiera.cuenta_especial where tipo_cuenta_especial = 2) E
-			on E.cuenta_contable = M.cuenta_contable where M.aprobado = true and
-			M.fecha BETWEEN '2009-09-01'::DATE AND '2020-09-30'::DATE `, info_calendario.FechaInicio, info_calendario.FechaFin).Values(&m)
-		err = utilidades.FillStruct(m, &calendario)
+		/*o.QueryTable(new(MovimientoContable)).Filter("fecha__gte", info_calendario.FechaInicio.Format("2006-01-2 ")+"23:59:59").Filter("fecha__lte", info_calendario.FechaFin.Format("2006-01-2 ")+"23:59:59").Filter("aprobado", true).RelatedSel().All(&movimientos)*/
+
+		o.Raw(`SELECT M.cuenta_contable
+		FROM financiera.movimiento_contable M inner join  (select * from financiera.cuenta_especial where tipo_cuenta_especial = 2) E
+		on E.cuenta_contable = M.cuenta_contable where M.aprobado = true and
+		M.fecha::DATE BETWEEN ?::DATE AND ?::DATE group by M.cuenta_contable`, info_calendario.FechaInicio, info_calendario.FechaFin).QueryRows(&cuentas)
+		fmt.Println(cuentas)
+		for index := range cuentas {
+			//var idcuenta int
+			//idcuenta := cuentas[index]["cuenta_contable"].(int)
+			//fmt.Println("int:", cuentas[index]["cuenta_contable"])
+			//err = utilidades.FillStruct(cuentas[index]["cuenta_contable"], &idcuenta)
+			fmt.Println("cuenta:", cuentas[index])
+			cm := calmov
+
+			o.QueryTable(new(CuentaEspecial)).Filter("cuenta_contable", cuentas[index]).RelatedSel(5).All(&cm.Impuesto)
+			//fmt.Println(&cm.CuentaContable)
+			o.Raw(`SELECT M.*
+			FROM financiera.movimiento_contable M
+			where M.cuenta_contable = ? and M.aprobado = true and
+			M.fecha::DATE BETWEEN ?::DATE AND ?::DATE `, cm.Impuesto.CuentaContable, info_calendario.FechaInicio, info_calendario.FechaFin).QueryRows(&cm.Movimientos)
+
+			for index := range cm.Movimientos {
+				o.QueryTable(new(MovimientoContable)).Filter("id", &cm.Movimientos[index].Id).RelatedSel("concepto", "tipo_documento_afectante").All(&cm.Movimientos[index])
+			}
+
+			movs = append(movs, cm)
+
+			//o.QueryTable(new(MovimientoContable)).Filter("id", movimientos[index].Id).RelatedSel("concepto", "tipo_documento_afectante").All(&movimientos[index])
+		}
+
+		/*fmt.Println(movimientos)*/
+		err = utilidades.FillStruct(movs, &calendario)
+
 	}
 	return
 }
