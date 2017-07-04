@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/api_financiera/utilidades"
 
@@ -77,6 +78,7 @@ func (c *RubroController) GetOne() {
 // @Description get Rubro
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
+// @Param	group	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
@@ -88,6 +90,7 @@ func (c *RubroController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
+	var group []string
 	var query = make(map[string]string)
 	var limit int64 = 10
 	var offset int64
@@ -112,6 +115,13 @@ func (c *RubroController) GetAll() {
 	if v := c.GetString("order"); v != "" {
 		order = strings.Split(v, ",")
 	}
+	// related: value__related
+	if v := c.GetString("group"); v != "" {
+		grp := strings.Split(v, ",")
+		for _, val := range grp {
+			group = append(group, val)
+		}
+	}
 	// query: k:v,k:v
 	if v := c.GetString("query"); v != "" {
 		for _, cond := range strings.Split(v, ",") {
@@ -126,7 +136,7 @@ func (c *RubroController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllRubro(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllRubro(query, group, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -199,9 +209,17 @@ func (c *RubroController) RubroReporte() {
 		err = utilidades.FillStruct(m["fin"], &fin)
 		fmt.Println("format inicio: ", int(inicio.Year()))
 		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
-		v, err = models.RubroReporte(inicio, fin)
+		reporte := make(map[string]interface{})
+		reporte["egresos"], err = models.RubroReporteEgresos(inicio, fin)
+		reporte["ingresos"], err = models.RubroReporteIngresos(inicio, fin)
+		//v, err = models.ListaApropiacionesHijo(2017)
+		v = reporte
 		if err != nil {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		} else {
 			c.Data["json"] = v
 		}

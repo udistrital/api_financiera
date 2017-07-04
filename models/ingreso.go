@@ -12,22 +12,22 @@ import (
 )
 
 type Ingreso struct {
-	Id                int                `orm:"column(id);pk;auto"`
-	Consecutivo       float64            `orm:"column(consecutivo)"`
-	Vigencia          float64            `orm:"column(vigencia)"`
-	FechaIngreso      time.Time          `orm:"column(fecha_ingreso);type(date)"`
-	FechaConsignacion time.Time          `orm:"column(fecha_consignacion);type(date)"`
-	Valor             float64            `orm:"column(valor)"`
-	Observaciones     string             `orm:"column(observaciones);null"`
-	OrigenIngreso     string             `orm:"column(origen_ingreso);null"`
-	FormaIngreso      *FormaIngreso      `orm:"column(forma_ingreso);rel(fk)"`
-	EstadoIngreso     *EstadoIngreso     `orm:"column(estado_ingreso);rel(fk)"`
-	UnidadEjecutora   *UnidadEjecutora   `orm:"column(unidad_ejecutora);rel(fk)"`
-	Aportante         int                `orm:"column(aportante);null"`
-	Reviso            int                `orm:"column(reviso);null"`
-	Elaboro           int                `orm:"column(elaboro)"`
-	MotivoRechazo     string             `orm:"column(motivo_rechazo)"`
-	IngresoConcepto   []*IngresoConcepto `orm:"reverse(many)"`
+	Id                   int                   `orm:"column(id);pk;auto"`
+	Consecutivo          float64               `orm:"column(consecutivo)"`
+	Vigencia             float64               `orm:"column(vigencia)"`
+	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
+	FechaConsignacion    time.Time             `orm:"column(fecha_consignacion);type(date)"`
+	Valor                float64               `orm:"column(valor)"`
+	Observaciones        string                `orm:"column(observaciones);null"`
+	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
+	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
+	EstadoIngreso        *EstadoIngreso        `orm:"column(estado_ingreso);rel(fk)"`
+	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
+	Aportante            int                   `orm:"column(aportante);null"`
+	Reviso               int                   `orm:"column(reviso);null"`
+	Elaboro              int                   `orm:"column(elaboro)"`
+	MotivoRechazo        string                `orm:"column(motivo_rechazo)"`
+	IngresoConcepto      []*IngresoConcepto    `orm:"reverse(many)"`
 }
 
 func (t *Ingreso) TableName() string {
