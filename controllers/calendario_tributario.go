@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -166,6 +167,25 @@ func (c *CalendarioTributarioController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// GetMovimientos ...
+// @Title GetMovimientos
+// @Description get Movimientos del CalendarioTributario by id
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} interface
+// @Failure 403 :id is empty
+// @router /movimientos/:id [get]
+func (c *CalendarioTributarioController) GetMovimientos() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetImpuestosCalendario(id)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
 	}
 	c.ServeJSON()
 }
