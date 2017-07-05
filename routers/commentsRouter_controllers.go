@@ -359,6 +359,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CalendarioTributarioController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CalendarioTributarioController"],
+		beego.ControllerComments{
+			Method: "GetMovimientos",
+			Router: `/movimientos/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaCompromisoController"],
 		beego.ControllerComments{
 			Method: "Post",
