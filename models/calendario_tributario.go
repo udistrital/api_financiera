@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/core_api/utilidades"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type CalendarioTributario struct {
