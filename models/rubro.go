@@ -341,7 +341,7 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 	mesinicio := int(inicio.Month())
 	mesfin := int(fin.Month())
 
-	m, err := ListaApropiacionesHijo(vigencia, "3%")
+	m, err := ListaApropiacionesHijo(vigencia, "2%")
 	fmt.Println("err: ", m)
 	if err != nil {
 		return
