@@ -5,53 +5,49 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type AnulacionDisponibilidad struct {
-	Id                                 int                                   `orm:"auto;column(id);pk"`
-	Motivo                             string                                `orm:"column(motivo)"`
-	FechaRegistro                      time.Time                             `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion                      string                                `orm:"column(tipo_anulacion)"`
-	EstadoAnulacion                    *EstadoAnulacion                      `orm:"column(estado_anulacion);rel(fk)"`
-	AnulacionDisponibilidadApropiacion []*AnulacionDisponibilidadApropiacion `orm:"reverse(many)"`
+type EstadoAnulacion struct {
+	Id          int    `orm:"column(id);pk"`
+	Nombre      string `orm:"column(nombre)"`
+	Descripcion string `orm:"column(descripcion);null"`
 }
 
-func (t *AnulacionDisponibilidad) TableName() string {
-	return "anulacion_disponibilidad"
+func (t *EstadoAnulacion) TableName() string {
+	return "estado_anulacion"
 }
 
 func init() {
-	orm.RegisterModel(new(AnulacionDisponibilidad))
+	orm.RegisterModel(new(EstadoAnulacion))
 }
 
-// AddAnulacionDisponibilidad insert a new AnulacionDisponibilidad into database and returns
+// AddEstadoAnulacion insert a new EstadoAnulacion into database and returns
 // last inserted Id on success.
-func AddAnulacionDisponibilidad(m *AnulacionDisponibilidad) (id int64, err error) {
+func AddEstadoAnulacion(m *EstadoAnulacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAnulacionDisponibilidadById retrieves AnulacionDisponibilidad by Id. Returns error if
+// GetEstadoAnulacionById retrieves EstadoAnulacion by Id. Returns error if
 // Id doesn't exist
-func GetAnulacionDisponibilidadById(id int) (v *AnulacionDisponibilidad, err error) {
+func GetEstadoAnulacionById(id int) (v *EstadoAnulacion, err error) {
 	o := orm.NewOrm()
-	v = &AnulacionDisponibilidad{Id: id}
+	v = &EstadoAnulacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllAnulacionDisponibilidad retrieves all AnulacionDisponibilidad matches certain condition. Returns empty list if
+// GetAllEstadoAnulacion retrieves all EstadoAnulacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoAnulacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AnulacionDisponibilidad))
+	qs := o.QueryTable(new(EstadoAnulacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -101,12 +97,11 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 		}
 	}
 
-	var l []AnulacionDisponibilidad
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	var l []EstadoAnulacion
+	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "AnulacionDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -125,11 +120,11 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 	return nil, err
 }
 
-// UpdateAnulacionDisponibilidad updates AnulacionDisponibilidad by Id and returns error if
+// UpdateEstadoAnulacion updates EstadoAnulacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAnulacionDisponibilidadById(m *AnulacionDisponibilidad) (err error) {
+func UpdateEstadoAnulacionById(m *EstadoAnulacion) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionDisponibilidad{Id: m.Id}
+	v := EstadoAnulacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +135,15 @@ func UpdateAnulacionDisponibilidadById(m *AnulacionDisponibilidad) (err error) {
 	return
 }
 
-// DeleteAnulacionDisponibilidad deletes AnulacionDisponibilidad by Id and returns error if
+// DeleteEstadoAnulacion deletes EstadoAnulacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAnulacionDisponibilidad(id int) (err error) {
+func DeleteEstadoAnulacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionDisponibilidad{Id: id}
+	v := EstadoAnulacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AnulacionDisponibilidad{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoAnulacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
