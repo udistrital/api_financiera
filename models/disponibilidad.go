@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Info_disponibilidad_a_anular struct {
@@ -245,37 +247,60 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	o.Commit()
 	return
 }
-func AprobacionAnulacion(m *AnulacionDisponibilidad) (err error) {
+func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	_, err = o.Update(m, "estado_anulacion")
+	if err != nil {
+		o.Rollback()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
+		return
+	}
 	var acumCDP float64
 	acumCDP = 0
 
 	for i := 0; i < len(m.AnulacionDisponibilidadApropiacion); i++ {
 		var saldoCDP float64
 		if m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
-			saldoCDP, err = GetValorActualCDP(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id)
+			saldoCDP, _, _, err = SaldoCdp(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
 		} else {
-			saldoCDP, err = GetValorActualCDP(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id)
+			saldoCDP, _, _, err = SaldoCdp(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
 
+		}
+		if saldoCDP < m.AnulacionDisponibilidadApropiacion[i].Valor {
+			o.Rollback()
+			alert = Alert{Type: "error", Code: "E_A12", Body: m}
+			return
 		}
 		if err != nil {
 			o.Rollback()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 			return
 		}
-		acumCDP = acumCDP + saldoCDP
+		acumCDP = acumCDP + saldoCDP - m.AnulacionDisponibilidadApropiacion[i].Valor
+		fmt.Println("acum: ", acumCDP)
 	}
-	if acumCDP == 0 {
+	if acumCDP == 0 && m.EstadoAnulacion.Id == 3 {
 		m.AnulacionDisponibilidadApropiacion[0].DisponibilidadApropiacion.Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
 		o.Update(m.AnulacionDisponibilidadApropiacion[0].DisponibilidadApropiacion.Disponibilidad)
 	}
 
 	if err != nil {
 		o.Rollback()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
 	o.Commit()
+	alert = Alert{Type: "success", Code: "S_A12", Body: m}
 	return
 }
 func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err error) {
@@ -328,7 +353,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se anulo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+				alerta = append(alerta, "Se Solicito la anulación del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
 
 			}
 		}
@@ -535,7 +560,6 @@ func GetValorTotalAnuladoCDP(cdp_id int) (total float64, err error) {
 	o := orm.NewOrm()
 	var totalSql float64
 	err = o.Raw(`SELECT valor FROM(SELECT disponibilidad.id,
-											disponibilidad.estado_disponibilidad,
 					            disponibilidad_apropiacion.apropiacion,
 					            COALESCE(disponibilidad_apropiacion.fuente_financiamiento,0) as fuente_financiamiento,
 					            COALESCE(sum(anulacion_disponibilidad_apropiacion.valor),0) AS valor
@@ -543,7 +567,7 @@ func GetValorTotalAnuladoCDP(cdp_id int) (total float64, err error) {
 					             JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
 					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
 					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
-										WHERE id = ? AND estado_disponibilidad = 3`, cdp_id).QueryRow(&totalSql)
+										WHERE id = ?`, cdp_id).QueryRow(&totalSql)
 	if err == nil {
 		fmt.Println("++++++++++++++++++++++total A: ", totalSql)
 		return totalSql, nil
