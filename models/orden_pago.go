@@ -32,6 +32,7 @@ type OrdenPago struct {
 	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
 	Nomina               string                `orm:"column(nomina)"`
 	Liquidacion          int                   `orm:"column(liquidacion);null"`
+	EntradaAlmacen       int                   `orm:"column(entrada_almacen);null"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -389,6 +390,180 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 				fmt.Println("---Append")
 				newConceptoOrden2 := ConceptoOrdenPago{
 					Valor:    valorcalculado,
+					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+				}
+				allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden2)
+			}
+		}
+	}
+	fmt.Println("\n***************** Totalizado **********************")
+	for i := 0; i < len(allConceptoOrdenPago); i++ {
+		fmt.Println("\n************ Concepto kronos", strconv.Itoa(allConceptoOrdenPago[i].Concepto.Id), " ************")
+		fmt.Println(allConceptoOrdenPago[i].Valor)
+		allConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
+		// insertar concepto_orden_pago
+		_, err3 := o.Insert(&allConceptoOrdenPago[i])
+		if err3 != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPN_02_4"
+			alerta.Body = err3
+			err = err3
+			o.Rollback()
+			return
+		}
+		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
+		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
+		qs = qs.Filter("Concepto", allConceptoOrdenPago[i].Concepto.Id)
+		qs = qs.RelatedSel()
+		var l []ConceptoCuentaContable
+		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
+			for _, v := range l {
+				//registra movimientos
+				fmt.Println("Data para Movimientos")
+				newMovimientoContable := MovimientoContable{}
+				if v.CuentaContable.Naturaleza == "debito" {
+					fmt.Println(v.CuentaContable.Naturaleza)
+					newMovimientoContable.Debito = allConceptoOrdenPago[i].Valor
+					newMovimientoContable.Credito = 0
+				} else {
+					fmt.Println(v.CuentaContable.Naturaleza)
+					newMovimientoContable.Debito = 0
+					newMovimientoContable.Credito = allConceptoOrdenPago[i].Valor
+				}
+				newMovimientoContable.Fecha = time.Now()
+				newMovimientoContable.Concepto = v.Concepto
+				newMovimientoContable.CuentaContable = v.CuentaContable
+				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
+				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
+				newMovimientoContable.Aprobado = false
+				// insertar OP Planta
+				_, err4 := o.Insert(&newMovimientoContable)
+				if err4 != nil {
+					alerta.Type = "error"
+					alerta.Code = "E_OPN_02_5"
+					alerta.Body = err4
+					err = err4
+					o.Rollback()
+					return
+				}
+			}
+		}
+	}
+	fmt.Println("\n*****************FIN Totalizado**********************")
+	o.Commit()
+	return
+}
+
+//
+
+func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
+	o := orm.NewOrm()
+	o.Begin()
+	newOrden := OrdenPago{}
+	var PagosSeguridadSocial []interface{}
+	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
+	err = utilidades.FillStruct(OrdenDetalle["PagosSeguridadSocial"], &PagosSeguridadSocial)
+	//homologacion := HomologacionConcepto{}
+	var allConceptoOrdenPago []ConceptoOrdenPago
+
+	// Datos Orden de Pago Planta
+	newOrden.FechaCreacion = time.Now()
+	newOrden.Nomina = "PLANTA"
+	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
+
+	// insertar OP Planta
+	idOrdenPago, err = o.Insert(&newOrden)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
+	for i, element := range PagosSeguridadSocial {
+		det := element.(map[string]interface{})
+		// data valor
+		val, ok := det["Valor"]
+		if !ok {
+			alerta.Type = "error"
+			alerta.Code = "E_OPN_02_1"
+			alerta.Body = ""
+			o.Rollback()
+			return
+		}
+		ValorFloat := val.(float64)
+		Valor := int64(ValorFloat)
+		// data concepto
+		val2, ok2 := det["TipoPago"]
+		if !ok2 {
+			alerta.Type = "error"
+			alerta.Code = "E_OPN_02_1"
+			alerta.Body = ""
+			o.Rollback()
+			return
+		}
+		idconceptotitanFloat := val2.(float64)
+		idconceptotitan := int(idconceptotitanFloat)
+		// data periodo pago
+		PeriodoPago := det["PeriodoPago"].(map[string]interface{})
+		anioSting := fmt.Sprintf("%v", PeriodoPago["Anio"])
+		anio, err1 := strconv.ParseFloat(anioSting, 64)
+		if err1 != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPN_02_3"
+			alerta.Body = strconv.Itoa(idconceptotitan)
+			o.Rollback()
+			return
+		}
+
+		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
+		if i == 0 {
+			// Buscamos concepto kronos homologado
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: anio}
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idconceptotitan)
+				o.Rollback()
+				return
+			}
+			fmt.Println("***Priner append ***")
+			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
+			fmt.Println(Valor)
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
+			newConceptoOrden := ConceptoOrdenPago{
+				Valor:    Valor,
+				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+			}
+			allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden)
+		} else {
+			fmt.Println("***Sumar o Append***")
+			// Buscamos concepto kronos homologado
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: anio}
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idconceptotitan)
+				o.Rollback()
+				return
+			}
+			fmt.Println("Concepto Titan: ", strconv.Itoa(idconceptotitan))
+			fmt.Println(Valor)
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
+
+			if esta, idlista := estaConcepto(conceptoKronosHomologado.ConceptoKronos.Id, allConceptoOrdenPago); esta == true {
+				fmt.Println("---Sumar")
+				sumaValor := allConceptoOrdenPago[idlista].Valor + Valor
+				allConceptoOrdenPago[idlista].Valor = sumaValor
+			} else {
+				fmt.Println("---Append")
+				newConceptoOrden2 := ConceptoOrdenPago{
+					Valor:    Valor,
 					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 				}
 				allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden2)
