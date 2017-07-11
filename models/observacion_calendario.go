@@ -10,49 +10,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type MovimientoFuenteFinanciamientoApropiacion struct {
-	Id                                        int                              `orm:"column(id);pk;auto"`
-	Fecha                                     time.Time                        `orm:"column(fecha);type(date)"`
-	Valor                                     float64                          `orm:"column(valor)"`
-	TipoMovimiento                            *TipoMovimiento                  `orm:"column(tipo_movimiento);rel(fk)"`
-	Descripcion                               string                           `orm:"column(descripcion);null"`
-	FuenteFinanciamientoApropiacion           *FuenteFinanciamientoApropiacion `orm:"column(fuente_financiamiento_apropiacion);rel(fk)"`
-	MovimientoFuenteFinanciamientoApropiacion int                              `orm:"column(movimiento_fuente_financiamiento_apropiacion);null"`
+type ObservacionCalendario struct {
+	Id                   int                   `orm:"column(id);pk;auto"`
+	Descripcion          string                `orm:"column(descripcion)"`
+	Fecha                time.Time             `orm:"column(fecha);type(date)"`
+	CalendarioTributario *CalendarioTributario `orm:"column(calendario_tributario);rel(fk)"`
 }
 
-func (t *MovimientoFuenteFinanciamientoApropiacion) TableName() string {
-	return "movimiento_fuente_financiamiento_apropiacion"
+func (t *ObservacionCalendario) TableName() string {
+	return "observacion_calendario"
 }
 
 func init() {
-	orm.RegisterModel(new(MovimientoFuenteFinanciamientoApropiacion))
+	orm.RegisterModel(new(ObservacionCalendario))
 }
 
-// AddMovimientoFuenteFinanciamientoApropiacion insert a new MovimientoFuenteFinanciamientoApropiacion into database and returns
+// AddObservacionCalendario insert a new ObservacionCalendario into database and returns
 // last inserted Id on success.
-func AddMovimientoFuenteFinanciamientoApropiacion(m *MovimientoFuenteFinanciamientoApropiacion) (id int64, err error) {
+func AddObservacionCalendario(m *ObservacionCalendario) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetMovimientoFuenteFinanciamientoApropiacionById retrieves MovimientoFuenteFinanciamientoApropiacion by Id. Returns error if
+// GetObservacionCalendarioById retrieves ObservacionCalendario by Id. Returns error if
 // Id doesn't exist
-func GetMovimientoFuenteFinanciamientoApropiacionById(id int) (v *MovimientoFuenteFinanciamientoApropiacion, err error) {
+func GetObservacionCalendarioById(id int) (v *ObservacionCalendario, err error) {
 	o := orm.NewOrm()
-	v = &MovimientoFuenteFinanciamientoApropiacion{Id: id}
+	v = &ObservacionCalendario{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllMovimientoFuenteFinanciamientoApropiacion retrieves all MovimientoFuenteFinanciamientoApropiacion matches certain condition. Returns empty list if
+// GetAllObservacionCalendario retrieves all ObservacionCalendario matches certain condition. Returns empty list if
 // no records exist
-func GetAllMovimientoFuenteFinanciamientoApropiacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllObservacionCalendario(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(MovimientoFuenteFinanciamientoApropiacion)).RelatedSel(5)
+	qs := o.QueryTable(new(ObservacionCalendario)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +99,7 @@ func GetAllMovimientoFuenteFinanciamientoApropiacion(query map[string]string, fi
 		}
 	}
 
-	var l []MovimientoFuenteFinanciamientoApropiacion
+	var l []ObservacionCalendario
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +122,11 @@ func GetAllMovimientoFuenteFinanciamientoApropiacion(query map[string]string, fi
 	return nil, err
 }
 
-// UpdateMovimientoFuenteFinanciamientoApropiacion updates MovimientoFuenteFinanciamientoApropiacion by Id and returns error if
+// UpdateObservacionCalendario updates ObservacionCalendario by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoFuenteFinanciamientoApropiacionById(m *MovimientoFuenteFinanciamientoApropiacion) (err error) {
+func UpdateObservacionCalendarioById(m *ObservacionCalendario) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoFuenteFinanciamientoApropiacion{Id: m.Id}
+	v := ObservacionCalendario{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +137,15 @@ func UpdateMovimientoFuenteFinanciamientoApropiacionById(m *MovimientoFuenteFina
 	return
 }
 
-// DeleteMovimientoFuenteFinanciamientoApropiacion deletes MovimientoFuenteFinanciamientoApropiacion by Id and returns error if
+// DeleteObservacionCalendario deletes ObservacionCalendario by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMovimientoFuenteFinanciamientoApropiacion(id int) (err error) {
+func DeleteObservacionCalendario(id int) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoFuenteFinanciamientoApropiacion{Id: id}
+	v := ObservacionCalendario{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&MovimientoFuenteFinanciamientoApropiacion{Id: id}); err == nil {
+		if num, err = o.Delete(&ObservacionCalendario{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

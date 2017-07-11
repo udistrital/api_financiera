@@ -11,10 +11,12 @@ import (
 )
 
 type AnulacionDisponibilidad struct {
-	Id            int       `orm:"auto;column(id);pk"`
-	Motivo        string    `orm:"column(motivo)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion string    `orm:"column(tipo_anulacion)"`
+	Id                                 int                                   `orm:"auto;column(id);pk"`
+	Motivo                             string                                `orm:"column(motivo)"`
+	FechaRegistro                      time.Time                             `orm:"column(fecha_registro);type(date)"`
+	TipoAnulacion                      string                                `orm:"column(tipo_anulacion)"`
+	EstadoAnulacion                    *EstadoAnulacion                      `orm:"column(estado_anulacion);rel(fk)"`
+	AnulacionDisponibilidadApropiacion []*AnulacionDisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
 func (t *AnulacionDisponibilidad) TableName() string {
@@ -100,10 +102,11 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 	}
 
 	var l []AnulacionDisponibilidad
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "AnulacionDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
