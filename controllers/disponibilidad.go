@@ -227,4 +227,26 @@ func (c *DisponibilidadController) SaldoCdp() {
 	c.ServeJSON()
 }
 
+// AprobarAnulacionDisponibilidad ...
+// @Title AprobarAnulacionDisponibilidad
+// @Description aprueba la anulacion de un cdp ya sea total o parcial
+// @Param	body		body 	models.AnulacionDisponibilidad	true		"body for AnulacionDisponibilidad content"
+// @Success 201 {int} models.AnulacionDisponibilidad
+// @Failure 403 body is empty
+// @router /AprobarAnulacion [post]
+func (c *DisponibilidadController) AprobarAnulacionDisponibilidad() {
+	var v models.AnulacionDisponibilidad
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if alert, err := models.AprobacionAnulacion(&v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
 //-------------------
