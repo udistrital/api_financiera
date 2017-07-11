@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Info_disponibilidad_a_anular struct {
@@ -225,7 +227,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se anulo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
+				alerta = append(alerta, "Se Solicito la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
 
 			}
 		} else {
@@ -235,17 +237,72 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		}
 
 	}
-	if acumCdp > 0 {
+	/*if acumCdp > 0 {
 		m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
 		o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad)
-		o.Commit()
+
 	} else {
 		o.Rollback()
-	}
-
+	}*/
+	o.Commit()
 	return
 }
+func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	_, err = o.Update(m, "estado_anulacion")
+	if err != nil {
+		o.Rollback()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
+		return
+	}
+	var acumCDP float64
+	acumCDP = 0
 
+	for i := 0; i < len(m.AnulacionDisponibilidadApropiacion); i++ {
+		var saldoCDP float64
+		if m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento != nil {
+			saldoCDP, _, _, err = SaldoCdp(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.FuenteFinanciamiento.Id)
+		} else {
+			saldoCDP, _, _, err = SaldoCdp(m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Disponibilidad.Id, m.AnulacionDisponibilidadApropiacion[i].DisponibilidadApropiacion.Apropiacion.Id, 0)
+
+		}
+		if saldoCDP < m.AnulacionDisponibilidadApropiacion[i].Valor {
+			o.Rollback()
+			alert = Alert{Type: "error", Code: "E_A12", Body: m}
+			return
+		}
+		if err != nil {
+			o.Rollback()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
+			return
+		}
+		acumCDP = acumCDP + saldoCDP - m.AnulacionDisponibilidadApropiacion[i].Valor
+		fmt.Println("acum: ", acumCDP)
+	}
+	if acumCDP == 0 && m.EstadoAnulacion.Id == 3 {
+		m.AnulacionDisponibilidadApropiacion[0].DisponibilidadApropiacion.Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
+		o.Update(m.AnulacionDisponibilidadApropiacion[0].DisponibilidadApropiacion.Disponibilidad)
+	}
+
+	if err != nil {
+		o.Rollback()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
+		return
+	}
+	o.Commit()
+	alert = Alert{Type: "success", Code: "S_A12", Body: m}
+	return
+}
 func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err error) {
 	o := orm.NewOrm()
 	o.Begin()
@@ -296,14 +353,14 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se anulo del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+				alerta = append(alerta, "Se Solicito la anulación del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
 
 			}
 		}
 
 	}
 	o.Commit()
-	var acumCDP float64
+	/*var acumCDP float64
 	acumCDP = 0
 
 	for i := 0; i < len(m.Disponibilidad_apropiacion); i++ {
@@ -326,7 +383,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	if acumCDP == 0 {
 		m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
 		o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad)
-	}
+	}*/
 	return
 }
 
@@ -401,14 +458,16 @@ func AnuladoCdp(id_cdp int, id_apropiacion int, id_fuente int) (valor float64, e
 	o := orm.NewOrm()
 	var maps []orm.Params
 	o.Raw(`SELECT * FROM(SELECT disponibilidad.id,
+											anulacion_disponibilidad.estado_anulacion,
 					            disponibilidad_apropiacion.apropiacion,
 					            COALESCE(disponibilidad_apropiacion.fuente_financiamiento,0) as fuente_financiamiento,
 					            COALESCE(sum(anulacion_disponibilidad_apropiacion.valor),0) AS valor
 					           FROM financiera.anulacion_disponibilidad_apropiacion
 					             JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
 					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
-					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
-										WHERE id = ? AND apropiacion = ? AND fuente_financiamiento = ?;`, id_cdp, id_apropiacion, id_fuente).Values(&maps)
+											 JOIN financiera.anulacion_disponibilidad ON anulacion_disponibilidad.id = anulacion_disponibilidad_apropiacion.anulacion
+					          GROUP BY disponibilidad.id, anulacion_disponibilidad.estado_anulacion, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
+										WHERE id = ? AND apropiacion = ? AND fuente_financiamiento = ? AND estado_anulacion = 3`, id_cdp, id_apropiacion, id_fuente).Values(&maps)
 	if maps == nil {
 		valor = 0
 	} else {
@@ -508,9 +567,9 @@ func GetValorTotalAnuladoCDP(cdp_id int) (total float64, err error) {
 					             JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
 					             JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
 					          GROUP BY disponibilidad.id, disponibilidad_apropiacion.apropiacion,disponibilidad_apropiacion.fuente_financiamiento) as saldo
-										WHERE id = ? `, cdp_id).QueryRow(&totalSql)
+										WHERE id = ?`, cdp_id).QueryRow(&totalSql)
 	if err == nil {
-		fmt.Println("total A: ", totalSql)
+		fmt.Println("++++++++++++++++++++++total A: ", totalSql)
 		return totalSql, nil
 	}
 	fmt.Println("total A: ", err)
