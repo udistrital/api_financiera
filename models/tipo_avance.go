@@ -53,7 +53,7 @@ func GetTipoAvanceById(id int) (v *TipoAvance, err error) {
 func GetAllTipoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoAvance))
+	qs := o.QueryTable(new(TipoAvance)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
