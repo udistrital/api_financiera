@@ -468,7 +468,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 
 	// Datos Orden de Pago Planta
 	newOrden.FechaCreacion = time.Now()
-	newOrden.Nomina = "PLANTA"
+	newOrden.Nomina = "SEGURIDAD SOCIAL"
 	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
 	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
