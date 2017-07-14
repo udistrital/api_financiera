@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -138,16 +141,27 @@ func (c *AnulacionDisponibilidadController) GetAll() {
 // @router /:id [put]
 func (c *AnulacionDisponibilidadController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
+	var fields []string
+	if v := c.GetString("fields"); v != "" {
+		fields = strings.Split(v, ",")
+	}
 	id, _ := strconv.Atoi(idStr)
 	v := models.AnulacionDisponibilidad{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateAnulacionDisponibilidadById(&v); err == nil {
-			c.Data["json"] = "OK"
+		if err := models.UpdateAnulacionDisponibilidadById(&v, fields...); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_A01", Body: v}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "success", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
