@@ -267,7 +267,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	_, err = o.Update(m, "estado_anulacion")
+	args := []string{"estado_anulacion", "solicitante", "responsable"}
+	_, err = o.Update(m, args...)
 	if err != nil {
 		o.Rollback()
 		alertdb := structs.Map(err)
