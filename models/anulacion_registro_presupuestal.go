@@ -11,10 +11,18 @@ import (
 )
 
 type AnulacionRegistroPresupuestal struct {
-	Id            int       `orm:"auto;column(id);pk"`
-	Motivo        string    `orm:"column(motivo)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion string    `orm:"column(tipo_anulacion)"`
+	Id                   int              `orm:"auto;column(id);pk"`
+	Consecutivo          int              `orm:"column(consecutivo)"`
+	Motivo               string           `orm:"column(motivo)"`
+	FechaRegistro        time.Time        `orm:"column(fecha_registro);type(date)"`
+	TipoAnulacion        string           `orm:"column(tipo_anulacion)"`
+	EstadoAnulacion      *EstadoAnulacion `orm:"column(estado_anulacion);rel(fk)"`
+	JustificacionRechazo string           `orm:"column(justificacion_rechazo);null"`
+	Responsable          int              `orm:"column(responsable)"`
+	Solicitante          int              `orm:"column(solicitante)"`
+	Expidio              int              `orm:"column(expidio)"`
+
+	AnulacionRegistroPresupuestalDisponibilidadApropiacion []*AnulacionRegistroPresupuestalDisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
 func (t *AnulacionRegistroPresupuestal) TableName() string {
@@ -100,10 +108,11 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 	}
 
 	var l []AnulacionRegistroPresupuestal
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "AnulacionRegistroPresupuestalDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -124,13 +133,13 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 
 // UpdateAnulacionRegistroPresupuestal updates AnulacionRegistroPresupuestal by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAnulacionRegistroPresupuestalById(m *AnulacionRegistroPresupuestal) (err error) {
+func UpdateAnulacionRegistroPresupuestalById(m *AnulacionRegistroPresupuestal, fields ...string) (err error) {
 	o := orm.NewOrm()
 	v := AnulacionRegistroPresupuestal{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m); err == nil {
+		if num, err = o.Update(m, fields...); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}

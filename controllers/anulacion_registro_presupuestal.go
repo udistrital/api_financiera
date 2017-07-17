@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -139,9 +140,13 @@ func (c *AnulacionRegistroPresupuestalController) GetAll() {
 func (c *AnulacionRegistroPresupuestalController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
+	var fields []string
+	if v := c.GetString("fields"); v != "" {
+		fields = strings.Split(v, ",")
+	}
 	v := models.AnulacionRegistroPresupuestal{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateAnulacionRegistroPresupuestalById(&v); err == nil {
+		if err := models.UpdateAnulacionRegistroPresupuestalById(&v, fields...); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
