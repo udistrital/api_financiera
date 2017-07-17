@@ -244,7 +244,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se Solicito la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
+				alerta = append(alerta, "Se expidio la solicitud N°"+strconv.Itoa(m.Anulacion.Consecutivo)+" de anulación para el CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
 
 			}
 		} else {
@@ -267,7 +267,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	_, err = o.Update(m, "estado_anulacion")
+	args := []string{"estado_anulacion", "solicitante", "responsable"}
+	_, err = o.Update(m, args...)
 	if err != nil {
 		o.Rollback()
 		alertdb := structs.Map(err)

@@ -18,6 +18,9 @@ type AnulacionDisponibilidad struct {
 	TipoAnulacion                      string                                `orm:"column(tipo_anulacion)"`
 	EstadoAnulacion                    *EstadoAnulacion                      `orm:"column(estado_anulacion);rel(fk)"`
 	JustificacionRechazo               string                                `orm:"column(justificacion_rechazo);null"`
+	Responsable                        int                                   `orm:"column(responsable)"`
+	Solicitante                        int                                   `orm:"column(solicitante)"`
+	Expidio                            int                                   `orm:"column(expidio)"`
 	AnulacionDisponibilidadApropiacion []*AnulacionDisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
