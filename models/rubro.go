@@ -227,6 +227,7 @@ func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, er
 				val["valor"] = "0"
 				val["proyeccion"] = "0"
 				val["variacion"] = "0"
+				val["pvariacion"] = "0"
 				aux["valores"] = val
 			} else {
 				fll := egresos[0].(map[string]interface{})
@@ -237,18 +238,23 @@ func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, er
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
 				var variacion float64
+				var pvariacion float64
 				if proy <= 0 {
-					variacion = 0
+					variacion = ej - 0
+					pvariacion = variacion / ej
 				} else {
 					variacion = ej - proy
-					variacion = variacion / proy
+					pvariacion = variacion / ej
 				}
 
 				fmt.Println("vac ", variacion)
 				fll["proyeccion"] = proy
 				var mp interface{}
+				var mpp interface{}
 				err = utilidades.FillStruct(variacion, &mp)
+				err = utilidades.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
+				fll["pvariacion"] = mpp
 				aux["valores"] = fll
 
 			}
@@ -366,6 +372,7 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 				val["valor"] = "0"
 				val["proyeccion"] = "0"
 				val["variacion"] = "0"
+				val["pvariacion"] = "0"
 				aux["valores"] = val
 			} else {
 				fll := ingr[0].(map[string]interface{})
@@ -375,18 +382,23 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
 				var variacion float64
+				var pvariacion float64
 				if proy <= 0 {
-					variacion = 0
+					variacion = ej - 0
+					pvariacion = variacion / ej
 				} else {
 					variacion = ej - proy
-					variacion = variacion / proy
+					pvariacion = variacion / ej
 				}
 
 				fmt.Println("vac ", variacion)
 				fll["proyeccion"] = proy
 				var mp interface{}
+				var mpp interface{}
 				err = utilidades.FillStruct(variacion, &mp)
+				err = utilidades.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
+				fll["pvariacion"] = mpp
 				aux["valores"] = fll
 
 			}
