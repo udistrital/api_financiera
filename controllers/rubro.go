@@ -230,3 +230,82 @@ func (c *RubroController) RubroReporte() {
 
 	c.ServeJSON()
 }
+
+// GetRubroOrdenPago ...
+// @Title Get Rubro Orden
+// @Description get Apropiaciones Hijo
+// @Param	apropiacion		path 	int64	true		"apropiacion a consultar"
+// @Param	fuente		path 	int64	true		"fuente a consultar"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetRubroOrdenPago [get]
+func (c *RubroController) GetRubroOrdenPago() {
+	apropiacion, err := c.GetInt64("apropiacion")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente, err := c.GetInt64("fuente")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	res, err := models.RubroOrdenPago(apropiacion, fuente)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+		c.ServeJSON()
+	}
+	c.Data["json"] = res
+	c.ServeJSON()
+}
+
+// GetRubroIngreso ...
+// @Title Get Ingreso Rubro
+// @Description get Apropiaciones Hijo
+// @Param	apropiacion		path 	int64	true		"apropiacion a consultar"
+// @Param	fuente		path 	int64	true		"fuente a consultar"
+// @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
+// @Param	ffin		path 	string	true		"fecha final para el reporte"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetRubroOrdenPago [get]
+func (c *RubroController) GetRubroIngreso() {
+	apropiacion, err := c.GetInt64("apropiacion")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente, err := c.GetInt64("fuente")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	finicioStr := c.GetString("finicio")
+
+	ffinStr := c.GetString("ffin")
+
+	finicio, err := time.Parse("2006-01-02", finicioStr)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	ffin, err := time.Parse("2006-01-02", ffinStr)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	res, err := models.RubroIngreso(apropiacion, fuente, finicio, ffin)
+	c.Data["json"] = res
+	c.ServeJSON()
+}

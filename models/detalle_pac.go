@@ -10,7 +10,7 @@ import (
 )
 
 type DetallePac struct {
-	Id                   int     `orm:"column(id);pk"`
+	Id                   int     `orm:"column(id);pk;auto"`
 	ValorProyectadoMes   float64 `orm:"column(valor_proyectado_mes)"`
 	ValorEjecutadoMes    float64 `orm:"column(valor_ejecutado_mes)"`
 	FuenteFinanciamiento int     `orm:"column(fuente_financiamiento);null"`
