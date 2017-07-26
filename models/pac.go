@@ -10,9 +10,10 @@ import (
 )
 
 type Pac struct {
-	Id          int    `orm:"column(id);pk"`
-	Descripcion string `orm:"column(descripcion)"`
-	Vigencia    int    `orm:"column(vigencia)"`
+	Id          int           `orm:"column(id);pk:auto"`
+	Descripcion string        `orm:"column(descripcion)"`
+	Vigencia    int           `orm:"column(vigencia)"`
+	DetallePac  []*DetallePac `orm:"reverse(many)"`
 }
 
 func (t *Pac) TableName() string {
