@@ -274,7 +274,7 @@ func (c *RubroController) GetRubroOrdenPago() {
 // @Param	ffin		path 	string	true		"fecha final para el reporte"
 // @Success 200 {object} models.Rubro
 // @Failure 403
-// @router /GetRubroOrdenPago [get]
+// @router /GetRubroIngreso [get]
 func (c *RubroController) GetRubroIngreso() {
 	apropiacion, err := c.GetInt64("apropiacion")
 	if err != nil {
@@ -292,20 +292,23 @@ func (c *RubroController) GetRubroIngreso() {
 
 	ffinStr := c.GetString("ffin")
 
-	finicio, err := time.Parse("2006-01-02", finicioStr)
+	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	ffin, err := time.Parse("2006-01-02", ffinStr)
+	ffin, err := time.ParseInLocation("2006-01-02", ffinStr, time.Local)
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-
-	res, err := models.RubroIngreso(apropiacion, fuente, finicio, ffin)
+	var fuenteIf interface{}
+	if fuente != 0 {
+		fuenteIf = fuente
+	}
+	res, err := models.RubroIngreso(apropiacion, fuenteIf, finicio, ffin)
 	c.Data["json"] = res
 	c.ServeJSON()
 }
