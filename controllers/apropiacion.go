@@ -191,16 +191,18 @@ func (c *ApropiacionController) SaldoApropiacion() {
 // @Title Get Apropiaciones Hijo
 // @Description get Apropiaciones Hijo
 // @Param	vigencia	path 	string	true		"vigencia filtro de las apropiaciones hijo"
+// @Param	tipo	path 	string	true		"tipo del rubro"
 // @Success 200 {object} models.Apropiacion
 // @Failure 403
 // @router /GetApropiacionesHijo/:vigencia [get]
 func (c *ApropiacionController) GetApropiacionesHijo() {
 	vigStr := c.Ctx.Input.Param(":vigencia")
+	tipo := c.GetString("tipo")
 	vigencia, err := strconv.Atoi(vigStr)
 	if err != nil {
 		c.Data["json"] = models.Alert{Code: "E_XXX", Body: err.Error(), Type: "error"}
 	} else {
-		m, err := models.ListaApropiacionesHijo(vigencia, "%")
+		m, err := models.ListaApropiacionesHijo(vigencia, tipo+"%")
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
