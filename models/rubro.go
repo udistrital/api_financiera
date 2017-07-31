@@ -218,8 +218,8 @@ func RubroReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, er
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
 			egresos, _ := RubroOrdenPago(m[i]["id"], m[i]["idfuente"])
-			proy, _ := RubroReporteEgresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
-			fmt.Println("sss ", proy)
+			proy := 0.0 //RubroReporteEgresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
+			//fmt.Println("sss ", proy)
 			aux := make(map[string]interface{})
 			fmt.Println("aux: ", finicio.AddDate(-1, 0, 0))
 			if egresos == nil {
@@ -364,7 +364,7 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 				ffin = inicio.AddDate(0, j+1, 0)
 			}
 			ingr, _ := RubroIngreso(m[i]["id"], m[i]["idfuente"], finicio, ffin)
-			proy, _ := RubroReporteIngresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
+			proy := 0.0 //RubroReporteIngresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
 			aux := make(map[string]interface{})
 			fmt.Println("aux: ", aux["valores"])
 			if ingr == nil {
