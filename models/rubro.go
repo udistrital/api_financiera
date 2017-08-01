@@ -403,7 +403,7 @@ func RubroReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, e
 
 			}
 			if aux != nil {
-				aux["mes"] = finicio.Format("Jan")
+				aux["mes"] = int(finicio.Month()) //finicio.Format("Jan")
 				fechas = append(fechas, aux)
 			}
 
