@@ -171,7 +171,7 @@ func ListaFuentes() (res interface{}, err error) {
 func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, fuente.id as idfuente
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
 		FROM
 		financiera.apropiacion as apropiacion
 	JOIN
