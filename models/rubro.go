@@ -694,3 +694,65 @@ idrubro,
 	err = utilidades.FillStruct(m, &res)
 	return
 }
+
+// RubroOrdenPago informe ordenes de pago y total por orden
+func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT idrubro,id_apr,codigo,COALESCE( idfuente, 0 ) as idfuente,SUM(valor) as valor FROM
+		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.id as idrubro,rubro.codigo, fuente.id as idfuente,rp.numero_registro_presupuestal AS RP,
+		cdp.numero_disponibilidad AS CDP, fuente.descripcion AS fuente
+
+		FROM
+			financiera.orden_pago as orden
+		JOIN
+			financiera.concepto_orden_pago as orden_concepto
+		ON
+			orden_concepto.orden_de_pago = orden.id
+		JOIN
+			financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+		ON
+			rpda.id = orden_concepto.registro_presupuestal_disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad_apropiacion as disponibilidad
+		ON
+			disponibilidad.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.apropiacion as apropiacion
+		ON
+			apropiacion.id = disponibilidad.apropiacion
+		JOIN
+			financiera.rubro as rubro
+		ON      apropiacion.rubro = rubro.id
+		JOIN
+			financiera.estado_orden_pago as estado_ord
+		ON
+			estado_ord.id = orden.estado_orden_pago
+		JOIN
+			financiera.registro_presupuestal as rp
+		ON
+			rp.id = rpda.registro_presupuestal
+		JOIN
+			financiera.disponibilidad_apropiacion AS disp_apr
+		ON
+		  disp_apr.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad as cdp
+		ON
+			cdp.id = disp_apr.disponibilidad
+		LEFT JOIN
+			financiera.fuente_financiamiento AS fuente
+		ON
+			disponibilidad.fuente_financiamiento = fuente.id
+		GROUP BY
+			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
+		WHERE idrubro = ?
+		AND
+		 COALESCE( idfuente, 0 )  = ?
+		GROUP BY
+		idrubro,
+		  codigo,
+			idfuente`, rubro, fuente).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
