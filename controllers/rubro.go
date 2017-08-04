@@ -237,9 +237,9 @@ func (c *RubroController) ApropiacionReporte() {
 // @Param	fuente		path 	int64	true		"fuente a consultar"
 // @Success 200 {object} models.Rubro
 // @Failure 403
-// @router /GetApropiacionOrdenPago [get]
+// @router /GetRubroOrdenPago [get]
 func (c *RubroController) GetRubroOrdenPago() {
-	apropiacion, err := c.GetInt64("apropiacion")
+	rubro, err := c.GetInt64("rubro")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -251,7 +251,7 @@ func (c *RubroController) GetRubroOrdenPago() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	res, err := models.ApropiacionOrdenPago(apropiacion, fuente)
+	res, err := models.RubroOrdenPago(rubro, fuente)
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
