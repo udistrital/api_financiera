@@ -9,50 +9,49 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaEspecial struct {
-	Id                         int                 `orm:"column(id);pk;auto"`
-	Descripcion                string              `orm:"column(descripcion);null"`
-	Porcentaje                 float64             `orm:"column(porcentaje);null"`
-	TarifaUvt                  float64             `orm:"column(tarifa_uvt);null"`
-	Deducible                  bool                `orm:"column(deducible);null"`
-	TipoCuentaEspecial         *TipoCuentaEspecial `orm:"column(tipo_cuenta_especial);rel(fk)"`
-	CuentaContable             *CuentaContable     `orm:"column(cuenta_contable);rel(fk)"`
-	InformacionPersonaJuridica int64               `orm:"column(informacion_persona_juridica)"`
+type DetallePac struct {
+	Id                   int     `orm:"column(id);pk;auto"`
+	ValorProyectadoMes   float64 `orm:"column(valor_proyectado_mes)"`
+	ValorEjecutadoMes    float64 `orm:"column(valor_ejecutado_mes)"`
+	FuenteFinanciamiento int     `orm:"column(fuente_financiamiento);null"`
+	Rubro                int     `orm:"column(rubro)"`
+	Pac                  *Pac    `orm:"column(pac);rel(fk)"`
+	Mes                  int     `orm:"column(mes)"`
 }
 
-func (t *CuentaEspecial) TableName() string {
-	return "cuenta_especial"
+func (t *DetallePac) TableName() string {
+	return "detalle_pac"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaEspecial))
+	orm.RegisterModel(new(DetallePac))
 }
 
-// AddCuentaEspecial insert a new CuentaEspecial into database and returns
+// AddDetallePac insert a new DetallePac into database and returns
 // last inserted Id on success.
-func AddCuentaEspecial(m *CuentaEspecial) (id int64, err error) {
+func AddDetallePac(m *DetallePac) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaEspecialById retrieves CuentaEspecial by Id. Returns error if
+// GetDetallePacById retrieves DetallePac by Id. Returns error if
 // Id doesn't exist
-func GetCuentaEspecialById(id int) (v *CuentaEspecial, err error) {
+func GetDetallePacById(id int) (v *DetallePac, err error) {
 	o := orm.NewOrm()
-	v = &CuentaEspecial{Id: id}
+	v = &DetallePac{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaEspecial retrieves all CuentaEspecial matches certain condition. Returns empty list if
+// GetAllDetallePac retrieves all DetallePac matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDetallePac(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaEspecial)).RelatedSel()
+	qs := o.QueryTable(new(DetallePac))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +101,7 @@ func GetAllCuentaEspecial(query map[string]string, fields []string, sortby []str
 		}
 	}
 
-	var l []CuentaEspecial
+	var l []DetallePac
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +124,11 @@ func GetAllCuentaEspecial(query map[string]string, fields []string, sortby []str
 	return nil, err
 }
 
-// UpdateCuentaEspecial updates CuentaEspecial by Id and returns error if
+// UpdateDetallePac updates DetallePac by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaEspecialById(m *CuentaEspecial) (err error) {
+func UpdateDetallePacById(m *DetallePac) (err error) {
 	o := orm.NewOrm()
-	v := CuentaEspecial{Id: m.Id}
+	v := DetallePac{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +139,15 @@ func UpdateCuentaEspecialById(m *CuentaEspecial) (err error) {
 	return
 }
 
-// DeleteCuentaEspecial deletes CuentaEspecial by Id and returns error if
+// DeleteDetallePac deletes DetallePac by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaEspecial(id int) (err error) {
+func DeleteDetallePac(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaEspecial{Id: id}
+	v := DetallePac{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaEspecial{Id: id}); err == nil {
+		if num, err = o.Delete(&DetallePac{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
