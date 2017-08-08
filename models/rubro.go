@@ -745,12 +745,13 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 		ON
 			disponibilidad.fuente_financiamiento = fuente.id
 		GROUP BY
-			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
+			idrubro,apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as egresos
 		WHERE idrubro = ?
 		AND
 		 COALESCE( idfuente, 0 )  = ?
 		GROUP BY
 		idrubro,
+		id_apr,
 		  codigo,
 			idfuente`, rubro, fuente).Values(&m)
 	err = utilidades.FillStruct(m, &res)
