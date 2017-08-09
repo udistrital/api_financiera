@@ -33,6 +33,7 @@ type OrdenPago struct {
 	Nomina               string                `orm:"column(nomina)"`
 	Liquidacion          int                   `orm:"column(liquidacion);null"`
 	EntradaAlmacen       int                   `orm:"column(entrada_almacen);null"`
+	Consecutivo          int                   `orm:"column(consecutivo)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -171,34 +172,41 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, idOrdenPago int64) {
+func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
 	// Inserta datos Orden de pago
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	m.OrdenPago.Consecutivo = consecutivoOp
 	m.OrdenPago.FechaCreacion = time.Now()
 	m.OrdenPago.Nomina = "PROVEEDOR"
 	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 
-	idOrdenPago, err1 := o.Insert(&m.OrdenPago)
-	if err1 != nil {
-		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
-		err = err1
+	idOrdenPago, err = o.Insert(&m.OrdenPago)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
 		o.Rollback()
 		return
 	}
 	// Insertar data Conceptos
 	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
 		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
-		_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
-		if err2 != nil {
-			alerta = append(alerta, "ERROR_2 [RegistrarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
-			err = err2
+		_, err = o.Insert(&m.ConceptoOrdenPago[i])
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_02"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(m.MovimientoContable); i++ {
-		movimiento_contable := MovimientoContable{
+		movimientoContable := MovimientoContable{
 			Debito:                   m.MovimientoContable[i].Debito,
 			Credito:                  m.MovimientoContable[i].Credito,
 			Fecha:                    time.Now(),
@@ -208,11 +216,13 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			Aprobado:                 false,
 		}
-		_, err3 := o.Insert(&movimiento_contable)
-		if err3 != nil {
-			alerta = append(alerta, "ERROR_3 [RegistrarOpProveedor] No se puede registrar las Cuentas Contables Asociadas a los Concepto")
-			err = err3
+		_, err = o.Insert(&movimientoContable)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_03"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	o.Commit()
