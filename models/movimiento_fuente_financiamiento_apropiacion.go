@@ -18,6 +18,9 @@ type MovimientoFuenteFinanciamientoApropiacion struct {
 	Descripcion                               string                           `orm:"column(descripcion);null"`
 	FuenteFinanciamientoApropiacion           *FuenteFinanciamientoApropiacion `orm:"column(fuente_financiamiento_apropiacion);rel(fk)"`
 	MovimientoFuenteFinanciamientoApropiacion int                              `orm:"column(movimiento_fuente_financiamiento_apropiacion);null"`
+	TipoDocumento                             *TipoDocumentoAfectante          `orm:"column(tipo_documento);rel(fk)"`
+	NoDocumento                               string                           `orm:"column(no_documento)"`
+	FechaDocumento                            time.Time                        `orm:"column(fecha_documento)"`
 }
 
 func (t *MovimientoFuenteFinanciamientoApropiacion) TableName() string {
