@@ -3,21 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
 
-// AnulacionRegistroPresupuestalController operations for AnulacionRegistroPresupuestal
-type AnulacionRegistroPresupuestalController struct {
+// PacController operations for Pac
+type PacController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *AnulacionRegistroPresupuestalController) URLMapping() {
+func (c *PacController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -27,15 +26,15 @@ func (c *AnulacionRegistroPresupuestalController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create AnulacionRegistroPresupuestal
-// @Param	body		body 	models.AnulacionRegistroPresupuestal	true		"body for AnulacionRegistroPresupuestal content"
-// @Success 201 {int} models.AnulacionRegistroPresupuestal
+// @Description create Pac
+// @Param	body		body 	models.Pac	true		"body for Pac content"
+// @Success 201 {int} models.Pac
 // @Failure 403 body is empty
 // @router / [post]
-func (c *AnulacionRegistroPresupuestalController) Post() {
-	var v models.AnulacionRegistroPresupuestal
+func (c *PacController) Post() {
+	var v models.Pac
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddAnulacionRegistroPresupuestal(&v); err == nil {
+		if _, err := models.AddPac(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -49,15 +48,15 @@ func (c *AnulacionRegistroPresupuestalController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get AnulacionRegistroPresupuestal by id
+// @Description get Pac by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.AnulacionRegistroPresupuestal
+// @Success 200 {object} models.Pac
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *AnulacionRegistroPresupuestalController) GetOne() {
+func (c *PacController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetAnulacionRegistroPresupuestalById(id)
+	v, err := models.GetPacById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -68,17 +67,17 @@ func (c *AnulacionRegistroPresupuestalController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get AnulacionRegistroPresupuestal
+// @Description get Pac
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.AnulacionRegistroPresupuestal
+// @Success 200 {object} models.Pac
 // @Failure 403
 // @router / [get]
-func (c *AnulacionRegistroPresupuestalController) GetAll() {
+func (c *PacController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -120,7 +119,7 @@ func (c *AnulacionRegistroPresupuestalController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllAnulacionRegistroPresupuestal(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllPac(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -131,22 +130,18 @@ func (c *AnulacionRegistroPresupuestalController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the AnulacionRegistroPresupuestal
+// @Description update the Pac
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.AnulacionRegistroPresupuestal	true		"body for AnulacionRegistroPresupuestal content"
-// @Success 200 {object} models.AnulacionRegistroPresupuestal
+// @Param	body		body 	models.Pac	true		"body for Pac content"
+// @Success 200 {object} models.Pac
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *AnulacionRegistroPresupuestalController) Put() {
+func (c *PacController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	var fields []string
-	if v := c.GetString("fields"); v != "" {
-		fields = strings.Split(v, ",")
-	}
-	v := models.AnulacionRegistroPresupuestal{Id: id}
+	v := models.Pac{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateAnulacionRegistroPresupuestalById(&v, fields...); err == nil {
+		if err := models.UpdatePacById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -159,15 +154,15 @@ func (c *AnulacionRegistroPresupuestalController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the AnulacionRegistroPresupuestal
+// @Description delete the Pac
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *AnulacionRegistroPresupuestalController) Delete() {
+func (c *PacController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteAnulacionRegistroPresupuestal(id); err == nil {
+	if err := models.DeletePac(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

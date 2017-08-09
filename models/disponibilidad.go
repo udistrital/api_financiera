@@ -184,6 +184,23 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	o.Begin()
 	alerta = append(alerta, "success")
 	m.Anulacion.FechaRegistro = time.Now()
+	var consecutivo int
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.anulacion_disponibilidad 
+						JOIN
+						financiera.anulacion_disponibilidad_apropiacion as ada
+						ON
+						ada.anulacion = anulacion_disponibilidad.id 
+						JOIN
+						financiera.disponibilidad_apropiacion
+						ON 
+						disponibilidad_apropiacion.id = ada.disponibilidad_apropiacion
+						JOIN
+						financiera.disponibilidad
+						ON
+						disponibilidad.id = disponibilidad_apropiacion.disponibilidad
+						WHERE vigencia = ?`, m.Disponibilidad_apropiacion[0].Disponibilidad.Vigencia).QueryRow(&consecutivo)
+	m.Anulacion.Consecutivo = consecutivo
 	id_anulacion_cdp, err1 := o.Insert(&m.Anulacion)
 	fmt.Println("error")
 	if err1 != nil {
@@ -227,7 +244,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se Solicito la anulacion del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
+				alerta = append(alerta, "Se expidio la solicitud N°"+strconv.Itoa(m.Anulacion.Consecutivo)+" de anulación para el CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(saldoCDP, 'f', -1, 64))
 
 			}
 		} else {
@@ -250,7 +267,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	_, err = o.Update(m, "estado_anulacion")
+	args := []string{"estado_anulacion", "solicitante", "responsable"}
+	_, err = o.Update(m, args...)
 	if err != nil {
 		o.Rollback()
 		alertdb := structs.Map(err)
@@ -308,6 +326,23 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	o.Begin()
 	alerta = append(alerta, "success")
 	m.Anulacion.FechaRegistro = time.Now()
+	var consecutivo int
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
+						FROM financiera.anulacion_disponibilidad 
+						JOIN
+						financiera.anulacion_disponibilidad_apropiacion as ada
+						ON
+						ada.anulacion = anulacion_disponibilidad.id 
+						JOIN
+						financiera.disponibilidad_apropiacion
+						ON 
+						disponibilidad_apropiacion.id = ada.disponibilidad_apropiacion
+						JOIN
+						financiera.disponibilidad
+						ON
+						disponibilidad.id = disponibilidad_apropiacion.disponibilidad
+						WHERE vigencia = ?`, m.Disponibilidad_apropiacion[0].Disponibilidad.Vigencia).QueryRow(&consecutivo)
+	m.Anulacion.Consecutivo = consecutivo
 	id_anulacion_cdp, err1 := o.Insert(&m.Anulacion)
 	if err1 != nil {
 		alerta[0] = "error"
@@ -353,7 +388,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 				o.Rollback()
 				return
 			} else {
-				alerta = append(alerta, "Se Solicito la anulación del CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
+				alerta = append(alerta, "Se expidio la solicitud N°"+strconv.Itoa(m.Anulacion.Consecutivo)+" de anulación para el CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" la suma de $"+strconv.FormatFloat(m.Valor, 'f', -1, 64))
 
 			}
 		}
