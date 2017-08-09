@@ -40,12 +40,9 @@ func AddSolicitudRequisitoTipoAvance(m *SolicitudRequisitoTipoAvance) (id int64,
 }
 
 func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) {
-	requisitos := []RequisitoTipoAvance{}
 	solicitudRequisitoTipoAvance := []SolicitudRequisitoTipoAvance{}
 	solicitud := SolicitudAvance{}
-	estadoAvance := EstadoAvance{}
-	estadoVerificado := Estados{}
-	err = utilidades.FillStruct(m["Requisitos"], &requisitos)
+	err = utilidades.FillStruct(m["Requisitos"], &solicitudRequisitoTipoAvance)
 	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
 	o := orm.NewOrm()
 	o.Begin()
@@ -58,6 +55,8 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 			_, err = o.Insert(&data)
 		}
 		if err == nil {
+			estadoAvance := EstadoAvance{}
+			estadoVerificado := Estados{}
 			estadoVerificado.Id = 6
 			estadoAvance.Estados = &estadoVerificado
 			estadoAvance.SolicitudAvance = &solicitud
