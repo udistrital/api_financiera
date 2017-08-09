@@ -37,13 +37,6 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
 		beego.ControllerComments{
-			Method:           "RegistrarOpProveedor",
-			Router:           `RegistrarOpProveedor`,
-			AllowHTTPMethods: []string{"post"},
-			Params:           nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-		beego.ControllerComments{
 			Method:           "ActualizarOpProveedor",
 			Router:           `ActualizarOpProveedor`,
 			AllowHTTPMethods: []string{"post"},
@@ -55,13 +48,6 @@ func init() {
 			Router:           `ValorTotalRp/:id`,
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
-
-	// beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-	// 	beego.ControllerComments{
-	// 		Method:           "RegistrarOpPlanta",
-	// 		Router:           `RegistrarOpPlanta`,
-	// 		AllowHTTPMethods: []string{"post"},
-	// 		Params:           nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
 		beego.ControllerComments{
