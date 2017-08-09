@@ -261,3 +261,25 @@ func (c *RegistroPresupuestalController) ValorTotalRp() {
 	}
 	c.ServeJSON()
 }
+
+// AprobarAnulacionRegistroresupuestal ...
+// @Title AprobarAnulacionRegistroresupuestal
+// @Description aprueba la anulacion de un rp ya sea total o parcial
+// @Param	body		body 	models.AnulacionRegistroPresupuestal	true		"body for AnulacionRegistroPresupuestal content"
+// @Success 201 {int} models.AnulacionRegistroPresupuestal
+// @Failure 403 body is empty
+// @router /AprobarAnulacion [post]
+func (c *RegistroPresupuestalController) AprobarAnulacionRp() {
+	var v models.AnulacionRegistroPresupuestal
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if alert, err := models.AprobacionAnulacionRp(&v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}

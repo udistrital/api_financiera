@@ -5,59 +5,53 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type AnulacionRegistroPresupuestal struct {
-	Id                   int              `orm:"auto;column(id);pk"`
-	Consecutivo          int              `orm:"column(consecutivo)"`
-	Motivo               string           `orm:"column(motivo)"`
-	FechaRegistro        time.Time        `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion        string           `orm:"column(tipo_anulacion)"`
-	EstadoAnulacion      *EstadoAnulacion `orm:"column(estado_anulacion);rel(fk)"`
-	JustificacionRechazo string           `orm:"column(justificacion_rechazo);null"`
-	Responsable          int              `orm:"column(responsable)"`
-	Solicitante          int              `orm:"column(solicitante)"`
-	Expidio              int              `orm:"column(expidio)"`
-
-	AnulacionRegistroPresupuestalDisponibilidadApropiacion []*AnulacionRegistroPresupuestalDisponibilidadApropiacion `orm:"reverse(many)"`
+type DetallePac struct {
+	Id                   int     `orm:"column(id);pk;auto"`
+	ValorProyectadoMes   float64 `orm:"column(valor_proyectado_mes)"`
+	ValorEjecutadoMes    float64 `orm:"column(valor_ejecutado_mes)"`
+	FuenteFinanciamiento int     `orm:"column(fuente_financiamiento);null"`
+	Rubro                int     `orm:"column(rubro)"`
+	Pac                  *Pac    `orm:"column(pac);rel(fk)"`
+	Mes                  int     `orm:"column(mes)"`
 }
 
-func (t *AnulacionRegistroPresupuestal) TableName() string {
-	return "anulacion_registro_presupuestal"
+func (t *DetallePac) TableName() string {
+	return "detalle_pac"
 }
 
 func init() {
-	orm.RegisterModel(new(AnulacionRegistroPresupuestal))
+	orm.RegisterModel(new(DetallePac))
 }
 
-// AddAnulacionRegistroPresupuestal insert a new AnulacionRegistroPresupuestal into database and returns
+// AddDetallePac insert a new DetallePac into database and returns
 // last inserted Id on success.
-func AddAnulacionRegistroPresupuestal(m *AnulacionRegistroPresupuestal) (id int64, err error) {
+func AddDetallePac(m *DetallePac) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAnulacionRegistroPresupuestalById retrieves AnulacionRegistroPresupuestal by Id. Returns error if
+// GetDetallePacById retrieves DetallePac by Id. Returns error if
 // Id doesn't exist
-func GetAnulacionRegistroPresupuestalById(id int) (v *AnulacionRegistroPresupuestal, err error) {
+func GetDetallePacById(id int) (v *DetallePac, err error) {
 	o := orm.NewOrm()
-	v = &AnulacionRegistroPresupuestal{Id: id}
+	v = &DetallePac{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllAnulacionRegistroPresupuestal retrieves all AnulacionRegistroPresupuestal matches certain condition. Returns empty list if
+// GetAllDetallePac retrieves all DetallePac matches certain condition. Returns empty list if
 // no records exist
-func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDetallePac(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AnulacionRegistroPresupuestal))
+	qs := o.QueryTable(new(DetallePac))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -107,12 +101,11 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 		}
 	}
 
-	var l []AnulacionRegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	var l []DetallePac
+	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "AnulacionRegistroPresupuestalDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -131,30 +124,30 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 	return nil, err
 }
 
-// UpdateAnulacionRegistroPresupuestal updates AnulacionRegistroPresupuestal by Id and returns error if
+// UpdateDetallePac updates DetallePac by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAnulacionRegistroPresupuestalById(m *AnulacionRegistroPresupuestal, fields ...string) (err error) {
+func UpdateDetallePacById(m *DetallePac) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionRegistroPresupuestal{Id: m.Id}
+	v := DetallePac{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m, fields...); err == nil {
+		if num, err = o.Update(m); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
 	return
 }
 
-// DeleteAnulacionRegistroPresupuestal deletes AnulacionRegistroPresupuestal by Id and returns error if
+// DeleteDetallePac deletes DetallePac by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAnulacionRegistroPresupuestal(id int) (err error) {
+func DeleteDetallePac(id int) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionRegistroPresupuestal{Id: id}
+	v := DetallePac{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AnulacionRegistroPresupuestal{Id: id}); err == nil {
+		if num, err = o.Delete(&DetallePac{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

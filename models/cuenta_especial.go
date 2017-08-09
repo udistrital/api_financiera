@@ -10,7 +10,7 @@ import (
 )
 
 type CuentaEspecial struct {
-	Id                         int                 `orm:"column(id);pk:auto"`
+	Id                         int                 `orm:"column(id);pk;auto"`
 	Descripcion                string              `orm:"column(descripcion);null"`
 	Porcentaje                 float64             `orm:"column(porcentaje);null"`
 	TarifaUvt                  float64             `orm:"column(tarifa_uvt);null"`
