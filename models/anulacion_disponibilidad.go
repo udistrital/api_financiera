@@ -11,11 +11,16 @@ import (
 )
 
 type AnulacionDisponibilidad struct {
-	Id                                 int                                   `orm:"auto;column(id);pk"`
+	Id                                 int                                   `orm:"column(id);pk;auto"`
+	Consecutivo                        int                                   `orm:"column(consecutivo)"`
 	Motivo                             string                                `orm:"column(motivo)"`
 	FechaRegistro                      time.Time                             `orm:"column(fecha_registro);type(date)"`
 	TipoAnulacion                      string                                `orm:"column(tipo_anulacion)"`
 	EstadoAnulacion                    *EstadoAnulacion                      `orm:"column(estado_anulacion);rel(fk)"`
+	JustificacionRechazo               string                                `orm:"column(justificacion_rechazo);null"`
+	Responsable                        int                                   `orm:"column(responsable)"`
+	Solicitante                        int                                   `orm:"column(solicitante)"`
+	Expidio                            int                                   `orm:"column(expidio)"`
 	AnulacionDisponibilidadApropiacion []*AnulacionDisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
@@ -127,13 +132,13 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 
 // UpdateAnulacionDisponibilidad updates AnulacionDisponibilidad by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAnulacionDisponibilidadById(m *AnulacionDisponibilidad) (err error) {
+func UpdateAnulacionDisponibilidadById(m *AnulacionDisponibilidad, fields ...string) (err error) {
 	o := orm.NewOrm()
 	v := AnulacionDisponibilidad{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m); err == nil {
+		if num, err = o.Update(m, fields...); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
