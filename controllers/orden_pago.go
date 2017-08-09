@@ -201,16 +201,22 @@ func (c *OrdenPagoController) RegistrarOpProveedor() {
 	c.ServeJSON()
 }
 
-// personalizado Actualizar orden_pago, concepto_ordenpago y Movimientos Contables
+// ActualizarOpProveedor ...
+// @Title ActualizarOpProveedor
+// @Description Actualiza orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router ActualizarOpProveedor [post]
 func (c *OrdenPagoController) ActualizarOpProveedor() {
 	var v models.Data_OrdenPago_Concepto
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		mensaje, err, id_orden := models.ActualizarOpProveedor(&v)
+		alerta, err, consecutivoOp := models.ActualizarOpProveedor(&v)
 		if err != nil {
-			fmt.Println(mensaje)
-			c.Data["json"] = err
+			c.Data["json"] = alerta
 		} else {
-			c.Data["json"] = id_orden
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = err
