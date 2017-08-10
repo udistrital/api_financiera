@@ -309,7 +309,8 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
+func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
 	newOrden := OrdenPago{}
@@ -320,6 +321,9 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "PLANTA"
 	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
@@ -327,12 +331,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
 
 	// insertar OP Planta
-	idOrdenPago, err1 := o.Insert(&newOrden)
-	if err1 != nil {
+	idOrdenPago, err = o.Insert(&newOrden)
+	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPN_02"
-		alerta.Body = err1.Error()
-		err = err1
+		alerta.Body = err.Error()
 		o.Rollback()
 		return
 	}
@@ -354,12 +357,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		valorcalculado := int64(valorcalculadoFloat)
 		// data concepto
 		conc := det["Concepto"].(map[string]interface{})
-		err1_2 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
-		if err1_2 != nil {
+		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPN_02_2"
-			alerta.Body = err1_2
-			err = err1_2
+			alerta.Body = err
 			o.Rollback()
 			return
 		}
@@ -368,12 +370,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		if i == 0 {
 			// Buscamos concepto kronos homologado
 			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
-			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err2 != nil {
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idconceptotitan)
-				err = err2
 				o.Rollback()
 				return
 			}
@@ -390,12 +391,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
 			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
-			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err2 != nil {
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idconceptotitan)
-				err = err2
 				o.Rollback()
 				return
 			}
@@ -423,12 +423,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		fmt.Println(allConceptoOrdenPago[i].Valor)
 		allConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
 		// insertar concepto_orden_pago
-		_, err3 := o.Insert(&allConceptoOrdenPago[i])
-		if err3 != nil {
+		_, err = o.Insert(&allConceptoOrdenPago[i])
+		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPN_02_4"
-			alerta.Body = err3
-			err = err3
+			alerta.Body = err
 			o.Rollback()
 			return
 		}
@@ -458,12 +457,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
 				newMovimientoContable.Aprobado = false
 				// insertar OP Planta
-				_, err4 := o.Insert(&newMovimientoContable)
-				if err4 != nil {
+				_, err = o.Insert(&newMovimientoContable)
+				if err != nil {
 					alerta.Type = "error"
 					alerta.Code = "E_OPN_02_5"
-					alerta.Body = err4
-					err = err4
+					alerta.Body = err
 					o.Rollback()
 					return
 				}
@@ -474,8 +472,6 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	o.Commit()
 	return
 }
-
-//
 
 func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
 	o := orm.NewOrm()
