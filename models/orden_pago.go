@@ -317,7 +317,6 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	var detalle []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
-	//homologacion := HomologacionConcepto{}
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
