@@ -473,7 +473,8 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 }
 
 // Registra orden_pago nomina Seguridad Social, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
+func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
 	newOrden := OrdenPago{}
@@ -483,6 +484,9 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "SEGURIDAD SOCIAL"
 	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
