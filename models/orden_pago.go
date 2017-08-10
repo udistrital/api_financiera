@@ -472,6 +472,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	return
 }
 
+// Registra orden_pago nomina Seguridad Social, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
 func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
 	o := orm.NewOrm()
 	o.Begin()
@@ -479,7 +480,6 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	var PagosSeguridadSocial []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
 	err = utilidades.FillStruct(OrdenDetalle["PagosSeguridadSocial"], &PagosSeguridadSocial)
-	//homologacion := HomologacionConcepto{}
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
