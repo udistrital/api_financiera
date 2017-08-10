@@ -262,12 +262,12 @@ func (c *OrdenPagoController) RegistrarOpSeguridadSocial() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, idOrden := models.RegistrarOpSeguridadSocial(m)
+		mensaje, err, consecutivoOp := models.RegistrarOpSeguridadSocial(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: idOrden}
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
