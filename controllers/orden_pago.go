@@ -215,7 +215,7 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 		if err != nil {
 			c.Data["json"] = alerta
 		} else {
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
+			alert := models.Alert{Type: "success", Code: "S_OPP_02", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
@@ -236,12 +236,12 @@ func (c *OrdenPagoController) RegistrarOpNomina() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, idOrden := models.RegistrarOpNomina(m)
+		mensaje, err, consecutivoOp := models.RegistrarOpNomina(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: idOrden}
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
