@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -177,9 +180,39 @@ func (c *ApropiacionController) SaldoApropiacion() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 
-			valor := models.SaldoApropiacion(id)
-			c.Data["json"] = valor
-			c.ServeJSON()
+	valor := models.SaldoApropiacion(id)
+	c.Data["json"] = valor
+	c.ServeJSON()
 }
 
 //-----------------------------------------------
+
+// GetApropiacionesHijo ...
+// @Title Get Apropiaciones Hijo
+// @Description get Apropiaciones Hijo
+// @Param	vigencia	path 	string	true		"vigencia filtro de las apropiaciones hijo"
+// @Param	tipo	path 	string	true		"tipo del rubro"
+// @Success 200 {object} models.Apropiacion
+// @Failure 403
+// @router /GetApropiacionesHijo/:vigencia [get]
+func (c *ApropiacionController) GetApropiacionesHijo() {
+	vigStr := c.Ctx.Input.Param(":vigencia")
+	tipo := c.GetString("tipo")
+	vigencia, err := strconv.Atoi(vigStr)
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_XXX", Body: err.Error(), Type: "error"}
+	} else {
+		m, err := models.ListaApropiacionesHijo(vigencia, tipo+"%")
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = m
+		}
+
+	}
+	c.ServeJSON()
+}
