@@ -3,9 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -22,6 +26,37 @@ func (c *SolicitudRequisitoTipoAvanceController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+}
+
+// TrValidarAvance ...
+// @Title TrValidarAvance
+// @Description Validar Avance
+// @Param	body		body 	interface	true		"body for SolicitudAvance content"
+// @Success 201 {int} models.SolicitudRequisitoTipoAvanceController
+// @Failure 403 body is empty
+// @router TrValidarAvance/ [post]
+func (c *SolicitudRequisitoTipoAvanceController) TrValidarAvance() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if res, err := models.TrValidarAvance(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_900", Body: res}
+			c.Data["json"] = alert
+		} else {
+			fmt.Println(err.Error())
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_901" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+		fmt.Println("error 2: ", err)
+
+	}
+	c.ServeJSON()
 }
 
 // Post ...
