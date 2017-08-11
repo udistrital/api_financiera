@@ -177,16 +177,23 @@ func (c *OrdenPagoController) Delete() {
 	c.ServeJSON()
 }
 
-// personalizado Registrar orden_pago, concepto_ordenpago y transacciones
+// RegistrarOpProveedor ...
+// @Title RegistrarOpProveedor
+// @Description Registrar orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router RegistrarOpProveedor [post]
 func (c *OrdenPagoController) RegistrarOpProveedor() {
 	var v models.Data_OrdenPago_Concepto
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		mensaje, err, id_orden := models.RegistrarOpProveedor(&v)
+		alerta, err, consecutivoOp := models.RegistrarOpProveedor(&v)
 		if err != nil {
-			fmt.Println(mensaje)
-			c.Data["json"] = err
+			c.Data["json"] = alerta
 		} else {
-			c.Data["json"] = id_orden
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = err
@@ -194,16 +201,22 @@ func (c *OrdenPagoController) RegistrarOpProveedor() {
 	c.ServeJSON()
 }
 
-// personalizado Actualizar orden_pago, concepto_ordenpago y Movimientos Contables
+// ActualizarOpProveedor ...
+// @Title ActualizarOpProveedor
+// @Description Actualiza orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router ActualizarOpProveedor [post]
 func (c *OrdenPagoController) ActualizarOpProveedor() {
 	var v models.Data_OrdenPago_Concepto
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		mensaje, err, id_orden := models.ActualizarOpProveedor(&v)
+		alerta, err, consecutivoOp := models.ActualizarOpProveedor(&v)
 		if err != nil {
-			fmt.Println(mensaje)
-			c.Data["json"] = err
+			c.Data["json"] = alerta
 		} else {
-			c.Data["json"] = id_orden
+			alert := models.Alert{Type: "success", Code: "S_OPP_02", Body: consecutivoOp}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = err
@@ -223,12 +236,12 @@ func (c *OrdenPagoController) RegistrarOpNomina() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, idOrden := models.RegistrarOpNomina(m)
+		mensaje, err, consecutivoOp := models.RegistrarOpNomina(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: idOrden}
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
@@ -249,12 +262,12 @@ func (c *OrdenPagoController) RegistrarOpSeguridadSocial() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, idOrden := models.RegistrarOpSeguridadSocial(m)
+		mensaje, err, consecutivoOp := models.RegistrarOpSeguridadSocial(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: idOrden}
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
