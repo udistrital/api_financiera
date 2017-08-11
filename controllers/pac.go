@@ -3,24 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
 
-// SolicitudRequisitoTipoAvanceController operations for SolicitudRequisitoTipoAvance
-type SolicitudRequisitoTipoAvanceController struct {
+// PacController operations for Pac
+type PacController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *SolicitudRequisitoTipoAvanceController) URLMapping() {
+func (c *PacController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -28,48 +24,17 @@ func (c *SolicitudRequisitoTipoAvanceController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 }
 
-// TrValidarAvance ...
-// @Title TrValidarAvance
-// @Description Validar Avance
-// @Param	body		body 	interface	true		"body for SolicitudAvance content"
-// @Success 201 {int} models.SolicitudRequisitoTipoAvanceController
-// @Failure 403 body is empty
-// @router TrValidarAvance/ [post]
-func (c *SolicitudRequisitoTipoAvanceController) TrValidarAvance() {
-	var v interface{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		m := v.(map[string]interface{})
-		if res, err := models.TrValidarAvance(m); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_900", Body: res}
-			c.Data["json"] = alert
-		} else {
-			fmt.Println(err.Error())
-			alertdb := structs.Map(err)
-			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_901" + code, Body: err}
-			c.Data["json"] = alert
-		}
-	} else {
-		c.Data["json"] = err.Error()
-		fmt.Println("error 2: ", err)
-
-	}
-	c.ServeJSON()
-}
-
 // Post ...
 // @Title Post
-// @Description create SolicitudRequisitoTipoAvance
-// @Param	body		body 	models.SolicitudRequisitoTipoAvance	true		"body for SolicitudRequisitoTipoAvance content"
-// @Success 201 {int} models.SolicitudRequisitoTipoAvance
+// @Description create Pac
+// @Param	body		body 	models.Pac	true		"body for Pac content"
+// @Success 201 {int} models.Pac
 // @Failure 403 body is empty
 // @router / [post]
-func (c *SolicitudRequisitoTipoAvanceController) Post() {
-	var v models.SolicitudRequisitoTipoAvance
+func (c *PacController) Post() {
+	var v models.Pac
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddSolicitudRequisitoTipoAvance(&v); err == nil {
+		if _, err := models.AddPac(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -83,15 +48,15 @@ func (c *SolicitudRequisitoTipoAvanceController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get SolicitudRequisitoTipoAvance by id
+// @Description get Pac by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.SolicitudRequisitoTipoAvance
+// @Success 200 {object} models.Pac
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *SolicitudRequisitoTipoAvanceController) GetOne() {
+func (c *PacController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetSolicitudRequisitoTipoAvanceById(id)
+	v, err := models.GetPacById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -102,17 +67,17 @@ func (c *SolicitudRequisitoTipoAvanceController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get SolicitudRequisitoTipoAvance
+// @Description get Pac
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.SolicitudRequisitoTipoAvance
+// @Success 200 {object} models.Pac
 // @Failure 403
 // @router / [get]
-func (c *SolicitudRequisitoTipoAvanceController) GetAll() {
+func (c *PacController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -154,7 +119,7 @@ func (c *SolicitudRequisitoTipoAvanceController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllSolicitudRequisitoTipoAvance(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllPac(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -165,18 +130,18 @@ func (c *SolicitudRequisitoTipoAvanceController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the SolicitudRequisitoTipoAvance
+// @Description update the Pac
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.SolicitudRequisitoTipoAvance	true		"body for SolicitudRequisitoTipoAvance content"
-// @Success 200 {object} models.SolicitudRequisitoTipoAvance
+// @Param	body		body 	models.Pac	true		"body for Pac content"
+// @Success 200 {object} models.Pac
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *SolicitudRequisitoTipoAvanceController) Put() {
+func (c *PacController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.SolicitudRequisitoTipoAvance{Id: id}
+	v := models.Pac{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateSolicitudRequisitoTipoAvanceById(&v); err == nil {
+		if err := models.UpdatePacById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -189,15 +154,15 @@ func (c *SolicitudRequisitoTipoAvanceController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the SolicitudRequisitoTipoAvance
+// @Description delete the Pac
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *SolicitudRequisitoTipoAvanceController) Delete() {
+func (c *PacController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteSolicitudRequisitoTipoAvance(id); err == nil {
+	if err := models.DeletePac(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

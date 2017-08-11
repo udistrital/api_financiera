@@ -48,10 +48,11 @@ func init() {
 			Router:           `FechaActual/:formato`,
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
 		beego.ControllerComments{
-			Method:           "RubroReporte",
-			Router:           `RubroReporte/`,
+			Method:           "ApropiacionReporte",
+			Router:           `ApropiacionReporte/`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Params:           nil})

@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ func (c *RubroController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
-	c.Mapping("RubroReporte", c.RubroReporte)
+	c.Mapping("ApropiacionReporte", c.ApropiacionReporte)
 }
 
 // Post ...
@@ -187,31 +186,31 @@ func (c *RubroController) Delete() {
 	c.ServeJSON()
 }
 
-// RubroReporte ...
-// @Title RubroReporte
+// ApropiacionReporte ...
+// @Title ApropiacionReporte
 // @Description Obtener reporte ingresos egresos de los rubros dada una vigencia
 // @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
 // @Param	ffin		path 	string	true		"fecha final para el reporte"
 // @Success 200 {object} interface{}
-// @Failure 403 No se en contraron datos
-// @router RubroReporte/ [post]
+// @Failure 403 No se encontraron datos
+// @router ApropiacionReporte/ [post]
 
-func (c *RubroController) RubroReporte() {
+func (c *RubroController) ApropiacionReporte() {
 	var v interface{}
 	var p interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &p); err == nil {
 		m := p.(map[string]interface{})
-		fmt.Println("inicio: ", m["inicio"])
-		fmt.Println("inicio: ", m["fin"])
+		//fmt.Println("inicio: ", m["inicio"])
+		//fmt.Println("inicio: ", m["fin"])
 		var inicio time.Time
 		err = utilidades.FillStruct(m["inicio"], &inicio)
 		var fin time.Time
 		err = utilidades.FillStruct(m["fin"], &fin)
-		fmt.Println("format inicio: ", int(inicio.Year()))
-		fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
+		//fmt.Println("format inicio: ", int(inicio.Year()))
+		//fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
 		reporte := make(map[string]interface{})
-		reporte["egresos"], err = models.RubroReporteEgresos(inicio, fin)
-		reporte["ingresos"], err = models.RubroReporteIngresos(inicio, fin)
+		reporte["egresos"], err = models.ApropiacionReporteEgresos(inicio, fin)
+		reporte["ingresos"], err = models.ApropiacionReporteIngresos(inicio, fin)
 		//v, err = models.ListaApropiacionesHijo(2017)
 		v = reporte
 		if err != nil {
@@ -228,5 +227,86 @@ func (c *RubroController) RubroReporte() {
 		c.Data["json"] = e
 	}
 
+	c.ServeJSON()
+}
+
+// GetRubroOrdenPago ...
+// @Title Get Rubro Orden
+// @Description get Apropiaciones Hijo
+// @Param	apropiacion		path 	int64	true		"apropiacion a consultar"
+// @Param	fuente		path 	int64	true		"fuente a consultar"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetRubroOrdenPago [get]
+func (c *RubroController) GetRubroOrdenPago() {
+	rubro, err := c.GetInt64("rubro")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente, err := c.GetInt64("fuente")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	res, err := models.RubroOrdenPago(rubro, fuente)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+		c.ServeJSON()
+	}
+	c.Data["json"] = res
+	c.ServeJSON()
+}
+
+// GetRubroIngreso ...
+// @Title Get Ingreso Rubro
+// @Description get Apropiaciones Hijo
+// @Param	apropiacion		path 	int64	true		"apropiacion a consultar"
+// @Param	fuente		path 	int64	true		"fuente a consultar"
+// @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
+// @Param	ffin		path 	string	true		"fecha final para el reporte"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetRubroIngreso [get]
+func (c *RubroController) GetRubroIngreso() {
+	rubro, err := c.GetInt64("rubro")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente, err := c.GetInt64("fuente")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	finicioStr := c.GetString("finicio")
+
+	ffinStr := c.GetString("ffin")
+
+	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	ffin, err := time.ParseInLocation("2006-01-02", ffinStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	var fuenteIf interface{}
+	fuenteIf = fuente
+
+	res, err := models.RubroIngreso(rubro, fuenteIf, finicio, ffin)
+	c.Data["json"] = res
 	c.ServeJSON()
 }
