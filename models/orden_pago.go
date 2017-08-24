@@ -28,7 +28,6 @@ type OrdenPago struct {
 	Convenio             int                   `orm:"column(convenio);null"`
 	TipoOrdenPago        *TipoOrdenPago        `orm:"column(tipo_orden_pago);rel(fk)"`
 	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	EstadoOrdenPago      *EstadoOrdenPago      `orm:"column(estado_orden_pago);rel(fk)"`
 	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
 	Nomina               string                `orm:"column(nomina)"`
 	Liquidacion          int                   `orm:"column(liquidacion);null"`
@@ -182,7 +181,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 	m.OrdenPago.Consecutivo = consecutivoOp
 	m.OrdenPago.FechaCreacion = time.Now()
 	m.OrdenPago.Nomina = "PROVEEDOR"
-	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	//m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 
 	idOrdenPago, err = o.Insert(&m.OrdenPago)
 	if err != nil {
@@ -325,9 +324,9 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "PLANTA"
-	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
+	//newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 
 	// insertar OP Planta
 	idOrdenPago, err = o.Insert(&newOrden)
@@ -489,9 +488,9 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "SEGURIDAD SOCIAL"
-	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
+	//newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
+	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 
 	// insertar OP Planta
 	idOrdenPago, err = o.Insert(&newOrden)
