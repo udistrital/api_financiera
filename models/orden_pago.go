@@ -348,15 +348,36 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "PLANTA"
-	//newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
 	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
-
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	// insertar OP Planta
 	idOrdenPago, err = o.Insert(&newOrden)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -512,10 +533,18 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "SEGURIDAD SOCIAL"
-	//newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
 	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
 	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
-
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	// insertar OP Planta
 	idOrdenPago, err = o.Insert(&newOrden)
 	if err != nil {
@@ -525,6 +554,20 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 		o.Rollback()
 		return
 	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
 	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
 	for i, element := range PagosSeguridadSocial {
 		det := element.(map[string]interface{})
