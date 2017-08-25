@@ -19,20 +19,21 @@ type Data_OrdenPago_Concepto struct {
 }
 
 type OrdenPago struct {
-	Id                   int                   `orm:"column(id);pk;auto"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	FechaCreacion        time.Time             `orm:"column(fecha_creacion);type(date)"`
-	RegistroPresupuestal *RegistroPresupuestal `orm:"column(registro_presupuestal);rel(fk)"`
-	ValorBase            float64               `orm:"column(valor_base)"`
-	PersonaElaboro       int                   `orm:"column(persona_elaboro)"`
-	Convenio             int                   `orm:"column(convenio);null"`
-	TipoOrdenPago        *TipoOrdenPago        `orm:"column(tipo_orden_pago);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
-	Nomina               string                `orm:"column(nomina)"`
-	Liquidacion          int                   `orm:"column(liquidacion);null"`
-	EntradaAlmacen       int                   `orm:"column(entrada_almacen);null"`
-	Consecutivo          int                   `orm:"column(consecutivo)"`
+	Id                       int                         `orm:"column(id);pk;auto"`
+	Vigencia                 float64                     `orm:"column(vigencia)"`
+	FechaCreacion            time.Time                   `orm:"column(fecha_creacion);type(date)"`
+	RegistroPresupuestal     *RegistroPresupuestal       `orm:"column(registro_presupuestal);rel(fk)"`
+	ValorBase                float64                     `orm:"column(valor_base)"`
+	PersonaElaboro           int                         `orm:"column(persona_elaboro)"`
+	Convenio                 int                         `orm:"column(convenio);null"`
+	TipoOrdenPago            *TipoOrdenPago              `orm:"column(tipo_orden_pago);rel(fk)"`
+	UnidadEjecutora          *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
+	Iva                      *Iva                        `orm:"column(iva);rel(fk)"`
+	Nomina                   string                      `orm:"column(nomina)"`
+	Liquidacion              int                         `orm:"column(liquidacion);null"`
+	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
+	Consecutivo              int                         `orm:"column(consecutivo)"`
+	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -122,6 +123,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "OrdenPagoEstadoOrdenPago", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -175,15 +177,37 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
-	// Inserta datos Orden de pago
+	// datos Orden de pago
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
 	m.OrdenPago.Consecutivo = consecutivoOp
 	m.OrdenPago.FechaCreacion = time.Now()
 	m.OrdenPago.Nomina = "PROVEEDOR"
-	//m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// Registrar OP
 	idOrdenPago, err = o.Insert(&m.OrdenPago)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
