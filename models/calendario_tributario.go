@@ -19,7 +19,7 @@ type CalendarioTributario struct {
 	Vigencia         float64           `orm:"column(vigencia)"`
 	ValorGirado      float64           `orm:"column(valor_girado);null"`
 	Entidad          *Entidad          `orm:"column(entidad);rel(fk)"`
-	EstadoCalendario *EstadoCalendario `orm:"column(estado_calendario);rel(fk)"`
+	EstadoCalendarioTributario *EstadoCalendarioTributario `orm:"column(estado_calendario_tributario);rel(fk)"`
 	Responsable      int64             `orm:"column(responsable)"`
 }
 
