@@ -15,7 +15,7 @@ type CuentaBancaria struct {
 	NumeroCuenta    string              `orm:"column(numero_cuenta)"`
 	EstadoActivo    bool                `orm:"column(estado_activo)"`
 	Saldo           float64             `orm:"column(saldo)"`
-	TipoCuenta      *TipoCuentaBancaria `orm:"column(tipo_cuenta);rel(fk)"`
+	TipoCuentaBancaria      *TipoCuentaBancaria `orm:"column(tipo_cuenta_bancaria);rel(fk)"`
 	TipoRecurso     *TipoRecurso        `orm:"column(tipo_recurso);rel(fk)"`
 	Sucursal        int                 `orm:"column(sucursal)"`
 	UnidadEjecutora *UnidadEjecutora    `orm:"column(unidad_ejecutora);rel(fk)"`
