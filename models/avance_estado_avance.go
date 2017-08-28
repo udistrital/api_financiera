@@ -5,51 +5,54 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type Estados struct {
-	Id          int    `orm:"column(id);pk"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion)"`
-	Proceso     string `orm:"column(proceso);null"`
-	Estado      string `orm:"column(estado)"`
+type AvanceEstadoAvance struct {
+	Id              int              `orm:"column(id);pk;auto"`
+	EstadoAvance    *EstadoAvance    `orm:"column(estado_avance);rel(fk)"`
+	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
+	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	Observaciones   string           `orm:"column(observaciones)"`
+	Usuario         string           `orm:"column(usuario)"`
+	Estado          string           `orm:"column(estado)"`
 }
 
-func (t *Estados) TableName() string {
-	return "estados"
+func (t *AvanceEstadoAvance) TableName() string {
+	return "avance_estado_avance"
 }
 
 func init() {
-	orm.RegisterModel(new(Estados))
+	orm.RegisterModel(new(AvanceEstadoAvance))
 }
 
-// AddEstados insert a new Estados into database and returns
+// AddAvanceEstadoAvance insert a new AvanceEstadoAvance into database and returns
 // last inserted Id on success.
-func AddEstados(m *Estados) (id int64, err error) {
+func AddAvanceEstadoAvance(m *AvanceEstadoAvance) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadosById retrieves Estados by Id. Returns error if
+// GetAvanceEstadoAvanceById retrieves AvanceEstadoAvance by Id. Returns error if
 // Id doesn't exist
-func GetEstadosById(id int) (v *Estados, err error) {
+func GetAvanceEstadoAvanceById(id int) (v *AvanceEstadoAvance, err error) {
 	o := orm.NewOrm()
-	v = &Estados{Id: id}
+	v = &AvanceEstadoAvance{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstados retrieves all Estados matches certain condition. Returns empty list if
+// GetAllAvanceEstadoAvance retrieves all AvanceEstadoAvance matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstados(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllAvanceEstadoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Estados))
+	qs := o.QueryTable(new(AvanceEstadoAvance)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +102,7 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 		}
 	}
 
-	var l []Estados
+	var l []AvanceEstadoAvance
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +125,11 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 	return nil, err
 }
 
-// UpdateEstados updates Estados by Id and returns error if
+// UpdateAvanceEstadoAvance updates AvanceEstadoAvance by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadosById(m *Estados) (err error) {
+func UpdateAvanceEstadoAvanceById(m *AvanceEstadoAvance) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: m.Id}
+	v := AvanceEstadoAvance{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +140,15 @@ func UpdateEstadosById(m *Estados) (err error) {
 	return
 }
 
-// DeleteEstados deletes Estados by Id and returns error if
+// DeleteAvanceEstadoAvance deletes AvanceEstadoAvance by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstados(id int) (err error) {
+func DeleteAvanceEstadoAvance(id int) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: id}
+	v := AvanceEstadoAvance{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Estados{Id: id}); err == nil {
+		if num, err = o.Delete(&AvanceEstadoAvance{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

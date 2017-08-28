@@ -50,9 +50,9 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/estados",
+		beego.NSNamespace("/avance_estado_avance",
 			beego.NSInclude(
-				&controllers.EstadosController{},
+				&controllers.AvanceEstadoAvanceController{},
 			),
 		),
 
