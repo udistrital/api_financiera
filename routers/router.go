@@ -242,9 +242,9 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/concepto_cuenta_contable",
+    beego.NSNamespace("/concepto_tesoral_cuenta_contable",
 			beego.NSInclude(
-				&controllers.ConceptoCuentaContableController{},
+				&controllers.ConceptoTesoralCuentaContableController{},
 			),
 		),
 
@@ -332,21 +332,21 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/afectacion_concepto",
+    beego.NSNamespace("/afectacion_concepto_tesoral",
 			beego.NSInclude(
-				&controllers.AfectacionConceptoController{},
+				&controllers.AfectacionConceptoTesoralController{},
 			),
 		),
 
-		beego.NSNamespace("/concepto_concepto",
+    beego.NSNamespace("/estructura_conceptos_tesorales",
 			beego.NSInclude(
-				&controllers.ConceptoConceptoController{},
+				&controllers.EstructuraConceptosTesoralesController{},
 			),
 		),
 
-		beego.NSNamespace("/tipo_concepto",
+    beego.NSNamespace("/tipo_concepto_tesoral",
 			beego.NSInclude(
-				&controllers.TipoConceptoController{},
+				&controllers.TipoConceptoTesoralController{},
 			),
 		),
 
@@ -410,9 +410,9 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/concepto",
+    beego.NSNamespace("/concepto_tesoral",
 			beego.NSInclude(
-				&controllers.ConceptoController{},
+				&controllers.ConceptoTesoralController{},
 			),
 		),
 

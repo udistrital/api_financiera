@@ -5,56 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type Concepto struct {
-	Id              int           `orm:"column(id);pk;auto"`
-	Codigo          string        `orm:"column(codigo)"`
-	Nombre          string        `orm:"column(nombre)"`
-	FechaCreacion   time.Time     `orm:"column(fecha_creacion);type(date)"`
-	Cabeza          bool          `orm:"column(cabeza)"`
-	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
-	Descripcion     string        `orm:"column(descripcion);null"`
-	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto);rel(fk)"`
-	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null"`
+type TipoConceptoTesoral struct {
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *Concepto) TableName() string {
-	return "concepto"
+func (t *TipoConceptoTesoral) TableName() string {
+	return "tipo_concepto_tesoral"
 }
 
 func init() {
-	orm.RegisterModel(new(Concepto))
+	orm.RegisterModel(new(TipoConceptoTesoral))
 }
 
-// AddConcepto insert a new Concepto into database and returns
+// AddTipoConceptoTesoral insert a new TipoConceptoTesoral into database and returns
 // last inserted Id on success.
-func AddConcepto(m *Concepto) (id int64, err error) {
+func AddTipoConceptoTesoral(m *TipoConceptoTesoral) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetConceptoById retrieves Concepto by Id. Returns error if
+// GetTipoConceptoTesoralById retrieves TipoConceptoTesoral by Id. Returns error if
 // Id doesn't exist
-func GetConceptoById(id int) (v *Concepto, err error) {
+func GetTipoConceptoTesoralById(id int) (v *TipoConceptoTesoral, err error) {
 	o := orm.NewOrm()
-	v = &Concepto{Id: id}
+	v = &TipoConceptoTesoral{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllConcepto retrieves all Concepto matches certain condition. Returns empty list if
+// GetAllTipoConceptoTesoral retrieves all TipoConceptoTesoral matches certain condition. Returns empty list if
 // no records exist
-func GetAllConcepto(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoConceptoTesoral(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Concepto)).RelatedSel()
+	qs := o.QueryTable(new(TipoConceptoTesoral)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -104,7 +100,7 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 		}
 	}
 
-	var l []Concepto
+	var l []TipoConceptoTesoral
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -127,11 +123,11 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 	return nil, err
 }
 
-// UpdateConcepto updates Concepto by Id and returns error if
+// UpdateTipoConceptoTesoral updates TipoConceptoTesoral by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateConceptoById(m *Concepto) (err error) {
+func UpdateTipoConceptoTesoralById(m *TipoConceptoTesoral) (err error) {
 	o := orm.NewOrm()
-	v := Concepto{Id: m.Id}
+	v := TipoConceptoTesoral{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -142,15 +138,15 @@ func UpdateConceptoById(m *Concepto) (err error) {
 	return
 }
 
-// DeleteConcepto deletes Concepto by Id and returns error if
+// DeleteTipoConceptoTesoral deletes TipoConceptoTesoral by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteConcepto(id int) (err error) {
+func DeleteTipoConceptoTesoral(id int) (err error) {
 	o := orm.NewOrm()
-	v := Concepto{Id: id}
+	v := TipoConceptoTesoral{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Concepto{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoConceptoTesoral{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

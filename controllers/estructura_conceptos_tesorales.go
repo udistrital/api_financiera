@@ -1,22 +1,22 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
 )
 
-// TipoConceptoController operations for TipoConcepto
-type TipoConceptoController struct {
+// EstructuraConceptosTesoralesController operations for EstructuraConceptosTesorales
+type EstructuraConceptosTesoralesController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *TipoConceptoController) URLMapping() {
+func (c *EstructuraConceptosTesoralesController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *TipoConceptoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create TipoConcepto
-// @Param	body		body 	models.TipoConcepto	true		"body for TipoConcepto content"
-// @Success 201 {int} models.TipoConcepto
+// @Description create EstructuraConceptosTesorales
+// @Param	body		body 	models.EstructuraConceptosTesorales	true		"body for EstructuraConceptosTesorales content"
+// @Success 201 {int} models.EstructuraConceptosTesorales
 // @Failure 403 body is empty
 // @router / [post]
-func (c *TipoConceptoController) Post() {
-	var v models.TipoConcepto
+func (c *EstructuraConceptosTesoralesController) Post() {
+	var v models.EstructuraConceptosTesorales
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddTipoConcepto(&v); err == nil {
+		if _, err := models.AddEstructuraConceptosTesorales(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *TipoConceptoController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get TipoConcepto by id
+// @Description get EstructuraConceptosTesorales by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.TipoConcepto
+// @Success 200 {object} models.EstructuraConceptosTesorales
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *TipoConceptoController) GetOne() {
+func (c *EstructuraConceptosTesoralesController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetTipoConceptoById(id)
+	v, err := models.GetEstructuraConceptosTesoralesById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *TipoConceptoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get TipoConcepto
+// @Description get EstructuraConceptosTesorales
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.TipoConcepto
+// @Success 200 {object} models.EstructuraConceptosTesorales
 // @Failure 403
 // @router / [get]
-func (c *TipoConceptoController) GetAll() {
+func (c *EstructuraConceptosTesoralesController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *TipoConceptoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllTipoConcepto(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllEstructuraConceptosTesorales(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *TipoConceptoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the TipoConcepto
+// @Description update the EstructuraConceptosTesorales
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.TipoConcepto	true		"body for TipoConcepto content"
-// @Success 200 {object} models.TipoConcepto
+// @Param	body		body 	models.EstructuraConceptosTesorales	true		"body for EstructuraConceptosTesorales content"
+// @Success 200 {object} models.EstructuraConceptosTesorales
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *TipoConceptoController) Put() {
+func (c *EstructuraConceptosTesoralesController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.TipoConcepto{Id: id}
+	v := models.EstructuraConceptosTesorales{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateTipoConceptoById(&v); err == nil {
+		if err := models.UpdateEstructuraConceptosTesoralesById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *TipoConceptoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the TipoConcepto
+// @Description delete the EstructuraConceptosTesorales
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *TipoConceptoController) Delete() {
+func (c *EstructuraConceptosTesoralesController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteTipoConcepto(id); err == nil {
+	if err := models.DeleteEstructuraConceptosTesorales(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

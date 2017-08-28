@@ -9,45 +9,47 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoConcepto struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
+type AfectacionConceptoTesoral struct {
+	Id                int              `orm:"column(id);pk;auto"`
+	AfectacionIngreso bool             `orm:"column(afectacion_ingreso)"`
+	AfectacionEgreso  bool             `orm:"column(afectacion_egreso)"`
+	ConceptoTesoral   *ConceptoTesoral `orm:"column(concepto_tesoral);rel(fk)"`
+	TipoAfectacion    *TipoAfectacion  `orm:"column(tipo_afectacion);rel(fk)"`
 }
 
-func (t *TipoConcepto) TableName() string {
-	return "tipo_concepto"
+func (t *AfectacionConceptoTesoral) TableName() string {
+	return "afectacion_concepto_tesoral"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoConcepto))
+	orm.RegisterModel(new(AfectacionConceptoTesoral))
 }
 
-// AddTipoConcepto insert a new TipoConcepto into database and returns
+// AddAfectacionConceptoTesoral insert a new AfectacionConceptoTesoral into database and returns
 // last inserted Id on success.
-func AddTipoConcepto(m *TipoConcepto) (id int64, err error) {
+func AddAfectacionConceptoTesoral(m *AfectacionConceptoTesoral) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoConceptoById retrieves TipoConcepto by Id. Returns error if
+// GetAfectacionConceptoTesoralById retrieves AfectacionConceptoTesoral by Id. Returns error if
 // Id doesn't exist
-func GetTipoConceptoById(id int) (v *TipoConcepto, err error) {
+func GetAfectacionConceptoTesoralById(id int) (v *AfectacionConceptoTesoral, err error) {
 	o := orm.NewOrm()
-	v = &TipoConcepto{Id: id}
+	v = &AfectacionConceptoTesoral{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoConcepto retrieves all TipoConcepto matches certain condition. Returns empty list if
+// GetAllAfectacionConceptoTesoral retrieves all AfectacionConceptoTesoral matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoConcepto(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllAfectacionConceptoTesoral(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoConcepto)).RelatedSel()
+	qs := o.QueryTable(new(AfectacionConceptoTesoral)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,7 +99,7 @@ func GetAllTipoConcepto(query map[string]string, fields []string, sortby []strin
 		}
 	}
 
-	var l []TipoConcepto
+	var l []AfectacionConceptoTesoral
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -120,11 +122,11 @@ func GetAllTipoConcepto(query map[string]string, fields []string, sortby []strin
 	return nil, err
 }
 
-// UpdateTipoConcepto updates TipoConcepto by Id and returns error if
+// UpdateAfectacionConceptoTesoral updates AfectacionConceptoTesoral by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoConceptoById(m *TipoConcepto) (err error) {
+func UpdateAfectacionConceptoTesoralById(m *AfectacionConceptoTesoral) (err error) {
 	o := orm.NewOrm()
-	v := TipoConcepto{Id: m.Id}
+	v := AfectacionConceptoTesoral{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,15 +137,15 @@ func UpdateTipoConceptoById(m *TipoConcepto) (err error) {
 	return
 }
 
-// DeleteTipoConcepto deletes TipoConcepto by Id and returns error if
+// DeleteAfectacionConceptoTesoral deletes AfectacionConceptoTesoral by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoConcepto(id int) (err error) {
+func DeleteAfectacionConceptoTesoral(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoConcepto{Id: id}
+	v := AfectacionConceptoTesoral{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoConcepto{Id: id}); err == nil {
+		if num, err = o.Delete(&AfectacionConceptoTesoral{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

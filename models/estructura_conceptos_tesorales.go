@@ -9,47 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type AfectacionConcepto struct {
-	Id                int             `orm:"column(id);pk;auto"`
-	AfectacionIngreso bool            `orm:"column(afectacion_ingreso)"`
-	AfectacionEgreso  bool            `orm:"column(afectacion_egreso)"`
-	Concepto          *Concepto       `orm:"column(concepto);rel(fk)"`
-	TipoAfectacion    *TipoAfectacion `orm:"column(tipo_afectacion);rel(fk)"`
+type EstructuraConceptosTesorales struct {
+	Id            int              `orm:"column(id);pk;auto"`
+	ConceptoPadre *ConceptoTesoral `orm:"column(concepto_padre);rel(fk)"`
+	ConceptoHijo  *ConceptoTesoral `orm:"column(concepto_hijo);rel(fk)"`
 }
 
-func (t *AfectacionConcepto) TableName() string {
-	return "afectacion_concepto"
+func (t *EstructuraConceptosTesorales) TableName() string {
+	return "estructura_conceptos_tesorales"
 }
 
 func init() {
-	orm.RegisterModel(new(AfectacionConcepto))
+	orm.RegisterModel(new(EstructuraConceptosTesorales))
 }
 
-// AddAfectacionConcepto insert a new AfectacionConcepto into database and returns
+// AddEstructuraConceptosTesorales insert a new EstructuraConceptosTesorales into database and returns
 // last inserted Id on success.
-func AddAfectacionConcepto(m *AfectacionConcepto) (id int64, err error) {
+func AddEstructuraConceptosTesorales(m *EstructuraConceptosTesorales) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAfectacionConceptoById retrieves AfectacionConcepto by Id. Returns error if
+// GetEstructuraConceptosTesoralesById retrieves EstructuraConceptosTesorales by Id. Returns error if
 // Id doesn't exist
-func GetAfectacionConceptoById(id int) (v *AfectacionConcepto, err error) {
+func GetEstructuraConceptosTesoralesById(id int) (v *EstructuraConceptosTesorales, err error) {
 	o := orm.NewOrm()
-	v = &AfectacionConcepto{Id: id}
+	v = &EstructuraConceptosTesorales{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllAfectacionConcepto retrieves all AfectacionConcepto matches certain condition. Returns empty list if
+// GetAllEstructuraConceptosTesorales retrieves all EstructuraConceptosTesorales matches certain condition. Returns empty list if
 // no records exist
-func GetAllAfectacionConcepto(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstructuraConceptosTesorales(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AfectacionConcepto)).RelatedSel()
+	qs := o.QueryTable(new(EstructuraConceptosTesorales)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +97,7 @@ func GetAllAfectacionConcepto(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []AfectacionConcepto
+	var l []EstructuraConceptosTesorales
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +120,11 @@ func GetAllAfectacionConcepto(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateAfectacionConcepto updates AfectacionConcepto by Id and returns error if
+// UpdateEstructuraConceptosTesorales updates EstructuraConceptosTesorales by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAfectacionConceptoById(m *AfectacionConcepto) (err error) {
+func UpdateEstructuraConceptosTesoralesById(m *EstructuraConceptosTesorales) (err error) {
 	o := orm.NewOrm()
-	v := AfectacionConcepto{Id: m.Id}
+	v := EstructuraConceptosTesorales{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +135,15 @@ func UpdateAfectacionConceptoById(m *AfectacionConcepto) (err error) {
 	return
 }
 
-// DeleteAfectacionConcepto deletes AfectacionConcepto by Id and returns error if
+// DeleteEstructuraConceptosTesorales deletes EstructuraConceptosTesorales by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAfectacionConcepto(id int) (err error) {
+func DeleteEstructuraConceptosTesorales(id int) (err error) {
 	o := orm.NewOrm()
-	v := AfectacionConcepto{Id: id}
+	v := EstructuraConceptosTesorales{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AfectacionConcepto{Id: id}); err == nil {
+		if num, err = o.Delete(&EstructuraConceptosTesorales{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

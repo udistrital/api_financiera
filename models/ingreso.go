@@ -122,7 +122,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			var ingresos float64
 			err = utilidades.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
-				concepto := &Concepto{}
+				concepto := &ConceptoTesoral{}
 				fmt.Println("concepto ", m["Concepto"])
 				err = utilidades.FillStruct(m["Concepto"], concepto)
 				if err == nil {

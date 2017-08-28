@@ -8,9 +8,9 @@ import (
 )
 
 type TrConcepto struct {
-	Concepto      *Concepto
-	ConceptoPadre *Concepto
-	Afectaciones  *[]AfectacionConcepto
+	Concepto      *ConceptoTesoral
+	ConceptoPadre *ConceptoTesoral
+	Afectaciones  *[]AfectacionConceptoTesoral
 	Cuentas       *[]CuentaContable
 }
 
@@ -27,7 +27,7 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 
 		fmt.Println("Concepto", m.Concepto)
 		for _, v := range *m.Afectaciones {
-			v.Concepto = m.Concepto
+			v.ConceptoTesoral = m.Concepto
 			if _, err = o.Insert(&v); err != nil {
 				fmt.Println("Afectacion", &v)
 				o.Rollback()
@@ -39,8 +39,8 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 		fmt.Println("padre", m.ConceptoPadre)
 
 		for _, c := range *m.Cuentas {
-			var concepto_cuentas ConceptoCuentaContable
-			concepto_cuentas.Concepto = m.Concepto
+			var concepto_cuentas ConceptoTesoralCuentaContable
+			concepto_cuentas.ConceptoTesoral = m.Concepto
 			concepto_cuentas.CuentaContable = &c
 			if string(c.Codigo[0]) == "9" {
 				fmt.Println("CODIGO:", string(c.Codigo[0]))
@@ -56,7 +56,7 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 		}
 
 		if m.ConceptoPadre.Id != 0 {
-			var conceptoestructura = new(ConceptoConcepto)
+			var conceptoestructura = new(EstructuraConceptosTesorales)
 			conceptoestructura.ConceptoHijo = m.Concepto
 			conceptoestructura.ConceptoPadre = m.ConceptoPadre
 

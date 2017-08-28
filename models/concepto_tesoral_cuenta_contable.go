@@ -9,46 +9,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type ConceptoCuentaContable struct {
-	Id              int             `orm:"column(id);pk;auto"`
-	CuentaContable  *CuentaContable `orm:"column(cuenta_contable);rel(fk)"`
-	Concepto        *Concepto       `orm:"column(concepto);rel(fk)"`
-	CuentaAcreedora bool            `orm:"column(cuenta_acreedora)"`
+type ConceptoTesoralCuentaContable struct {
+	Id              int              `orm:"column(id);pk;auto"`
+	CuentaContable  *CuentaContable  `orm:"column(cuenta_contable);rel(fk)"`
+	ConceptoTesoral *ConceptoTesoral `orm:"column(concepto_tesoral);rel(fk)"`
+	CuentaAcreedora bool             `orm:"column(cuenta_acreedora)"`
 }
 
-func (t *ConceptoCuentaContable) TableName() string {
-	return "concepto_cuenta_contable"
+func (t *ConceptoTesoralCuentaContable) TableName() string {
+	return "concepto_tesoral_cuenta_contable"
 }
 
 func init() {
-	orm.RegisterModel(new(ConceptoCuentaContable))
+	orm.RegisterModel(new(ConceptoTesoralCuentaContable))
 }
 
-// AddConceptoCuentaContable insert a new ConceptoCuentaContable into database and returns
+// AddConceptoTesoralCuentaContable insert a new ConceptoTesoralCuentaContable into database and returns
 // last inserted Id on success.
-func AddConceptoCuentaContable(m *ConceptoCuentaContable) (id int64, err error) {
+func AddConceptoTesoralCuentaContable(m *ConceptoTesoralCuentaContable) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetConceptoCuentaContableById retrieves ConceptoCuentaContable by Id. Returns error if
+// GetConceptoTesoralCuentaContableById retrieves ConceptoTesoralCuentaContable by Id. Returns error if
 // Id doesn't exist
-func GetConceptoCuentaContableById(id int) (v *ConceptoCuentaContable, err error) {
+func GetConceptoTesoralCuentaContableById(id int) (v *ConceptoTesoralCuentaContable, err error) {
 	o := orm.NewOrm()
-	v = &ConceptoCuentaContable{Id: id}
+	v = &ConceptoTesoralCuentaContable{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllConceptoCuentaContable retrieves all ConceptoCuentaContable matches certain condition. Returns empty list if
+// GetAllConceptoTesoralCuentaContable retrieves all ConceptoTesoralCuentaContable matches certain condition. Returns empty list if
 // no records exist
-func GetAllConceptoCuentaContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllConceptoTesoralCuentaContable(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
+	qs := o.QueryTable(new(ConceptoTesoralCuentaContable)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,7 +98,7 @@ func GetAllConceptoCuentaContable(query map[string]string, fields []string, sort
 		}
 	}
 
-	var l []ConceptoCuentaContable
+	var l []ConceptoTesoralCuentaContable
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -121,11 +121,11 @@ func GetAllConceptoCuentaContable(query map[string]string, fields []string, sort
 	return nil, err
 }
 
-// UpdateConceptoCuentaContable updates ConceptoCuentaContable by Id and returns error if
+// UpdateConceptoTesoralCuentaContable updates ConceptoTesoralCuentaContable by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateConceptoCuentaContableById(m *ConceptoCuentaContable) (err error) {
+func UpdateConceptoTesoralCuentaContableById(m *ConceptoTesoralCuentaContable) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoCuentaContable{Id: m.Id}
+	v := ConceptoTesoralCuentaContable{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,15 +136,15 @@ func UpdateConceptoCuentaContableById(m *ConceptoCuentaContable) (err error) {
 	return
 }
 
-// DeleteConceptoCuentaContable deletes ConceptoCuentaContable by Id and returns error if
+// DeleteConceptoTesoralCuentaContable deletes ConceptoTesoralCuentaContable by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteConceptoCuentaContable(id int) (err error) {
+func DeleteConceptoTesoralCuentaContable(id int) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoCuentaContable{Id: id}
+	v := ConceptoTesoralCuentaContable{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ConceptoCuentaContable{Id: id}); err == nil {
+		if num, err = o.Delete(&ConceptoTesoralCuentaContable{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

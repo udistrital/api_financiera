@@ -14,7 +14,7 @@ type HomologacionConcepto struct {
 	Id             int       `orm:"column(id);pk;auto"`
 	Vigencia       float64   `orm:"column(vigencia)"`
 	FechaCreacion  time.Time `orm:"column(fecha_creacion);type(date)"`
-	ConceptoKronos *Concepto `orm:"column(concepto_kronos);rel(fk)"`
+	ConceptoKronos *ConceptoTesoral `orm:"column(concepto_kronos);rel(fk)"`
 	ConceptoTitan  int       `orm:"column(concepto_titan)"`
 }
 

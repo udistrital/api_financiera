@@ -210,7 +210,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 			Debito:                   m.MovimientoContable[i].Debito,
 			Credito:                  m.MovimientoContable[i].Credito,
 			Fecha:                    time.Now(),
-			Concepto:                 m.MovimientoContable[i].Concepto,
+			ConceptoTesoral:          m.MovimientoContable[i].ConceptoTesoral,
 			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
@@ -289,7 +289,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 			Debito:                   m.MovimientoContable[i].Debito,
 			Credito:                  m.MovimientoContable[i].Credito,
 			Fecha:                    time.Now(),
-			Concepto:                 m.MovimientoContable[i].Concepto,
+			ConceptoTesoral:          m.MovimientoContable[i].ConceptoTesoral,
 			CuentaContable:           m.MovimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
@@ -383,7 +383,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
 			newConceptoOrden := ConceptoOrdenPago{
 				Valor:    valorcalculado,
-				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+				Concepto: &ConceptoTesoral{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 			}
 			allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden)
 		} else {
@@ -410,7 +410,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 				fmt.Println("---Append")
 				newConceptoOrden2 := ConceptoOrdenPago{
 					Valor:    valorcalculado,
-					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+					Concepto: &ConceptoTesoral{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 				}
 				allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden2)
 			}
@@ -431,10 +431,10 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 			return
 		}
 		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
-		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
+		qs := o.QueryTable(new(ConceptoTesoralCuentaContable)).RelatedSel()
 		qs = qs.Filter("Concepto", allConceptoOrdenPago[i].Concepto.Id)
 		qs = qs.RelatedSel()
-		var l []ConceptoCuentaContable
+		var l []ConceptoTesoralCuentaContable
 		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
 			for _, v := range l {
 				//registra movimientos
@@ -450,7 +450,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 					newMovimientoContable.Credito = allConceptoOrdenPago[i].Valor
 				}
 				newMovimientoContable.Fecha = time.Now()
-				newMovimientoContable.Concepto = v.Concepto
+				newMovimientoContable.ConceptoTesoral = v.ConceptoTesoral
 				newMovimientoContable.CuentaContable = v.CuentaContable
 				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
@@ -557,7 +557,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
 			newConceptoOrden := ConceptoOrdenPago{
 				Valor:    Valor,
-				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+				Concepto: &ConceptoTesoral{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 			}
 			allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden)
 		} else {
@@ -584,7 +584,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 				fmt.Println("---Append")
 				newConceptoOrden2 := ConceptoOrdenPago{
 					Valor:    Valor,
-					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+					Concepto: &ConceptoTesoral{Id: conceptoKronosHomologado.ConceptoKronos.Id},
 				}
 				allConceptoOrdenPago = append(allConceptoOrdenPago, newConceptoOrden2)
 			}
@@ -606,10 +606,10 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 			return
 		}
 		// buscamos cuentas contables relacionadas al concepto para registrar movimientos
-		qs := o.QueryTable(new(ConceptoCuentaContable)).RelatedSel()
+		qs := o.QueryTable(new(ConceptoTesoralCuentaContable)).RelatedSel()
 		qs = qs.Filter("Concepto", allConceptoOrdenPago[i].Concepto.Id)
 		qs = qs.RelatedSel()
-		var l []ConceptoCuentaContable
+		var l []ConceptoTesoralCuentaContable
 		if _, err = qs.Limit(-1, 0).All(&l); err == nil {
 			for _, v := range l {
 				//registra movimientos
@@ -625,7 +625,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 					newMovimientoContable.Credito = allConceptoOrdenPago[i].Valor
 				}
 				newMovimientoContable.Fecha = time.Now()
-				newMovimientoContable.Concepto = v.Concepto
+				newMovimientoContable.ConceptoTesoral = v.ConceptoTesoral
 				newMovimientoContable.CuentaContable = v.CuentaContable
 				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)

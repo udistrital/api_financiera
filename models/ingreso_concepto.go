@@ -13,7 +13,7 @@ type IngresoConcepto struct {
 	Id            int       `orm:"column(id);pk;auto"`
 	ValorAgregado float64   `orm:"column(valor_agregado)"`
 	Ingreso       *Ingreso  `orm:"column(ingreso);rel(fk)"`
-	Concepto      *Concepto `orm:"column(concepto);rel(fk)"`
+	Concepto      *ConceptoTesoral `orm:"column(concepto);rel(fk)"`
 }
 
 func (t *IngresoConcepto) TableName() string {

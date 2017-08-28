@@ -1,22 +1,22 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
 )
 
-// AfectacionConceptoController operations for AfectacionConcepto
-type AfectacionConceptoController struct {
+// AfectacionConceptoTesoralController operations for AfectacionConceptoTesoral
+type AfectacionConceptoTesoralController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *AfectacionConceptoController) URLMapping() {
+func (c *AfectacionConceptoTesoralController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *AfectacionConceptoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create AfectacionConcepto
-// @Param	body		body 	models.AfectacionConcepto	true		"body for AfectacionConcepto content"
-// @Success 201 {int} models.AfectacionConcepto
+// @Description create AfectacionConceptoTesoral
+// @Param	body		body 	models.AfectacionConceptoTesoral	true		"body for AfectacionConceptoTesoral content"
+// @Success 201 {int} models.AfectacionConceptoTesoral
 // @Failure 403 body is empty
 // @router / [post]
-func (c *AfectacionConceptoController) Post() {
-	var v models.AfectacionConcepto
+func (c *AfectacionConceptoTesoralController) Post() {
+	var v models.AfectacionConceptoTesoral
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddAfectacionConcepto(&v); err == nil {
+		if _, err := models.AddAfectacionConceptoTesoral(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *AfectacionConceptoController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get AfectacionConcepto by id
+// @Description get AfectacionConceptoTesoral by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.AfectacionConcepto
+// @Success 200 {object} models.AfectacionConceptoTesoral
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *AfectacionConceptoController) GetOne() {
+func (c *AfectacionConceptoTesoralController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetAfectacionConceptoById(id)
+	v, err := models.GetAfectacionConceptoTesoralById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *AfectacionConceptoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get AfectacionConcepto
+// @Description get AfectacionConceptoTesoral
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.AfectacionConcepto
+// @Success 200 {object} models.AfectacionConceptoTesoral
 // @Failure 403
 // @router / [get]
-func (c *AfectacionConceptoController) GetAll() {
+func (c *AfectacionConceptoTesoralController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *AfectacionConceptoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllAfectacionConcepto(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllAfectacionConceptoTesoral(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *AfectacionConceptoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the AfectacionConcepto
+// @Description update the AfectacionConceptoTesoral
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.AfectacionConcepto	true		"body for AfectacionConcepto content"
-// @Success 200 {object} models.AfectacionConcepto
+// @Param	body		body 	models.AfectacionConceptoTesoral	true		"body for AfectacionConceptoTesoral content"
+// @Success 200 {object} models.AfectacionConceptoTesoral
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *AfectacionConceptoController) Put() {
+func (c *AfectacionConceptoTesoralController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.AfectacionConcepto{Id: id}
+	v := models.AfectacionConceptoTesoral{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateAfectacionConceptoById(&v); err == nil {
+		if err := models.UpdateAfectacionConceptoTesoralById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *AfectacionConceptoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the AfectacionConcepto
+// @Description delete the AfectacionConceptoTesoral
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *AfectacionConceptoController) Delete() {
+func (c *AfectacionConceptoTesoralController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteAfectacionConcepto(id); err == nil {
+	if err := models.DeleteAfectacionConceptoTesoral(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
