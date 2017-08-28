@@ -482,10 +482,10 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/estado_calendario",
-			beego.NSInclude(
-				&controllers.EstadoCalendarioController{},
-			),
+		beego.NSNamespace("/estado_calendario_tributario",
+		  beego.NSInclude(
+		    &controllers.EstadoCalendarioTributarioController{},
+		  ),
 		),
 
 		beego.NSNamespace("/calendario_tributario",
