@@ -499,6 +499,12 @@ func init() {
 				&controllers.ObservacionCalendarioController{},
 			),
 		),
+
+		beego.NSNamespace("/orden_pago_estado_orden_pago",
+			beego.NSInclude(
+				&controllers.ObservacionCalendarioController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

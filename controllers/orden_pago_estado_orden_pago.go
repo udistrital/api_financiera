@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// EstadoOrdenPagoController operations for EstadoOrdenPago
-type EstadoOrdenPagoController struct {
+// OrdenPagoEstadoOrdenPagoController operations for OrdenPagoEstadoOrdenPago
+type OrdenPagoEstadoOrdenPagoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *EstadoOrdenPagoController) URLMapping() {
+func (c *OrdenPagoEstadoOrdenPagoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *EstadoOrdenPagoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create EstadoOrdenPago
-// @Param	body		body 	models.EstadoOrdenPago	true		"body for EstadoOrdenPago content"
-// @Success 201 {int} models.EstadoOrdenPago
+// @Description create OrdenPagoEstadoOrdenPago
+// @Param	body		body 	models.OrdenPagoEstadoOrdenPago	true		"body for OrdenPagoEstadoOrdenPago content"
+// @Success 201 {int} models.OrdenPagoEstadoOrdenPago
 // @Failure 403 body is empty
 // @router / [post]
-func (c *EstadoOrdenPagoController) Post() {
-	var v models.EstadoOrdenPago
+func (c *OrdenPagoEstadoOrdenPagoController) Post() {
+	var v models.OrdenPagoEstadoOrdenPago
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddEstadoOrdenPago(&v); err == nil {
+		if _, err := models.AddOrdenPagoEstadoOrdenPago(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *EstadoOrdenPagoController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get EstadoOrdenPago by id
+// @Description get OrdenPagoEstadoOrdenPago by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.EstadoOrdenPago
+// @Success 200 {object} models.OrdenPagoEstadoOrdenPago
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *EstadoOrdenPagoController) GetOne() {
+func (c *OrdenPagoEstadoOrdenPagoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetEstadoOrdenPagoById(id)
+	v, err := models.GetOrdenPagoEstadoOrdenPagoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *EstadoOrdenPagoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get EstadoOrdenPago
+// @Description get OrdenPagoEstadoOrdenPago
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.EstadoOrdenPago
+// @Success 200 {object} models.OrdenPagoEstadoOrdenPago
 // @Failure 403
 // @router / [get]
-func (c *EstadoOrdenPagoController) GetAll() {
+func (c *OrdenPagoEstadoOrdenPagoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *EstadoOrdenPagoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllEstadoOrdenPago(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllOrdenPagoEstadoOrdenPago(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *EstadoOrdenPagoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the EstadoOrdenPago
+// @Description update the OrdenPagoEstadoOrdenPago
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.EstadoOrdenPago	true		"body for EstadoOrdenPago content"
-// @Success 200 {object} models.EstadoOrdenPago
+// @Param	body		body 	models.OrdenPagoEstadoOrdenPago	true		"body for OrdenPagoEstadoOrdenPago content"
+// @Success 200 {object} models.OrdenPagoEstadoOrdenPago
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *EstadoOrdenPagoController) Put() {
+func (c *OrdenPagoEstadoOrdenPagoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.EstadoOrdenPago{Id: id}
+	v := models.OrdenPagoEstadoOrdenPago{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateEstadoOrdenPagoById(&v); err == nil {
+		if err := models.UpdateOrdenPagoEstadoOrdenPagoById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *EstadoOrdenPagoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the EstadoOrdenPago
+// @Description delete the OrdenPagoEstadoOrdenPago
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *EstadoOrdenPagoController) Delete() {
+func (c *OrdenPagoEstadoOrdenPagoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteEstadoOrdenPago(id); err == nil {
+	if err := models.DeleteOrdenPagoEstadoOrdenPago(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
