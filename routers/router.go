@@ -482,10 +482,10 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/estado_calendario",
-			beego.NSInclude(
-				&controllers.EstadoCalendarioController{},
-			),
+		beego.NSNamespace("/estado_calendario_tributario",
+		  beego.NSInclude(
+		    &controllers.EstadoCalendarioTributarioController{},
+		  ),
 		),
 
 		beego.NSNamespace("/calendario_tributario",
@@ -495,6 +495,12 @@ func init() {
 		),
 
 		beego.NSNamespace("/observacion_calendario",
+			beego.NSInclude(
+				&controllers.ObservacionCalendarioController{},
+			),
+		),
+
+		beego.NSNamespace("/orden_pago_estado_orden_pago",
 			beego.NSInclude(
 				&controllers.ObservacionCalendarioController{},
 			),

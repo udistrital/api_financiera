@@ -13,12 +13,12 @@ type AfectacionConcepto struct {
 	Id                int             `orm:"column(id);pk;auto"`
 	AfectacionIngreso bool            `orm:"column(afectacion_ingreso)"`
 	AfectacionEgreso  bool            `orm:"column(afectacion_egreso)"`
-	Concepto          *Concepto       `orm:"column(concepto);rel(fk)"`
+	Concepto          *Concepto       `orm:"column(concepto_tesoral);rel(fk)"`
 	TipoAfectacion    *TipoAfectacion `orm:"column(tipo_afectacion);rel(fk)"`
 }
 
 func (t *AfectacionConcepto) TableName() string {
-	return "afectacion_concepto"
+	return "afectacion_concepto_tesoral"
 }
 
 func init() {
