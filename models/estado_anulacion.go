@@ -13,6 +13,9 @@ type EstadoAnulacion struct {
 	Id          int    `orm:"column(id);pk;auto"`
 	Nombre      string `orm:"column(nombre)"`
 	Descripcion string `orm:"column(descripcion);null"`
+	Activo 			bool   `orm:"column(activo)"`
+	CodigoAbreviacion		string `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden		string `orm:"column(numero_orden);null"`
 }
 
 func (t *EstadoAnulacion) TableName() string {
