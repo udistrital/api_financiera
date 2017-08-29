@@ -69,10 +69,10 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 					}
 
 					if err == nil {
-						estado := Estados{}
-						estadoAvance := EstadoAvance{}
+						estado := EstadoAvance{}
+						estadoAvance := AvanceEstadoAvance{}
 						estado.Id = 4
-						estadoAvance.Estados = &estado
+						estadoAvance.EstadoAvance = &estado
 						estadoAvance.SolicitudAvance = &solicitud
 						estadoAvance.FechaRegistro = time.Now()
 						estadoAvance.Observaciones = "Registro inicial de la Solicitud de Avance"
