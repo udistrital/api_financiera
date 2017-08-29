@@ -5,52 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type EstadoAnulacion struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
-	Activo 			bool   `orm:"column(activo)"`
-	CodigoAbreviacion		string `orm:"column(codigo_abreviacion);null"`
-	NumeroOrden		string `orm:"column(numero_orden);null"`
+type OrdenPagoEstadoOrdenPago struct {
+	Id              int              `orm:"column(id);pk;auto"`
+	OrdenPago       *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
+	EstadoOrdenPago *EstadoOrdenPago `orm:"column(estado_orden_pago);rel(fk)"`
+	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(date)"`
 }
 
-func (t *EstadoAnulacion) TableName() string {
-	return "estado_anulacion"
+func (t *OrdenPagoEstadoOrdenPago) TableName() string {
+	return "orden_pago_estado_orden_pago"
 }
 
 func init() {
-	orm.RegisterModel(new(EstadoAnulacion))
+	orm.RegisterModel(new(OrdenPagoEstadoOrdenPago))
 }
 
-// AddEstadoAnulacion insert a new EstadoAnulacion into database and returns
+// AddOrdenPagoEstadoOrdenPago insert a new OrdenPagoEstadoOrdenPago into database and returns
 // last inserted Id on success.
-func AddEstadoAnulacion(m *EstadoAnulacion) (id int64, err error) {
+func AddOrdenPagoEstadoOrdenPago(m *OrdenPagoEstadoOrdenPago) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadoAnulacionById retrieves EstadoAnulacion by Id. Returns error if
+// GetOrdenPagoEstadoOrdenPagoById retrieves OrdenPagoEstadoOrdenPago by Id. Returns error if
 // Id doesn't exist
-func GetEstadoAnulacionById(id int) (v *EstadoAnulacion, err error) {
+func GetOrdenPagoEstadoOrdenPagoById(id int) (v *OrdenPagoEstadoOrdenPago, err error) {
 	o := orm.NewOrm()
-	v = &EstadoAnulacion{Id: id}
+	v = &OrdenPagoEstadoOrdenPago{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstadoAnulacion retrieves all EstadoAnulacion matches certain condition. Returns empty list if
+// GetAllOrdenPagoEstadoOrdenPago retrieves all OrdenPagoEstadoOrdenPago matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstadoAnulacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllOrdenPagoEstadoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(EstadoAnulacion))
+	qs := o.QueryTable(new(OrdenPagoEstadoOrdenPago))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +99,7 @@ func GetAllEstadoAnulacion(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []EstadoAnulacion
+	var l []OrdenPagoEstadoOrdenPago
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +122,11 @@ func GetAllEstadoAnulacion(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateEstadoAnulacion updates EstadoAnulacion by Id and returns error if
+// UpdateOrdenPagoEstadoOrdenPago updates OrdenPagoEstadoOrdenPago by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadoAnulacionById(m *EstadoAnulacion) (err error) {
+func UpdateOrdenPagoEstadoOrdenPagoById(m *OrdenPagoEstadoOrdenPago) (err error) {
 	o := orm.NewOrm()
-	v := EstadoAnulacion{Id: m.Id}
+	v := OrdenPagoEstadoOrdenPago{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +137,15 @@ func UpdateEstadoAnulacionById(m *EstadoAnulacion) (err error) {
 	return
 }
 
-// DeleteEstadoAnulacion deletes EstadoAnulacion by Id and returns error if
+// DeleteOrdenPagoEstadoOrdenPago deletes OrdenPagoEstadoOrdenPago by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstadoAnulacion(id int) (err error) {
+func DeleteOrdenPagoEstadoOrdenPago(id int) (err error) {
 	o := orm.NewOrm()
-	v := EstadoAnulacion{Id: id}
+	v := OrdenPagoEstadoOrdenPago{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&EstadoAnulacion{Id: id}); err == nil {
+		if num, err = o.Delete(&OrdenPagoEstadoOrdenPago{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

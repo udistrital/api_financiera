@@ -16,7 +16,7 @@ type ConceptoConcepto struct {
 }
 
 func (t *ConceptoConcepto) TableName() string {
-	return "concepto_concepto"
+	return "estructura_conceptos_tesorales"
 }
 
 func init() {

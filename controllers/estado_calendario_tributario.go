@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// TipoCuentaBancariaController operations for TipoCuentaBancaria
-type TipoCuentaBancariaController struct {
+// EstadoCalendarioTributarioController operations for EstadoCalendarioTributario
+type EstadoCalendarioTributarioController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *TipoCuentaBancariaController) URLMapping() {
+func (c *EstadoCalendarioTributarioController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *TipoCuentaBancariaController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create TipoCuentaBancaria
-// @Param	body		body 	models.TipoCuentaBancaria	true		"body for TipoCuentaBancaria content"
-// @Success 201 {int} models.TipoCuentaBancaria
+// @Description create EstadoCalendarioTributario
+// @Param	body		body 	models.EstadoCalendarioTributario	true		"body for EstadoCalendarioTributario content"
+// @Success 201 {int} models.EstadoCalendarioTributario
 // @Failure 403 body is empty
 // @router / [post]
-func (c *TipoCuentaBancariaController) Post() {
-	var v models.TipoCuentaBancaria
+func (c *EstadoCalendarioTributarioController) Post() {
+	var v models.EstadoCalendarioTributario
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddTipoCuentaBancaria(&v); err == nil {
+		if _, err := models.AddEstadoCalendarioTributario(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *TipoCuentaBancariaController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get TipoCuentaBancaria by id
+// @Description get EstadoCalendarioTributario by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.TipoCuentaBancaria
+// @Success 200 {object} models.EstadoCalendarioTributario
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *TipoCuentaBancariaController) GetOne() {
+func (c *EstadoCalendarioTributarioController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetTipoCuentaBancariaById(id)
+	v, err := models.GetEstadoCalendarioTributarioById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *TipoCuentaBancariaController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get TipoCuentaBancaria
+// @Description get EstadoCalendarioTributario
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.TipoCuentaBancaria
+// @Success 200 {object} models.EstadoCalendarioTributario
 // @Failure 403
 // @router / [get]
-func (c *TipoCuentaBancariaController) GetAll() {
+func (c *EstadoCalendarioTributarioController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *TipoCuentaBancariaController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllTipoCuentaBancaria(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllEstadoCalendarioTributario(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *TipoCuentaBancariaController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the TipoCuentaBancaria
+// @Description update the EstadoCalendarioTributario
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.TipoCuentaBancaria	true		"body for TipoCuentaBancaria content"
-// @Success 200 {object} models.TipoCuentaBancaria
+// @Param	body		body 	models.EstadoCalendarioTributario	true		"body for EstadoCalendarioTributario content"
+// @Success 200 {object} models.EstadoCalendarioTributario
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *TipoCuentaBancariaController) Put() {
+func (c *EstadoCalendarioTributarioController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.TipoCuentaBancaria{Id: id}
+	v := models.EstadoCalendarioTributario{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateTipoCuentaBancariaById(&v); err == nil {
+		if err := models.UpdateEstadoCalendarioTributarioById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *TipoCuentaBancariaController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the TipoCuentaBancaria
+// @Description delete the EstadoCalendarioTributario
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *TipoCuentaBancariaController) Delete() {
+func (c *EstadoCalendarioTributarioController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteTipoCuentaBancaria(id); err == nil {
+	if err := models.DeleteEstadoCalendarioTributario(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
