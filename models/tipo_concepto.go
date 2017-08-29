@@ -10,13 +10,16 @@ import (
 )
 
 type TipoConcepto struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
 func (t *TipoConcepto) TableName() string {
-	return "tipo_concepto"
+	return "tipo_concepto_tesoral"
 }
 
 func init() {

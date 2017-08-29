@@ -596,7 +596,7 @@ func ApropiacionIngreso(apropiacion interface{}, fuente interface{}, inicio time
 	ON
 		ingresoconcepto.ingreso = ingreso.id
 	JOIN
-		financiera.concepto as concepto
+		financiera.concepto_tesoral as concepto
 	ON
 		concepto.id = ingresoconcepto.concepto
 	JOIN
@@ -657,7 +657,7 @@ func RubroIngreso(rubro interface{}, fuente interface{}, inicio time.Time, fin t
 	ON
 		ingresoconcepto.ingreso = ingreso.id
 	JOIN
-		financiera.concepto as concepto
+		financiera.concepto_tesoral as concepto
 	ON
 		concepto.id = ingresoconcepto.concepto
 	JOIN
