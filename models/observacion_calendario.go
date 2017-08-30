@@ -18,7 +18,7 @@ type ObservacionCalendario struct {
 }
 
 func (t *ObservacionCalendario) TableName() string {
-	return "observacion_calendario"
+	return "observacion_calendario_tributario"
 }
 
 func init() {

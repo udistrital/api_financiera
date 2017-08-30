@@ -16,7 +16,7 @@ type EstructuraNivelesClasificacion struct {
 }
 
 func (t *EstructuraNivelesClasificacion) TableName() string {
-	return "estructura_niveles_clasificacion"
+	return "estructura_niveles_clasificacion_cuenta_contable"
 }
 
 func init() {
