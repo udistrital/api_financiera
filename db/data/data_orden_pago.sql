@@ -20,3 +20,11 @@ INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Poliza
 -- Tipo documento afectante  // falta estandar
 INSERT INTO tipo_documento_afectante (nombre, descripcion) VALUES ('Orden de Pago', NULL);
 
+-- Homologacion
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 73, 239);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 74, 11);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 212);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 231);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 291);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 77, 1213);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 269);
