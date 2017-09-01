@@ -14,6 +14,8 @@ type DetalleCierrePeriodoPresupuestal struct {
 	NPeriodo                  int                        `orm:"column(n_periodo)"`
 	ValorEjecutado            float64                    `orm:"column(valor_ejecutado)"`
 	CierrePeriodoPresupuestal *CierrePeriodoPresupuestal `orm:"column(cierre_periodo_presupuestal);rel(fk)"`
+	Apropiacion               *Apropiacion               `orm:"column(apropiacion);rel(fk)"`
+	FuenteFinanciamiento      *FuenteFinanciamiento      `orm:"column(fuente_financiamiento);rel(fk)"`
 }
 
 func (t *DetalleCierrePeriodoPresupuestal) TableName() string {
