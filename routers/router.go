@@ -499,6 +499,11 @@ func init() {
 				&controllers.ObservacionCalendarioController{},
 			),
 		),
+		beego.NSNamespace("/cierre_periodo_presupuestal",
+			beego.NSInclude(
+				&controllers.CierrePeriodoPresupuestalController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
