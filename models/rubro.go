@@ -763,14 +763,14 @@ func ArbolRubros(unidadEjecutora int) (res []map[string]interface{}, err error) 
 	o := orm.NewOrm()
 	var m []orm.Params
 	//funcion para conseguir los rubros padre.
-	_, err = o.Raw(`  SELECT rubro.id as Id, rubro.codigo as Codigo, rubro.descripcion as Descripcion
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion"
 	    from financiera.rubro
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 	          AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))`).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
 		for _, rubroPadre := range res {
-			rubroPadre["hijos"] = RamaRubros(rubroPadre)
+			rubroPadre["Hijos"] = RamaRubros(rubroPadre)
 
 		}
 	} else {
@@ -790,18 +790,18 @@ func RamaRubros(rubro map[string]interface{}) (res []map[string]interface{}) {
 		var m []orm.Params
 
 		//funcion para conseguir los hijos de los rubros padre.
-		_, err = o.Raw(`SELECT rubro.id as Id, rubro.codigo as Codigo, rubro.descripcion as Descripcion
+		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion"
 		  from financiera.rubro
 		  join financiera.rubro_rubro
 		    on  rubro_rubro.rubro_hijo = rubro.id
-		  WHERE rubro_rubro.rubro_padre = ?`, rubro["id"]).Values(&m)
+		  WHERE rubro_rubro.rubro_padre = ?`, rubro["Id"]).Values(&m)
 		if err == nil {
 			fmt.Println(m)
 			err = utilidades.FillStruct(m, &res)
 
 			for _, rubroPadre := range res {
 
-				rubroPadre["hijos"] = RamaRubros(rubroPadre)
+				rubroPadre["Hijos"] = RamaRubros(rubroPadre)
 			}
 
 		} else {
