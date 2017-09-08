@@ -769,9 +769,10 @@ func ArbolRubros(unidadEjecutora int) (res []map[string]interface{}, err error) 
 	          AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))`).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
+		c := make(chan interface{}, 10)
 		for _, rubroPadre := range res {
-			rubroPadre["Hijos"] = RamaRubros(rubroPadre)
-
+			go RamaRubros(rubroPadre, c)
+			rubroPadre["Hijos"] = <-c
 		}
 	} else {
 		//error al consultar datos rubros padre.
@@ -781,14 +782,14 @@ func ArbolRubros(unidadEjecutora int) (res []map[string]interface{}, err error) 
 }
 
 // Generar ramas del arbol.
-func RamaRubros(rubro map[string]interface{}) (res []map[string]interface{}) {
+func RamaRubros(rubro map[string]interface{}, c chan interface{}) {
 	var err error
 	if rubro == nil {
 
 	} else {
 		o := orm.NewOrm()
 		var m []orm.Params
-
+		var res []map[string]interface{}
 		//funcion para conseguir los hijos de los rubros padre.
 		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion"
 		  from financiera.rubro
@@ -798,15 +799,17 @@ func RamaRubros(rubro map[string]interface{}) (res []map[string]interface{}) {
 		if err == nil {
 			fmt.Println(m)
 			err = utilidades.FillStruct(m, &res)
-
+			ch := make(chan interface{}, 10)
 			for _, rubroPadre := range res {
 
-				rubroPadre["Hijos"] = RamaRubros(rubroPadre)
+				RamaRubros(rubroPadre, ch)
+				rubroPadre["Hijos"] = <-ch
 			}
 
 		} else {
 			fmt.Println(err)
 		}
+		c <- res
 	}
-	return
+
 }
