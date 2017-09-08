@@ -72,6 +72,22 @@ func (c *RubroController) GetOne() {
 	c.ServeJSON()
 }
 
+// GetOne ...
+// @Title Get One
+// @Description get Rubro by id
+// @Success 200 {object} models.Rubro
+// @Failure 403 :id is empty
+// @router ArbolRubros/ [get]
+func (c *RubroController) ArbolRubros() {
+	v, err := models.ArbolRubros(1)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
 // GetAll ...
 // @Title Get All
 // @Description get Rubro
