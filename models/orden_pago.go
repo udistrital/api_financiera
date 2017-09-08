@@ -730,3 +730,9 @@ func FechaActual(formato string) (fechaActual string, err error) {
 	fechaActual = hoy.Format(formato)
 	return
 }
+
+func ValorTotal(m int) (valorTotal int, err error) {
+	o := orm.NewOrm()
+	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
+	return
+}

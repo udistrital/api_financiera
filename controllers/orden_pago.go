@@ -29,6 +29,7 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
 	c.Mapping("RegistrarOpNomina", c.RegistrarOpNomina)
 	c.Mapping("FechaActual", c.FechaActual)
+	c.Mapping("ValorTotal", c.ValorTotal)
 }
 
 // Post ...
@@ -288,6 +289,25 @@ func (c *OrdenPagoController) FechaActual() {
 	fechaActual, err := models.FechaActual(formatoInput)
 	if err == nil {
 		c.Data["json"] = fechaActual
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// ValorTotal ...
+// @Title ValorTotal
+// @Description Valor Total of the OrdenPago
+// @Param	id		path 	string	true		"The id of orden pago"
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 200 {object} models.OrdenPago
+// @Failure 403 :id is not int
+// @router ValorTotal/:id [post]
+func (c *OrdenPagoController) ValorTotal() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if valorTotal, err := models.ValorTotal(id); err == nil {
+		c.Data["json"] = valorTotal
 	} else {
 		c.Data["json"] = err.Error()
 	}
