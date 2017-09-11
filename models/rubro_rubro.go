@@ -29,13 +29,13 @@ func AddRubroRubro(m *RubroRubro) (id int64, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	id_hijo, err := o.Insert(m.RubroHijo)
-	m.RubroHijo.Id= int(id_hijo)
+	m.RubroHijo.Id = int(id_hijo)
 	id, err = o.Insert(m)
 	if err != nil {
-    err = o.Rollback()
-} else {
-    err = o.Commit()
-}
+		o.Rollback()
+	} else {
+		o.Commit()
+	}
 	return
 }
 

@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -34,17 +37,23 @@ func (c *RubroRubroController) URLMapping() {
 func (c *RubroRubroController) Post() {
 	var v models.RubroRubro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if id, err := models.AddRubroRubro(&v); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = id
+		if _, err := models.AddRubroRubro(&v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
+
 // GetOne ...
 // @Title Get One
 // @Description get RubroRubro by id
