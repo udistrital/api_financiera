@@ -13,14 +13,12 @@ import (
 )
 
 type Rubro struct {
-	Id             int      `orm:"auto;column(id);pk"`
-	Entidad        *Entidad `orm:"column(entidad);rel(fk)"`
-	Codigo         string   `orm:"column(codigo)"`
-	Vigencia       float64  `orm:"column(vigencia)"`
-	Descripcion    string   `orm:"column(descripcion);null"`
-	TipoPlan       int16    `orm:"column(tipo_plan);null"`
-	Administracion string   `orm:"column(administracion);null"`
-	Estado         int16    `orm:"column(estado);null"`
+	Id              int      `orm:"auto;column(id);pk"`
+	Entidad         *Entidad `orm:"column(entidad);rel(fk)"`
+	Codigo          string   `orm:"column(codigo)"`
+	Descripcion     string   `orm:"column(descripcion);null"`
+	UnidadEjecutora int16    `orm:"column(unidad_ejecutora)"`
+	Estado          int16    `orm:"column(estado);null"`
 }
 
 func (t *Rubro) TableName() string {
@@ -763,10 +761,12 @@ func ArbolRubros(unidadEjecutora int) (res []map[string]interface{}, err error) 
 	o := orm.NewOrm()
 	var m []orm.Params
 	//funcion para conseguir los rubros padre.
-	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion"
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
 	    from financiera.rubro
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
-	          AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))`).Values(&m)
+			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
+			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
 		c := make(chan interface{}, 10)
@@ -791,7 +791,7 @@ func RamaRubros(rubro map[string]interface{}, c chan interface{}) {
 		var m []orm.Params
 		var res []map[string]interface{}
 		//funcion para conseguir los hijos de los rubros padre.
-		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion"
+		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
 		  from financiera.rubro
 		  join financiera.rubro_rubro
 		    on  rubro_rubro.rubro_hijo = rubro.id
