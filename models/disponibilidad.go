@@ -20,14 +20,11 @@ type Info_disponibilidad_a_anular struct {
 }
 type Disponibilidad struct {
 	Id                   int                   `orm:"auto;column(id);pk"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
 	Responsable          int                   `orm:"column(responsable);null"`
 	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
 	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
-	NumeroOficio         string                `orm:"column(numero_oficio);null"`
-	Destino              int                   `orm:"column(destino);null"`
 	Solicitud            int                   `orm:"column(solicitud)"`
 }
 

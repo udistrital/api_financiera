@@ -18,7 +18,7 @@ type Rubro struct {
 	Codigo          string   `orm:"column(codigo)"`
 	Descripcion     string   `orm:"column(descripcion);null"`
 	UnidadEjecutora int16    `orm:"column(unidad_ejecutora)"`
-	Estado          int16    `orm:"column(estado);null"`
+	Nombre          string   `orm:"column(nombre);null"`
 }
 
 func (t *Rubro) TableName() string {
