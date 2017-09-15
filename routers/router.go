@@ -505,6 +505,30 @@ func init() {
 				&controllers.OrdenPagoEstadoOrdenPagoController{},
 			),
 		),
+
+		beego.NSNamespace("/giro",
+			beego.NSInclude(
+				&controllers.GiroController{},
+			),
+		),
+
+		beego.NSNamespace("/giro_estado_giro",
+			beego.NSInclude(
+				&controllers.GiroEstadoGiroController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_giro",
+			beego.NSInclude(
+				&controllers.EstadoGiroController{},
+			),
+		),
+
+		beego.NSNamespace("/giro_detalle",
+			beego.NSInclude(
+				&controllers.GiroDetalleController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
