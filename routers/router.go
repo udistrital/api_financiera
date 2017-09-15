@@ -529,6 +529,12 @@ func init() {
 				&controllers.GiroDetalleController{},
 			),
 		),
+
+		beego.NSNamespace("/forma_pago",
+			beego.NSInclude(
+				&controllers.FormaPagoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
