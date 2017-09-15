@@ -75,9 +75,9 @@ func (c *RubroController) GetOne() {
 	c.ServeJSON()
 }
 
-// GetOne ...
-// @Title Get One
-// @Description get Rubro by id
+// ArbolRubros ...
+// @Title ArbolRubros
+// @Description genera arbol rubros
 // @Success 200 {object} models.Rubro
 // @Failure 403 :id is empty
 // @router ArbolRubros/ [get]
