@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Apropiacion struct {
@@ -170,3 +171,127 @@ func SaldoApropiacion(Id int) (valor float64) {
 }
 
 //----------------------------------------------------------
+// Generar arbol de rubros.
+func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (res []map[string]interface{}, err error) {
+	o := orm.NewOrm()
+
+	var m []orm.Params
+	//var id string
+	//var query map[string]string
+	//funcion para conseguir los rubros padre.
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+			from financiera.rubro
+			  where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+				  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+				  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
+				  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+	if err == nil {
+		err = utilidades.FillStruct(m, &res)
+		for _, rubroPadre := range res {
+			c := gen(rubroPadre)
+			aux := sq(c)
+			rubroPadre["Hijos"] = aux
+		}
+	} else {
+		fmt.Println(err)
+	}
+	return
+}
+
+// Generar ramas del arbol.
+func RamaApropiaciones(rubro map[string]interface{}, c chan interface{}) {
+	var err error
+	var id string
+	var query map[string]string
+	if rubro == nil {
+
+	} else {
+		o := orm.NewOrm()
+		var m []orm.Params
+		var res []map[string]interface{}
+		//funcion para conseguir los hijos de los rubros padre.
+		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+		  from financiera.rubro
+		  join financiera.rubro_rubro
+		    on  rubro_rubro.rubro_hijo = rubro.id
+		  WHERE rubro_rubro.rubro_padre = ?`, rubro["Id"]).Values(&m)
+		fmt.Println("entro")
+		if err == nil {
+			fmt.Println(m)
+			err = utilidades.FillStruct(m, &res)
+			ch := make(chan interface{})
+			for _, rubroPadre := range res {
+
+				go func() {
+					RamaRubros(rubroPadre, ch)
+
+					rubroPadre["Hijos"] = <-ch
+
+					if rubroPadre["Hijos"] == nil {
+
+						err = utilidades.FillStruct(rubroPadre["Id"], &id)
+						query["Rubro.Id"] = id
+						v, err := GetAllApropiacion(query, nil, nil, nil, 0, 1)
+						fmt.Println(err)
+						if v == nil {
+							rubroPadre["Apropiacion"] = v[0]
+						} else {
+							rubroPadre = nil
+						}
+					}
+					close(ch)
+				}()
+			}
+
+		} else {
+			fmt.Println(err)
+		}
+		c <- res
+	}
+
+}
+
+func gen(forks ...map[string]interface{}) <-chan map[string]interface{} {
+	out := make(chan map[string]interface{})
+	go func() {
+		for _, n := range forks {
+			out <- n
+		}
+		close(out)
+	}()
+	return out
+}
+
+func sq(in <-chan map[string]interface{}) <-chan map[string]interface{} {
+	out := make(chan map[string]interface{})
+	go func() {
+		for rubro := range in {
+			var err error
+			var m []orm.Params
+			o := orm.NewOrm()
+			_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+				from financiera.rubro
+				join financiera.rubro_rubro
+				  on  rubro_rubro.rubro_hijo = rubro.id
+				WHERE rubro_rubro.rubro_padre = ?`, rubro["Id"]).Values(&m)
+			fmt.Println("entro")
+			fmt.Println(err)
+			if err == nil {
+				var res []map[string]interface{}
+				err = utilidades.FillStruct(m, &res)
+				for _, rubroPadre := range res {
+					c := gen(rubroPadre)
+					aux := sq(c)
+					rubro["Hijos"] = aux
+					fmt.Println(rubro["Hijos"])
+					out <- rubro
+				}
+
+			}
+
+		}
+		close(out)
+	}()
+
+	return out
+}

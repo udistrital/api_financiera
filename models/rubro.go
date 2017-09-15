@@ -769,11 +769,13 @@ func ArbolRubros(unidadEjecutora int) (res []map[string]interface{}, err error) 
 			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
-		c := make(chan interface{}, 10)
+		c := make(chan interface{})
 		for _, rubroPadre := range res {
 			go RamaRubros(rubroPadre, c)
 			rubroPadre["Hijos"] = <-c
 		}
+		close(c)
+
 	} else {
 		//error al consultar datos rubros padre.
 		fmt.Println("err: ", err.Error())
@@ -799,10 +801,10 @@ func RamaRubros(rubro map[string]interface{}, c chan interface{}) {
 		if err == nil {
 			fmt.Println(m)
 			err = utilidades.FillStruct(m, &res)
-			ch := make(chan interface{}, 10)
+			ch := make(chan interface{})
 			for _, rubroPadre := range res {
 
-				RamaRubros(rubroPadre, ch)
+				go RamaRubros(rubroPadre, ch)
 				rubroPadre["Hijos"] = <-ch
 			}
 

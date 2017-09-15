@@ -216,3 +216,19 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 	}
 	c.ServeJSON()
 }
+
+// ArbolApropiaciones ...
+// @Title ArbolApropiaciones
+// @Description genera arbol apropiaciones
+// @Success 200 {object} models.Rubro
+// @Failure 403 :id is empty
+// @router ArbolApropiaciones/ [get]
+func (c *RubroController) ArbolApropiaciones() {
+	v, err := models.ArbolApropiaciones(1, 1)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
