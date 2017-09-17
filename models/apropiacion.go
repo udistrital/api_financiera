@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/api_financiera/utilidades"
@@ -184,10 +185,11 @@ func genChanMapStr(mp ...map[string]interface{}) <-chan map[string]interface{} {
 }
 
 //Generar ramas del arbol de rubros
-func RamaApropiaciones(unidadEjecutora int, Vigencia int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
+func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, Vigencia int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
 	out := make(chan map[string]interface{})
-	var err error
-	go func() { //creacion de gorutines por cada bifurcacion de ramas
+	var err error // HLdone
+	go func() {   //creacion de gorutines por cada bifurcacion de ramas
+		var wg sync.WaitGroup
 		for fork := range forksin {
 			if fork == nil { //condicion de final de recorrido del arbol.
 
@@ -205,7 +207,10 @@ func RamaApropiaciones(unidadEjecutora int, Vigencia int, forksin <-chan map[str
 					err = utilidades.FillStruct(m, &res)
 					resch := genChanMapStr(res...)
 					var hijos []map[string]interface{}
-					for hijo := range RamaApropiaciones(unidadEjecutora, Vigencia, resch) {
+					wg.Add(1)
+					//subdone := make(chan map[string]interface{}) // HLdone
+					//defer close(subdone)
+					for hijo := range RamaApropiaciones(done, unidadEjecutora, Vigencia, resch) {
 						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
 					}
 					fork["Hijos"] = hijos
@@ -222,12 +227,20 @@ func RamaApropiaciones(unidadEjecutora int, Vigencia int, forksin <-chan map[str
 							fork["Apropiacion"] = nil
 						}
 					}
-					out <- fork
+
+					select {
+					case out <- fork: // HL
+					case <-done: // HL
+					}
+					wg.Done()
 
 				}
 			}
 		}
-		close(out)
+		go func() { // HL
+			wg.Wait()
+			close(out) // HL
+		}()
 	}()
 	return out
 }
@@ -247,7 +260,9 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 		var res []map[string]interface{}
 		err = utilidades.FillStruct(m, &res)
 		resch := genChanMapStr(res...)
-		for padre := range RamaApropiaciones(unidadEjecutora, Vigencia, resch) {
+		done := make(chan map[string]interface{}) // HLdone
+		defer close(done)                         // HLdone
+		for padre := range RamaApropiaciones(done, unidadEjecutora, Vigencia, resch) {
 			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
 		}
 	}
