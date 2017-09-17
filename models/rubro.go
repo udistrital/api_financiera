@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -757,10 +758,11 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 }
 
 //Generar ramas del arbol de rubros
-func RamaRubros(unidadEjecutora int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
+func RamaRubros(done <-chan map[string]interface{}, unidadEjecutora int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
 	out := make(chan map[string]interface{})
-	var err error
-	go func() { //creacion de gorutines por cada bifurcacion de ramas
+	var err error // HLdone
+	go func() {   //creacion de gorutines por cada bifurcacion de ramas
+		var wg sync.WaitGroup
 		for fork := range forksin {
 			if fork == nil { //condicion de final de recorrido del arbol.
 
@@ -778,16 +780,26 @@ func RamaRubros(unidadEjecutora int, forksin <-chan map[string]interface{}) (for
 					err = utilidades.FillStruct(m, &res)
 					resch := genChanMapStr(res...)
 					var hijos []map[string]interface{}
-					for hijo := range RamaRubros(unidadEjecutora, resch) {
+					wg.Add(1)
+					subdone := make(chan map[string]interface{}) // HLdone
+					defer close(subdone)
+					for hijo := range RamaRubros(subdone, unidadEjecutora, resch) {
 						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
 					}
 					fork["Hijos"] = hijos
-					out <- fork
+					select {
+					case out <- fork: // HL
+					case <-done: // HL
+					}
+					wg.Done()
 
 				}
 			}
 		}
-		close(out)
+		go func() { // HL
+			wg.Wait()
+			close(out) // HL
+		}()
 	}()
 	return out
 }
@@ -807,7 +819,9 @@ func ArbolRubros(unidadEjecutora int) (padres []map[string]interface{}, err erro
 		var res []map[string]interface{}
 		err = utilidades.FillStruct(m, &res)
 		resch := genChanMapStr(res...)
-		for padre := range RamaRubros(unidadEjecutora, resch) {
+		done := make(chan map[string]interface{}) // HLdone
+		defer close(done)                         // HLdone
+		for padre := range RamaRubros(done, unidadEjecutora, resch) {
 			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
 		}
 	}
