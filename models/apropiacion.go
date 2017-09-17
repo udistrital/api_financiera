@@ -171,127 +171,85 @@ func SaldoApropiacion(Id int) (valor float64) {
 }
 
 //----------------------------------------------------------
-// Generar arbol de rubros.
-func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (res []map[string]interface{}, err error) {
-	o := orm.NewOrm()
-
-	var m []orm.Params
-	//var id string
-	//var query map[string]string
-	//funcion para conseguir los rubros padre.
-	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
-			from financiera.rubro
-			  where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
-				  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
-				  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
-				  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
-	if err == nil {
-		err = utilidades.FillStruct(m, &res)
-		for _, rubroPadre := range res {
-			c := gen(rubroPadre)
-			aux := sq(c)
-			rubroPadre["Hijos"] = aux
+//funcion para generar canales de map[string]interface{}
+func genChanMapStr(mp ...map[string]interface{}) <-chan map[string]interface{} {
+	out := make(chan map[string]interface{})
+	go func() {
+		for _, ch := range mp {
+			out <- ch
 		}
-	} else {
-		fmt.Println(err)
-	}
-	return
+		close(out)
+	}()
+	return out
 }
 
-// Generar ramas del arbol.
-func RamaApropiaciones(rubro map[string]interface{}, c chan interface{}) {
+//Generar ramas del arbol de rubros
+func RamaApropiaciones(unidadEjecutora int, Vigencia int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
+	out := make(chan map[string]interface{})
 	var err error
-	var id string
-	var query map[string]string
-	if rubro == nil {
+	go func() { //creacion de gorutines por cada bifurcacion de ramas
+		for fork := range forksin {
+			if fork == nil { //condicion de final de recorrido del arbol.
 
-	} else {
-		o := orm.NewOrm()
-		var m []orm.Params
-		var res []map[string]interface{}
-		//funcion para conseguir los hijos de los rubros padre.
-		_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
-		  from financiera.rubro
-		  join financiera.rubro_rubro
-		    on  rubro_rubro.rubro_hijo = rubro.id
-		  WHERE rubro_rubro.rubro_padre = ?`, rubro["Id"]).Values(&m)
-		fmt.Println("entro")
-		if err == nil {
-			fmt.Println(m)
-			err = utilidades.FillStruct(m, &res)
-			ch := make(chan interface{})
-			for _, rubroPadre := range res {
-
-				go func() {
-					RamaRubros(rubroPadre, ch)
-
-					rubroPadre["Hijos"] = <-ch
-
-					if rubroPadre["Hijos"] == nil {
-
-						err = utilidades.FillStruct(rubroPadre["Id"], &id)
+			} else {
+				o := orm.NewOrm()
+				var m []orm.Params
+				var res []map[string]interface{}
+				//funcion para conseguir los hijos de los rubros padre.
+				_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+				  from financiera.rubro
+				  join financiera.rubro_rubro
+					on  rubro_rubro.rubro_hijo = rubro.id
+				  WHERE rubro_rubro.rubro_padre = ?`, fork["Id"]).Values(&m)
+				if err == nil {
+					err = utilidades.FillStruct(m, &res)
+					resch := genChanMapStr(res...)
+					var hijos []map[string]interface{}
+					for hijo := range RamaApropiaciones(unidadEjecutora, Vigencia, resch) {
+						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+					}
+					fork["Hijos"] = hijos
+					if len(hijos) == 0 {
+						query := make(map[string]string)
+						var id string
+						err = utilidades.FillStruct(fork["Id"], &id)
 						query["Rubro.Id"] = id
+						query["Vigencia"] = strconv.Itoa(Vigencia)
 						v, err := GetAllApropiacion(query, nil, nil, nil, 0, 1)
-						fmt.Println(err)
-						if v == nil {
-							rubroPadre["Apropiacion"] = v[0]
+						if v != nil && err == nil {
+							fork["Apropiacion"] = v[0]
 						} else {
-							rubroPadre = nil
+							fork["Apropiacion"] = nil
 						}
 					}
-					close(ch)
-				}()
-			}
+					out <- fork
 
-		} else {
-			fmt.Println(err)
-		}
-		c <- res
-	}
-
-}
-
-func gen(forks ...map[string]interface{}) <-chan map[string]interface{} {
-	out := make(chan map[string]interface{})
-	go func() {
-		for _, n := range forks {
-			out <- n
-		}
-		close(out)
-	}()
-	return out
-}
-
-func sq(in <-chan map[string]interface{}) <-chan map[string]interface{} {
-	out := make(chan map[string]interface{})
-	go func() {
-		for rubro := range in {
-			var err error
-			var m []orm.Params
-			o := orm.NewOrm()
-			_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
-				from financiera.rubro
-				join financiera.rubro_rubro
-				  on  rubro_rubro.rubro_hijo = rubro.id
-				WHERE rubro_rubro.rubro_padre = ?`, rubro["Id"]).Values(&m)
-			fmt.Println("entro")
-			fmt.Println(err)
-			if err == nil {
-				var res []map[string]interface{}
-				err = utilidades.FillStruct(m, &res)
-				for _, rubroPadre := range res {
-					c := gen(rubroPadre)
-					aux := sq(c)
-					rubro["Hijos"] = aux
-					fmt.Println(rubro["Hijos"])
-					out <- rubro
 				}
-
 			}
-
 		}
 		close(out)
 	}()
-
 	return out
+}
+
+// Generar arbol de rubros.
+func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	//funcion para conseguir los rubros padre.
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+	    from financiera.rubro
+	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
+			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+	if err == nil {
+		var res []map[string]interface{}
+		err = utilidades.FillStruct(m, &res)
+		resch := genChanMapStr(res...)
+		for padre := range RamaApropiaciones(unidadEjecutora, Vigencia, resch) {
+			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
+		}
+	}
+	return
 }

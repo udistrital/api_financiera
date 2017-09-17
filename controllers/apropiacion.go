@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -221,14 +222,24 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 // @Title ArbolApropiaciones
 // @Description genera arbol apropiaciones
 // @Success 200 {object} models.Rubro
-// @Failure 403 :id is empty
-// @router ArbolApropiaciones/ [get]
+// @Failure 403 :vigencia is empty
+// @router /ArbolApropiaciones/:vigencia [get]
 func (c *RubroController) ArbolApropiaciones() {
-	v, err := models.ArbolApropiaciones(1, 1)
-	if err != nil {
-		c.Data["json"] = err.Error()
+	vigStr := c.Ctx.Input.Param(":vigencia")
+	vig, err := strconv.Atoi(vigStr)
+	fmt.Println(vig)
+	if err == nil {
+		v, err := models.ArbolApropiaciones(1, vig)
+		if err != nil {
+			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = v
+		}
 	} else {
-		c.Data["json"] = v
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
+
 	c.ServeJSON()
 }
