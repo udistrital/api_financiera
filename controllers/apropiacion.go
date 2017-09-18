@@ -224,7 +224,7 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 // @Success 200 {object} models.Rubro
 // @Failure 403 :vigencia is empty
 // @router /ArbolApropiaciones/:vigencia [get]
-func (c *RubroController) ArbolApropiaciones() {
+func (c *ApropiacionController) ArbolApropiaciones() {
 	vigStr := c.Ctx.Input.Param(":vigencia")
 	vig, err := strconv.Atoi(vigStr)
 	fmt.Println(vig)

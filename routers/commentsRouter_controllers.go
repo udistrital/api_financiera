@@ -289,6 +289,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"],
 		beego.ControllerComments{
+			Method: "ArbolApropiaciones",
+			Router: `/ArbolApropiaciones/:vigencia`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
 			Method: "GetApropiacionesHijo",
 			Router: `/GetApropiacionesHijo/:vigencia`,
 			AllowHTTPMethods: []string{"get"},
@@ -2660,14 +2668,6 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
-		beego.ControllerComments{
-			Method: "ArbolApropiaciones",
-			Router: `/ArbolApropiaciones/:vigencia`,
-			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
