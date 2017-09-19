@@ -214,6 +214,7 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
 					}
 					fork["Hijos"] = hijos
+					//recorrer hijos sumando apropiaciones, si las tiene.
 					if len(hijos) == 0 {
 						query := make(map[string]string)
 						var id string
@@ -224,8 +225,22 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 						if v != nil && err == nil {
 							fork["Apropiacion"] = v[0]
 						} else {
-							fork["Apropiacion"] = nil
+							fork["Apropiacion"] = Apropiacion{Valor: 0, Vigencia: float64(Vigencia)}
 						}
+					} else {
+						ap := Apropiacion{}
+						var valorPadre float64
+						valorPadre = 0
+						for _, hijo := range hijos {
+							if hijo["Apropiacion"] != nil {
+								ap = Apropiacion{}
+								utilidades.FillStruct(hijo["Apropiacion"], &ap)
+								valorPadre = valorPadre + ap.Valor
+							}
+						}
+						ap.Valor = valorPadre
+						ap.Id = 0
+						fork["Apropiacion"] = ap
 					}
 
 					select {
