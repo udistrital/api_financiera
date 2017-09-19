@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -13,14 +14,12 @@ import (
 )
 
 type Rubro struct {
-	Id             int      `orm:"auto;column(id);pk"`
-	Entidad        *Entidad `orm:"column(entidad);rel(fk)"`
-	Codigo         string   `orm:"column(codigo)"`
-	Vigencia       float64  `orm:"column(vigencia)"`
-	Descripcion    string   `orm:"column(descripcion);null"`
-	TipoPlan       int16    `orm:"column(tipo_plan);null"`
-	Administracion string   `orm:"column(administracion);null"`
-	Estado         int16    `orm:"column(estado);null"`
+	Id              int      `orm:"auto;column(id);pk"`
+	Entidad         *Entidad `orm:"column(entidad);rel(fk)"`
+	Codigo          string   `orm:"column(codigo)"`
+	Descripcion     string   `orm:"column(descripcion);null"`
+	UnidadEjecutora int16    `orm:"column(unidad_ejecutora)"`
+	Nombre          string   `orm:"column(nombre);null"`
 }
 
 func (t *Rubro) TableName() string {
@@ -755,5 +754,76 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 		  codigo,
 			idfuente`, rubro, fuente).Values(&m)
 	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+//Generar ramas del arbol de rubros
+func RamaRubros(done <-chan map[string]interface{}, unidadEjecutora int, forksin <-chan map[string]interface{}) (forksout <-chan map[string]interface{}) {
+	out := make(chan map[string]interface{})
+	var err error // HLdone
+	go func() {   //creacion de gorutines por cada bifurcacion de ramas
+		var wg sync.WaitGroup
+		for fork := range forksin {
+			if fork == nil { //condicion de final de recorrido del arbol.
+
+			} else {
+				o := orm.NewOrm()
+				var m []orm.Params
+				var res []map[string]interface{}
+				//funcion para conseguir los hijos de los rubros padre.
+				_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre" ,rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+				  from financiera.rubro
+				  join financiera.rubro_rubro
+					on  rubro_rubro.rubro_hijo = rubro.id
+				  WHERE rubro_rubro.rubro_padre = ?`, fork["Id"]).Values(&m)
+				if err == nil {
+					err = utilidades.FillStruct(m, &res)
+					resch := genChanMapStr(res...)
+					var hijos []map[string]interface{}
+					wg.Add(1)
+					subdone := make(chan map[string]interface{}) // HLdone
+					defer close(subdone)
+					for hijo := range RamaRubros(subdone, unidadEjecutora, resch) {
+						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+					}
+					fork["Hijos"] = hijos
+					select {
+					case out <- fork: // HL
+					case <-done: // HL
+					}
+					wg.Done()
+
+				}
+			}
+		}
+		go func() { // HL
+			wg.Wait()
+			close(out) // HL
+		}()
+	}()
+	return out
+}
+
+// Generar arbol de rubros.
+func ArbolRubros(unidadEjecutora int) (padres []map[string]interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	//funcion para conseguir los rubros padre.
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre" , rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+	    from financiera.rubro
+	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
+			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+	if err == nil {
+		var res []map[string]interface{}
+		err = utilidades.FillStruct(m, &res)
+		resch := genChanMapStr(res...)
+		done := make(chan map[string]interface{}) // HLdone
+		defer close(done)                         // HLdone
+		for padre := range RamaRubros(done, unidadEjecutora, resch) {
+			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
+		}
+	}
 	return
 }

@@ -51,7 +51,8 @@ func (c *IngresoController) AprobarIngreso() {
 			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }

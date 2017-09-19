@@ -3,23 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
 
-// RubroRubroController operations for RubroRubro
-type RubroRubroController struct {
+// CierrePeriodoPresupuestalController operations for CierrePeriodoPresupuestal
+type CierrePeriodoPresupuestalController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *RubroRubroController) URLMapping() {
+func (c *CierrePeriodoPresupuestalController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -29,42 +26,37 @@ func (c *RubroRubroController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create RubroRubro
-// @Param	body		body 	models.RubroRubro	true		"body for RubroRubro content"
-// @Success 201 {int} models.RubroRubro
+// @Description create CierrePeriodoPresupuestal
+// @Param	body		body 	models.CierrePeriodoPresupuestal	true		"body for CierrePeriodoPresupuestal content"
+// @Success 201 {int} models.CierrePeriodoPresupuestal
 // @Failure 403 body is empty
 // @router / [post]
-func (c *RubroRubroController) Post() {
-	var v models.RubroRubro
+func (c *CierrePeriodoPresupuestalController) Post() {
+	var v models.CierrePeriodoPresupuestal
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddRubroRubro(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
-			c.Data["json"] = alert
+		if _, err := models.AddCierrePeriodoPresupuestal(&v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = v
 		} else {
-			alertdb := structs.Map(err)
-			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
-			c.Data["json"] = alert
+			c.Data["json"] = err.Error()
 		}
 	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
-		c.Data["json"] = alert
+		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
 
 // GetOne ...
 // @Title Get One
-// @Description get RubroRubro by id
+// @Description get CierrePeriodoPresupuestal by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.RubroRubro
+// @Success 200 {object} models.CierrePeriodoPresupuestal
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *RubroRubroController) GetOne() {
+func (c *CierrePeriodoPresupuestalController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetRubroRubroById(id)
+	v, err := models.GetCierrePeriodoPresupuestalById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -75,17 +67,17 @@ func (c *RubroRubroController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get RubroRubro
+// @Description get CierrePeriodoPresupuestal
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.RubroRubro
+// @Success 200 {object} models.CierrePeriodoPresupuestal
 // @Failure 403
 // @router / [get]
-func (c *RubroRubroController) GetAll() {
+func (c *CierrePeriodoPresupuestalController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -127,7 +119,7 @@ func (c *RubroRubroController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllRubroRubro(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllCierrePeriodoPresupuestal(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -138,18 +130,18 @@ func (c *RubroRubroController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the RubroRubro
+// @Description update the CierrePeriodoPresupuestal
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.RubroRubro	true		"body for RubroRubro content"
-// @Success 200 {object} models.RubroRubro
+// @Param	body		body 	models.CierrePeriodoPresupuestal	true		"body for CierrePeriodoPresupuestal content"
+// @Success 200 {object} models.CierrePeriodoPresupuestal
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *RubroRubroController) Put() {
+func (c *CierrePeriodoPresupuestalController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.RubroRubro{Id: id}
+	v := models.CierrePeriodoPresupuestal{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateRubroRubroById(&v); err == nil {
+		if err := models.UpdateCierrePeriodoPresupuestalById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -162,15 +154,15 @@ func (c *RubroRubroController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the RubroRubro
+// @Description delete the CierrePeriodoPresupuestal
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *RubroRubroController) Delete() {
+func (c *CierrePeriodoPresupuestalController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteRubroRubro(id); err == nil {
+	if err := models.DeleteCierrePeriodoPresupuestal(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
