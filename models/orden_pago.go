@@ -33,6 +33,7 @@ type OrdenPago struct {
 	Liquidacion              int                         `orm:"column(liquidacion);null"`
 	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
 	Consecutivo              int                         `orm:"column(consecutivo)"`
+	FormaPago                *FormaPago                  `orm:"column(forma_pago);rel(fk);null"`
 	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
 }
 
@@ -261,6 +262,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 	if o.Read(&orden) == nil {
 		orden.Iva = m.OrdenPago.Iva
 		orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+		orden.FormaPago = m.OrdenPago.FormaPago
 		orden.ValorBase = m.OrdenPago.ValorBase
 		if _, err = o.Update(&orden); err != nil {
 			alerta.Type = "error"
@@ -728,5 +730,11 @@ func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista
 func FechaActual(formato string) (fechaActual string, err error) {
 	hoy := time.Now()
 	fechaActual = hoy.Format(formato)
+	return
+}
+
+func ValorTotal(m int) (valorTotal int, err error) {
+	o := orm.NewOrm()
+	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
 	return
 }
