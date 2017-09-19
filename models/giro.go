@@ -5,52 +5,53 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoCuentaBancaria struct {
-	Id                int     `orm:"column(id);pk"`
-	Nombre            string  `orm:"column(nombre)"`
-	Descripcion       string  `orm:"column(descripcion);null"`
-	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
-	Activo            bool    `orm:"column(activo)"`
-	NumeroOrden       float64 `orm:"column(numero_orden);null"`
+type Giro struct {
+	Id             int             `orm:"column(id);pk;auto"`
+	Consecutivo    int             `orm:"column(consecutivo)"`
+	ValorTotal     float64         `orm:"column(valor_total)"`
+	CuentaBancaria *CuentaBancaria `orm:"column(cuenta_bancaria);rel(fk)"`
+	Vigencia       float64         `orm:"column(vigencia);null"`
+	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(timestamp without time zone)"`
 }
 
-func (t *TipoCuentaBancaria) TableName() string {
-	return "tipo_cuenta_bancaria"
+func (t *Giro) TableName() string {
+	return "giro"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoCuentaBancaria))
+	orm.RegisterModel(new(Giro))
 }
 
-// AddTipoCuentaBancaria insert a new TipoCuentaBancaria into database and returns
+// AddGiro insert a new Giro into database and returns
 // last inserted Id on success.
-func AddTipoCuentaBancaria(m *TipoCuentaBancaria) (id int64, err error) {
+func AddGiro(m *Giro) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoCuentaBancariaById retrieves TipoCuentaBancaria by Id. Returns error if
+// GetGiroById retrieves Giro by Id. Returns error if
 // Id doesn't exist
-func GetTipoCuentaBancariaById(id int) (v *TipoCuentaBancaria, err error) {
+func GetGiroById(id int) (v *Giro, err error) {
 	o := orm.NewOrm()
-	v = &TipoCuentaBancaria{Id: id}
+	v = &Giro{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoCuentaBancaria retrieves all TipoCuentaBancaria matches certain condition. Returns empty list if
+// GetAllGiro retrieves all Giro matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllGiro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoCuentaBancaria)).RelatedSel()
+	qs := o.QueryTable(new(Giro))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +101,7 @@ func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []TipoCuentaBancaria
+	var l []Giro
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +124,11 @@ func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateTipoCuentaBancaria updates TipoCuentaBancaria by Id and returns error if
+// UpdateGiro updates Giro by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoCuentaBancariaById(m *TipoCuentaBancaria) (err error) {
+func UpdateGiroById(m *Giro) (err error) {
 	o := orm.NewOrm()
-	v := TipoCuentaBancaria{Id: m.Id}
+	v := Giro{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +139,15 @@ func UpdateTipoCuentaBancariaById(m *TipoCuentaBancaria) (err error) {
 	return
 }
 
-// DeleteTipoCuentaBancaria deletes TipoCuentaBancaria by Id and returns error if
+// DeleteGiro deletes Giro by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoCuentaBancaria(id int) (err error) {
+func DeleteGiro(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoCuentaBancaria{Id: id}
+	v := Giro{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoCuentaBancaria{Id: id}); err == nil {
+		if num, err = o.Delete(&Giro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

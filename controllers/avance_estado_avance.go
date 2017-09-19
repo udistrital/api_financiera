@@ -6,17 +6,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/astaxie/beego"
 	"github.com/udistrital/api_financiera/models"
+
+	"github.com/astaxie/beego"
 )
 
-// EstadoAvanceController operations for EstadoAvance
-type EstadoAvanceController struct {
+// AvanceEstadoAvanceController operations for AvanceEstadoAvance
+type AvanceEstadoAvanceController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *EstadoAvanceController) URLMapping() {
+func (c *AvanceEstadoAvanceController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +27,15 @@ func (c *EstadoAvanceController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create EstadoAvance
-// @Param	body		body 	models.EstadoAvance	true		"body for EstadoAvance content"
-// @Success 201 {int} models.EstadoAvance
+// @Description create AvanceEstadoAvance
+// @Param	body		body 	models.AvanceEstadoAvance	true		"body for AvanceEstadoAvance content"
+// @Success 201 {int} models.AvanceEstadoAvance
 // @Failure 403 body is empty
 // @router / [post]
-func (c *EstadoAvanceController) Post() {
-	var v models.EstadoAvance
+func (c *AvanceEstadoAvanceController) Post() {
+	var v models.AvanceEstadoAvance
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddEstadoAvance(&v); err == nil {
+		if _, err := models.AddAvanceEstadoAvance(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +49,15 @@ func (c *EstadoAvanceController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get EstadoAvance by id
+// @Description get AvanceEstadoAvance by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.EstadoAvance
+// @Success 200 {object} models.AvanceEstadoAvance
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *EstadoAvanceController) GetOne() {
+func (c *AvanceEstadoAvanceController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetEstadoAvanceById(id)
+	v, err := models.GetAvanceEstadoAvanceById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +68,17 @@ func (c *EstadoAvanceController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get EstadoAvance
+// @Description get AvanceEstadoAvance
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.EstadoAvance
+// @Success 200 {object} models.AvanceEstadoAvance
 // @Failure 403
 // @router / [get]
-func (c *EstadoAvanceController) GetAll() {
+func (c *AvanceEstadoAvanceController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +120,7 @@ func (c *EstadoAvanceController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllEstadoAvance(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllAvanceEstadoAvance(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +131,18 @@ func (c *EstadoAvanceController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the EstadoAvance
+// @Description update the AvanceEstadoAvance
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.EstadoAvance	true		"body for EstadoAvance content"
-// @Success 200 {object} models.EstadoAvance
+// @Param	body		body 	models.AvanceEstadoAvance	true		"body for AvanceEstadoAvance content"
+// @Success 200 {object} models.AvanceEstadoAvance
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *EstadoAvanceController) Put() {
+func (c *AvanceEstadoAvanceController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.EstadoAvance{Id: id}
+	v := models.AvanceEstadoAvance{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateEstadoAvanceById(&v); err == nil {
+		if err := models.UpdateAvanceEstadoAvanceById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +155,15 @@ func (c *EstadoAvanceController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the EstadoAvance
+// @Description delete the AvanceEstadoAvance
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *EstadoAvanceController) Delete() {
+func (c *AvanceEstadoAvanceController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteEstadoAvance(id); err == nil {
+	if err := models.DeleteAvanceEstadoAvance(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

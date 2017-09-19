@@ -1,12 +1,30 @@
 SET search_path TO financiera;
 
-\echo 'Insert Ordenes de Pago\n'
+-- Estados
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Elaborado', true, 'Primer estado de la orden de pago', 'EOP_01', 1.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Aprobacion Contable', true, 'Funcionario de Contabilidad Aproeba la Elaboracion de la OP', 'EOP_02', 2.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Desaprobacion Contable', true, 'Funcionario de Contabilidad Desaprueba la Elaboracion de la OP', 'EOP_03', 3.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Aprobacion Presupuestal', true, 'Funcionario de Presupuesto Aproeba la Elaboracion de la OP', 'EOP_04', 4.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Desaprobacion Presupuestal', true, 'Funcionario de Presupuesto Desaprueba la Elaboracion de la OP', 'EOP_05', 5.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Enviada', true, 'Funcionario de Presupuesto Envia la OP a Tesoreria', 'EOP_06', 6.00);
+INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Radicaca', true, 'Funcionario de Tesoreria Radica la OP', 'EOP_07', 7.00);
 
-insert into orden_pago
-    (vigencia, fecha_creacion, registro_presupuestal, valor_total, persona_elaboro, tipo_orden_pago, unidad_ejecutora, estado_orden_pago)
-      values
-    (2016,              now(),                     1,     1190000,               1,              2,               1,                 7),
-    (2017,              now(),                     1,     1190000,               1,              2,               1,                 7),
-    (2017,              now(),                     1,     1190000,               1,              2,               1,                 7);
+-- Tipo // falata estanar
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Factura', true, 'Documento de tipo OP');
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Cuenta de Cobro', true, 'Documento de tipo OP');
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Resolución', true, 'Documento de tipo OP');
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Sentencia Juridica', true, 'Documento de tipo OP');
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Pago Invitación', true, 'Documento de tipo OP');
+INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Poliza', true, 'Documento de tipo OP');
 
-\echo 'Fin Insert  Ordenes de Pago\n'
+-- Tipo documento afectante  // falta estandar
+INSERT INTO tipo_documento_afectante (nombre, descripcion) VALUES ('Orden de Pago', NULL);
+
+-- Homologacion
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 73, 239);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 74, 11);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 212);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 231);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 291);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 77, 1213);
+INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 269);

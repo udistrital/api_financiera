@@ -55,10 +55,10 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 			_, err = o.Insert(&data)
 		}
 		if err == nil {
-			estadoAvance := EstadoAvance{}
-			estadoVerificado := Estados{}
+			estadoAvance := AvanceEstadoAvance{}
+			estadoVerificado := EstadoAvance{}
 			estadoVerificado.Id = 6
-			estadoAvance.Estados = &estadoVerificado
+			estadoAvance.EstadoAvance = &estadoVerificado
 			estadoAvance.SolicitudAvance = &solicitud
 			estadoAvance.FechaRegistro = time.Now()
 			estadoAvance.Usuario = "System"

@@ -5,51 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type Estados struct {
-	Id          int    `orm:"column(id);pk"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion)"`
-	Proceso     string `orm:"column(proceso);null"`
-	Estado      string `orm:"column(estado)"`
+type GiroEstadoGiro struct {
+	Id            int         `orm:"column(id);pk;auto"`
+	Giro          *Giro       `orm:"column(giro);rel(fk)"`
+	EstadoGiro    *EstadoGiro `orm:"column(estado_giro);rel(fk)"`
+	FechaRegistro time.Time   `orm:"column(fecha_registro);type(timestamp without time zone)"`
 }
 
-func (t *Estados) TableName() string {
-	return "estados"
+func (t *GiroEstadoGiro) TableName() string {
+	return "giro_estado_giro"
 }
 
 func init() {
-	orm.RegisterModel(new(Estados))
+	orm.RegisterModel(new(GiroEstadoGiro))
 }
 
-// AddEstados insert a new Estados into database and returns
+// AddGiroEstadoGiro insert a new GiroEstadoGiro into database and returns
 // last inserted Id on success.
-func AddEstados(m *Estados) (id int64, err error) {
+func AddGiroEstadoGiro(m *GiroEstadoGiro) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadosById retrieves Estados by Id. Returns error if
+// GetGiroEstadoGiroById retrieves GiroEstadoGiro by Id. Returns error if
 // Id doesn't exist
-func GetEstadosById(id int) (v *Estados, err error) {
+func GetGiroEstadoGiroById(id int) (v *GiroEstadoGiro, err error) {
 	o := orm.NewOrm()
-	v = &Estados{Id: id}
+	v = &GiroEstadoGiro{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstados retrieves all Estados matches certain condition. Returns empty list if
+// GetAllGiroEstadoGiro retrieves all GiroEstadoGiro matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstados(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllGiroEstadoGiro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Estados))
+	qs := o.QueryTable(new(GiroEstadoGiro))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +99,7 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 		}
 	}
 
-	var l []Estados
+	var l []GiroEstadoGiro
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +122,11 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 	return nil, err
 }
 
-// UpdateEstados updates Estados by Id and returns error if
+// UpdateGiroEstadoGiro updates GiroEstadoGiro by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadosById(m *Estados) (err error) {
+func UpdateGiroEstadoGiroById(m *GiroEstadoGiro) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: m.Id}
+	v := GiroEstadoGiro{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +137,15 @@ func UpdateEstadosById(m *Estados) (err error) {
 	return
 }
 
-// DeleteEstados deletes Estados by Id and returns error if
+// DeleteGiroEstadoGiro deletes GiroEstadoGiro by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstados(id int) (err error) {
+func DeleteGiroEstadoGiro(id int) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: id}
+	v := GiroEstadoGiro{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Estados{Id: id}); err == nil {
+		if num, err = o.Delete(&GiroEstadoGiro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

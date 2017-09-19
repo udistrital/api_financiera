@@ -10,10 +10,12 @@ import (
 )
 
 type EstadoOrdenPago struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Nombre       string `orm:"column(nombre)"`
-	EstadoActivo bool   `orm:"column(estado_activo)"`
-	Descripcion  string `orm:"column(descripcion);null"`
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Activo            bool    `orm:"column(activo)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
 func (t *EstadoOrdenPago) TableName() string {
@@ -48,7 +50,7 @@ func GetEstadoOrdenPagoById(id int) (v *EstadoOrdenPago, err error) {
 func GetAllEstadoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(EstadoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(EstadoOrdenPago))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute

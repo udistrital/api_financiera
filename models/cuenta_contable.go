@@ -16,7 +16,7 @@ type CuentaContable struct {
 	Naturaleza         string              `orm:"column(naturaleza)"`
 	Descripcion        string              `orm:"column(descripcion);null"`
 	Codigo             string              `orm:"column(codigo)"`
-	NivelClasificacion *NivelClasificacion `orm:"column(nivel_clasificacion);rel(fk)"`
+	NivelClasificacion *NivelClasificacion `orm:"column(nivel_clasificacion_cuenta_contable);rel(fk)"`
 	CuentaBancaria     *CuentaBancaria     `orm:"column(cuenta_bancaria);rel(fk);null"`
 }
 

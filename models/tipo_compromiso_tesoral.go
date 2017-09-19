@@ -12,13 +12,15 @@ import (
 type TipoCompromisoTesoral struct {
 	Id                  int                  `orm:"column(id);pk;auto"`
 	Nombre              string               `orm:"column(nombre)"`
-	EstadoActivo        bool                 `orm:"column(estado_activo)"`
+	Activo              bool                 `orm:"column(activo);"`
 	CategoriaCompromiso *CategoriaCompromiso `orm:"column(categoria_compromiso);rel(fk)"`
 	Descripcion         string               `orm:"column(descripcion);null"`
+	CodigoAbreviacion   string               `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden         float64              `orm:"column(numero_orden);null"`
 }
 
 func (t *TipoCompromisoTesoral) TableName() string {
-	return "tipo_compromiso_tesoral"
+	return "tipo_compromiso_financiero"
 }
 
 func init() {
