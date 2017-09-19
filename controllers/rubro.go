@@ -39,16 +39,19 @@ func (c *RubroController) URLMapping() {
 func (c *RubroController) Post() {
 	var v models.Rubro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if id, err := models.AddRubro(&v); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = id
+		if _, err := models.AddRubro(&v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
 		} else {
-			//fmt.Println("error: ", err )
-			c.Data["json"] = err
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		//fmt.Println("error: ", err )
-		c.Data["json"] = err
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -64,6 +67,22 @@ func (c *RubroController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetRubroById(id)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
+// ArbolRubros ...
+// @Title ArbolRubros
+// @Description genera arbol rubros
+// @Success 200 {object} models.Rubro
+// @Failure 403 :id is empty
+// @router ArbolRubros/ [get]
+func (c *RubroController) ArbolRubros() {
+	v, err := models.ArbolRubros(1)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {

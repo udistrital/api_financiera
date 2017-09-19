@@ -9,53 +9,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type RubroRubro struct {
-	Id         int    `orm:"auto;column(id);pk"`
-	RubroPadre *Rubro `orm:"column(rubro_padre);rel(fk)"`
-	RubroHijo  *Rubro `orm:"column(rubro_hijo);rel(fk)"`
+type CierrePeriodoPresupuestal struct {
+	Id                               int                                 `orm:"column(id);pk;auto"`
+	Vigencia                         int                                 `orm:"column(vigencia)"`
+	Descripcion                      string                              `orm:"column(descripcion);null"`
+	DetalleCierrePeriodoPresupuestal []*DetalleCierrePeriodoPresupuestal `orm:"reverse(many)"`
 }
 
-func (t *RubroRubro) TableName() string {
-	return "rubro_rubro"
+func (t *CierrePeriodoPresupuestal) TableName() string {
+	return "cierre_periodo_presupuestal"
 }
 
 func init() {
-	orm.RegisterModel(new(RubroRubro))
+	orm.RegisterModel(new(CierrePeriodoPresupuestal))
 }
 
-// AddRubroRubro insert a new RubroRubro into database and returns
+// AddCierrePeriodoPresupuestal insert a new CierrePeriodoPresupuestal into database and returns
 // last inserted Id on success.
-func AddRubroRubro(m *RubroRubro) (id int64, err error) {
+func AddCierrePeriodoPresupuestal(m *CierrePeriodoPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
-	o.Begin()
-	id_hijo, err := o.Insert(m.RubroHijo)
-	m.RubroHijo.Id = int(id_hijo)
 	id, err = o.Insert(m)
-	if err != nil {
-		o.Rollback()
-	} else {
-		o.Commit()
-	}
 	return
 }
 
-// GetRubroRubroById retrieves RubroRubro by Id. Returns error if
+// GetCierrePeriodoPresupuestalById retrieves CierrePeriodoPresupuestal by Id. Returns error if
 // Id doesn't exist
-func GetRubroRubroById(id int) (v *RubroRubro, err error) {
+func GetCierrePeriodoPresupuestalById(id int) (v *CierrePeriodoPresupuestal, err error) {
 	o := orm.NewOrm()
-	v = &RubroRubro{Id: id}
+	v = &CierrePeriodoPresupuestal{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllRubroRubro retrieves all RubroRubro matches certain condition. Returns empty list if
+// GetAllCierrePeriodoPresupuestal retrieves all CierrePeriodoPresupuestal matches certain condition. Returns empty list if
 // no records exist
-func GetAllRubroRubro(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllCierrePeriodoPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RubroRubro))
+	qs := o.QueryTable(new(CierrePeriodoPresupuestal))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -105,11 +98,12 @@ func GetAllRubroRubro(query map[string]string, fields []string, sortby []string,
 		}
 	}
 
-	var l []RubroRubro
+	var l []CierrePeriodoPresupuestal
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "DetalleCierrePeriodoPresupuestal")
 				ml = append(ml, v)
 			}
 		} else {
@@ -128,11 +122,11 @@ func GetAllRubroRubro(query map[string]string, fields []string, sortby []string,
 	return nil, err
 }
 
-// UpdateRubroRubro updates RubroRubro by Id and returns error if
+// UpdateCierrePeriodoPresupuestal updates CierrePeriodoPresupuestal by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateRubroRubroById(m *RubroRubro) (err error) {
+func UpdateCierrePeriodoPresupuestalById(m *CierrePeriodoPresupuestal) (err error) {
 	o := orm.NewOrm()
-	v := RubroRubro{Id: m.Id}
+	v := CierrePeriodoPresupuestal{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -143,15 +137,15 @@ func UpdateRubroRubroById(m *RubroRubro) (err error) {
 	return
 }
 
-// DeleteRubroRubro deletes RubroRubro by Id and returns error if
+// DeleteCierrePeriodoPresupuestal deletes CierrePeriodoPresupuestal by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteRubroRubro(id int) (err error) {
+func DeleteCierrePeriodoPresupuestal(id int) (err error) {
 	o := orm.NewOrm()
-	v := RubroRubro{Id: id}
+	v := CierrePeriodoPresupuestal{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&RubroRubro{Id: id}); err == nil {
+		if num, err = o.Delete(&CierrePeriodoPresupuestal{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
