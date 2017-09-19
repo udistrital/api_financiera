@@ -502,6 +502,8 @@ func init() {
 		beego.NSNamespace("/cierre_periodo_presupuestal",
 			beego.NSInclude(
 				&controllers.CierrePeriodoPresupuestalController{},
+			),
+		),
 
 		beego.NSNamespace("/orden_pago_estado_orden_pago",
 			beego.NSInclude(
