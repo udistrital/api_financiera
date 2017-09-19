@@ -9,8 +9,8 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoCuentaBancaria struct {
-	Id                int     `orm:"column(id);pk"`
+type EstadoCalendarioTributario struct {
+	Id                int     `orm:"column(id);pk;auto"`
 	Nombre            string  `orm:"column(nombre)"`
 	Descripcion       string  `orm:"column(descripcion);null"`
 	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
@@ -18,39 +18,39 @@ type TipoCuentaBancaria struct {
 	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *TipoCuentaBancaria) TableName() string {
-	return "tipo_cuenta_bancaria"
+func (t *EstadoCalendarioTributario) TableName() string {
+	return "estado_calendario_tributario"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoCuentaBancaria))
+	orm.RegisterModel(new(EstadoCalendarioTributario))
 }
 
-// AddTipoCuentaBancaria insert a new TipoCuentaBancaria into database and returns
+// AddEstadoCalendarioTributario insert a new EstadoCalendarioTributario into database and returns
 // last inserted Id on success.
-func AddTipoCuentaBancaria(m *TipoCuentaBancaria) (id int64, err error) {
+func AddEstadoCalendarioTributario(m *EstadoCalendarioTributario) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoCuentaBancariaById retrieves TipoCuentaBancaria by Id. Returns error if
+// GetEstadoCalendarioTributarioById retrieves EstadoCalendarioTributario by Id. Returns error if
 // Id doesn't exist
-func GetTipoCuentaBancariaById(id int) (v *TipoCuentaBancaria, err error) {
+func GetEstadoCalendarioTributarioById(id int) (v *EstadoCalendarioTributario, err error) {
 	o := orm.NewOrm()
-	v = &TipoCuentaBancaria{Id: id}
+	v = &EstadoCalendarioTributario{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoCuentaBancaria retrieves all TipoCuentaBancaria matches certain condition. Returns empty list if
+// GetAllEstadoCalendarioTributario retrieves all EstadoCalendarioTributario matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoCalendarioTributario(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoCuentaBancaria)).RelatedSel()
+	qs := o.QueryTable(new(EstadoCalendarioTributario)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +100,7 @@ func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []TipoCuentaBancaria
+	var l []EstadoCalendarioTributario
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +123,11 @@ func GetAllTipoCuentaBancaria(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateTipoCuentaBancaria updates TipoCuentaBancaria by Id and returns error if
+// UpdateEstadoCalendarioTributario updates EstadoCalendarioTributario by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoCuentaBancariaById(m *TipoCuentaBancaria) (err error) {
+func UpdateEstadoCalendarioTributarioById(m *EstadoCalendarioTributario) (err error) {
 	o := orm.NewOrm()
-	v := TipoCuentaBancaria{Id: m.Id}
+	v := EstadoCalendarioTributario{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +138,15 @@ func UpdateTipoCuentaBancariaById(m *TipoCuentaBancaria) (err error) {
 	return
 }
 
-// DeleteTipoCuentaBancaria deletes TipoCuentaBancaria by Id and returns error if
+// DeleteEstadoCalendarioTributario deletes EstadoCalendarioTributario by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoCuentaBancaria(id int) (err error) {
+func DeleteEstadoCalendarioTributario(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoCuentaBancaria{Id: id}
+	v := EstadoCalendarioTributario{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoCuentaBancaria{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoCalendarioTributario{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

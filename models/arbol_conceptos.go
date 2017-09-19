@@ -15,7 +15,7 @@ type ConceptoArbol struct {
 	Cabeza          bool          `orm:"column(cabeza)"`
 	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
 	Descripcion     string        `orm:"column(descripcion);null"`
-	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto);rel(fk)"`
+	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto_tesoral);rel(fk)"`
 	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null;"`
 	Hijos           *[]ConceptoArbol
 }
@@ -27,7 +27,7 @@ func MakeTreeConcepto() (a []ConceptoArbol) {
 	o := orm.NewOrm()
 	//Arreglo
 	var arbol []ConceptoArbol
-	_, err := o.Raw("select * from financiera.concepto where id not in (select concepto_hijo from financiera.concepto_concepto) order by id;").QueryRows(&arbol)
+	_, err := o.Raw("select * from financiera.concepto_tesoral where id not in (select concepto_hijo from financiera.estructura_conceptos_tesorales) order by id;").QueryRows(&arbol)
 
 	//Para realizar un related sobre los conceptos en el arbol
 	/*for _, concepto := range arbol {
@@ -61,7 +61,7 @@ func MakeBranches(Padre *ConceptoArbol) (a []ConceptoArbol) {
 	//Arreglo
 	var arbol []ConceptoArbol
 
-	_, err := o.Raw("select a.* from financiera.concepto a left join financiera.concepto_concepto b on a.id =b.concepto_hijo where b.concepto_padre=" + idpadre + " ORDER BY a.id").QueryRows(&arbol)
+	_, err := o.Raw("select a.* from financiera.concepto_tesoral a left join financiera.estructura_conceptos_tesorales b on a.id =b.concepto_hijo where b.concepto_padre=" + idpadre + " ORDER BY a.id").QueryRows(&arbol)
 	//Condicional si el error es nulo
 	if err == nil {
 		//Llena el elemento Opciones en la estructura del menú padre

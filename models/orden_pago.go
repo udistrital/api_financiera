@@ -19,20 +19,22 @@ type Data_OrdenPago_Concepto struct {
 }
 
 type OrdenPago struct {
-	Id                   int                   `orm:"column(id);pk;auto"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	FechaCreacion        time.Time             `orm:"column(fecha_creacion);type(date)"`
-	RegistroPresupuestal *RegistroPresupuestal `orm:"column(registro_presupuestal);rel(fk)"`
-	ValorBase            float64               `orm:"column(valor_base)"`
-	PersonaElaboro       int                   `orm:"column(persona_elaboro)"`
-	Convenio             int                   `orm:"column(convenio);null"`
-	TipoOrdenPago        *TipoOrdenPago        `orm:"column(tipo_orden_pago);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	EstadoOrdenPago      *EstadoOrdenPago      `orm:"column(estado_orden_pago);rel(fk)"`
-	Iva                  *Iva                  `orm:"column(iva);rel(fk)"`
-	Nomina               string                `orm:"column(nomina)"`
-	Liquidacion          int                   `orm:"column(liquidacion);null"`
-	EntradaAlmacen       int                   `orm:"column(entrada_almacen);null"`
+	Id                       int                         `orm:"column(id);pk;auto"`
+	Vigencia                 float64                     `orm:"column(vigencia)"`
+	FechaCreacion            time.Time                   `orm:"column(fecha_creacion);type(date)"`
+	RegistroPresupuestal     *RegistroPresupuestal       `orm:"column(registro_presupuestal);rel(fk)"`
+	ValorBase                float64                     `orm:"column(valor_base)"`
+	PersonaElaboro           int                         `orm:"column(persona_elaboro)"`
+	Convenio                 int                         `orm:"column(convenio);null"`
+	TipoOrdenPago            *TipoOrdenPago              `orm:"column(tipo_orden_pago);rel(fk)"`
+	UnidadEjecutora          *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
+	Iva                      *Iva                        `orm:"column(iva);rel(fk)"`
+	Nomina                   string                      `orm:"column(nomina)"`
+	Liquidacion              int                         `orm:"column(liquidacion);null"`
+	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
+	Consecutivo              int                         `orm:"column(consecutivo)"`
+	FormaPago                *FormaPago                  `orm:"column(forma_pago);rel(fk);null"`
+	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -122,6 +124,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "OrdenPagoEstadoOrdenPago", 5, 1, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {
@@ -171,34 +174,63 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, idOrdenPago int64) {
+func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
-	// Inserta datos Orden de pago
+	// datos Orden de pago
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	m.OrdenPago.Consecutivo = consecutivoOp
 	m.OrdenPago.FechaCreacion = time.Now()
 	m.OrdenPago.Nomina = "PROVEEDOR"
-	m.OrdenPago.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-
-	idOrdenPago, err1 := o.Insert(&m.OrdenPago)
-	if err1 != nil {
-		alerta = append(alerta, "ERROR_1 [RegistrarOpProveedor] No se puede registrar la Orden de Pago")
-		err = err1
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// Registrar OP
+	idOrdenPago, err = o.Insert(&m.OrdenPago)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
 		o.Rollback()
 		return
 	}
 	// Insertar data Conceptos
 	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
 		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
-		_, err2 := o.Insert(&m.ConceptoOrdenPago[i])
-		if err2 != nil {
-			alerta = append(alerta, "ERROR_2 [RegistrarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
-			err = err2
+		_, err = o.Insert(&m.ConceptoOrdenPago[i])
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_02"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(m.MovimientoContable); i++ {
-		movimiento_contable := MovimientoContable{
+		movimientoContable := MovimientoContable{
 			Debito:                   m.MovimientoContable[i].Debito,
 			Credito:                  m.MovimientoContable[i].Credito,
 			Fecha:                    time.Now(),
@@ -208,11 +240,13 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			Aprobado:                 false,
 		}
-		_, err3 := o.Insert(&movimiento_contable)
-		if err3 != nil {
-			alerta = append(alerta, "ERROR_3 [RegistrarOpProveedor] No se puede registrar las Cuentas Contables Asociadas a los Concepto")
-			err = err3
+		_, err = o.Insert(&movimientoContable)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_03"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	o.Commit()
@@ -220,7 +254,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err erro
 }
 
 // personalizado Actualiza orden_pago, concepto_ordenpago y movimeintos contalbes
-func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err error, idOrdenPago int64) {
+func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, consecutivoOp int) {
 	o := orm.NewOrm()
 	o.Begin()
 	// Actualizar datos de la Orden
@@ -228,45 +262,55 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 	if o.Read(&orden) == nil {
 		orden.Iva = m.OrdenPago.Iva
 		orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+		orden.FormaPago = m.OrdenPago.FormaPago
 		orden.ValorBase = m.OrdenPago.ValorBase
-		if _, err1 := o.Update(&orden); err1 != nil {
-			fmt.Println("Error 1")
-			alerta = append(alerta, "ERRRO_1 [ActualizarOpProveedor] No se puede actualizar los Campos de la Orden de Pago")
-			err = err1
+		if _, err = o.Update(&orden); err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_UPD_01"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
+		} else {
+			consecutivoOp = orden.Consecutivo
 		}
 	}
 	// Eliminar Conceptos Orden de Pagos y Movimientos contables
 	if len(m.ConceptoOrdenPago) > 0 {
-		_, err2 := o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", m.OrdenPago.Id).Exec()
-		if err2 != nil {
-			alerta = append(alerta, "ERROR_02 [ActualizarOpProveedor] No se puede Eliminar los conceptos relacionados a la orden de pago")
-			err = err2
+		_, err = o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", m.OrdenPago.Id).Exec()
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_UPD_02"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	if len(m.MovimientoContable) > 0 {
-		_, err3 := o.Raw("DELETE FROM financiera.movimiento_contable where codigo_documento_afectante = ?", m.OrdenPago.Id).Exec()
-		if err3 != nil {
-			alerta = append(alerta, "ERROR_03 [ActualizarOpProveedor] No se puede Eliminar los movimientos contables relacionados a la orden de pago")
-			err = err3
+		_, err = o.Raw("DELETE FROM financiera.movimiento_contable where codigo_documento_afectante = ?", m.OrdenPago.Id).Exec()
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_UPD_03"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	// Insertar Nueva Data Conceptos Orden de Pagos y Movimientos contables
 	//Conceptos
 	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
 		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(m.OrdenPago.Id)}
-		_, err4 := o.Insert(&m.ConceptoOrdenPago[i])
-		if err4 != nil {
-			alerta = append(alerta, "ERROR_04 [ActualizarOpProveedor] No se puede registrar los Conceptos asociados a la Orden de Pago")
-			err = err4
+		_, err = o.Insert(&m.ConceptoOrdenPago[i])
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_UPD_04"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	//Movimientos
 	for i := 0; i < len(m.MovimientoContable); i++ {
-		movimiento_contable := MovimientoContable{
+		movimientoContable := MovimientoContable{
 			Debito:                   m.MovimientoContable[i].Debito,
 			Credito:                  m.MovimientoContable[i].Credito,
 			Fecha:                    time.Now(),
@@ -276,11 +320,13 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
 			Aprobado:                 false,
 		}
-		_, err5 := o.Insert(&movimiento_contable)
-		if err5 != nil {
-			alerta = append(alerta, "ERROR_05 [ActualizarOpProveedor] No se puede registrar las Cuentas Contables Asociadas a los Concepto")
-			err = err5
+		_, err = o.Insert(&movimientoContable)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_UPD_05"
+			alerta.Body = err.Error()
 			o.Rollback()
+			return
 		}
 	}
 	o.Commit()
@@ -288,30 +334,53 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta []string, err err
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
+func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
 	newOrden := OrdenPago{}
 	var detalle []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
 	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
-	//homologacion := HomologacionConcepto{}
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "PLANTA"
-	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
-
+	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	// insertar OP Planta
-	idOrdenPago, err1 := o.Insert(&newOrden)
-	if err1 != nil {
+	idOrdenPago, err = o.Insert(&newOrden)
+	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPN_02"
-		alerta.Body = err1.Error()
-		err = err1
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
 		o.Rollback()
 		return
 	}
@@ -333,12 +402,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		valorcalculado := int64(valorcalculadoFloat)
 		// data concepto
 		conc := det["Concepto"].(map[string]interface{})
-		err1_2 := utilidades.FillStruct(conc["Id"], &idconceptotitan)
-		if err1_2 != nil {
+		err = utilidades.FillStruct(conc["Id"], &idconceptotitan)
+		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPN_02_2"
-			alerta.Body = err1_2
-			err = err1_2
+			alerta.Body = err
 			o.Rollback()
 			return
 		}
@@ -347,12 +415,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		if i == 0 {
 			// Buscamos concepto kronos homologado
 			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
-			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err2 != nil {
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idconceptotitan)
-				err = err2
 				o.Rollback()
 				return
 			}
@@ -369,12 +436,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
 			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idconceptotitan, Vigencia: newOrden.Vigencia}
-			err2 := o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err2 != nil {
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idconceptotitan)
-				err = err2
 				o.Rollback()
 				return
 			}
@@ -402,12 +468,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 		fmt.Println(allConceptoOrdenPago[i].Valor)
 		allConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
 		// insertar concepto_orden_pago
-		_, err3 := o.Insert(&allConceptoOrdenPago[i])
-		if err3 != nil {
+		_, err = o.Insert(&allConceptoOrdenPago[i])
+		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPN_02_4"
-			alerta.Body = err3
-			err = err3
+			alerta.Body = err
 			o.Rollback()
 			return
 		}
@@ -437,12 +502,11 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
 				newMovimientoContable.Aprobado = false
 				// insertar OP Planta
-				_, err4 := o.Insert(&newMovimientoContable)
-				if err4 != nil {
+				_, err = o.Insert(&newMovimientoContable)
+				if err != nil {
 					alerta.Type = "error"
 					alerta.Code = "E_OPN_02_5"
-					alerta.Body = err4
-					err = err4
+					alerta.Body = err
 					o.Rollback()
 					return
 				}
@@ -454,25 +518,35 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	return
 }
 
-//
-
-func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, idOrdenPago int64) {
+// Registra orden_pago nomina Seguridad Social, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
+func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
 	newOrden := OrdenPago{}
 	var PagosSeguridadSocial []interface{}
 	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
 	err = utilidades.FillStruct(OrdenDetalle["PagosSeguridadSocial"], &PagosSeguridadSocial)
-	//homologacion := HomologacionConcepto{}
 	var allConceptoOrdenPago []ConceptoOrdenPago
 
 	// Datos Orden de Pago Planta
+	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+	newOrden.Consecutivo = consecutivoOp
 	newOrden.FechaCreacion = time.Now()
 	newOrden.Nomina = "SEGURIDAD SOCIAL"
-	newOrden.EstadoOrdenPago = &EstadoOrdenPago{Id: 1} //1 Elaborado
-	newOrden.Iva = &Iva{Id: 1}                         //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2}     //2 cuenta de cobro
-
+	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
+	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
+	// Estado OP
+	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	// insertar OP Planta
 	idOrdenPago, err = o.Insert(&newOrden)
 	if err != nil {
@@ -482,6 +556,20 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 		o.Rollback()
 		return
 	}
+	// registrar estado OP
+	newEstadoOP := OrdenPagoEstadoOrdenPago{}
+	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
+	newEstadoOP.FechaRegistro = time.Now()
+	_, err = o.Insert(&newEstadoOP)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
 	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
 	for i, element := range PagosSeguridadSocial {
 		det := element.(map[string]interface{})
@@ -642,5 +730,11 @@ func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista
 func FechaActual(formato string) (fechaActual string, err error) {
 	hoy := time.Now()
 	fechaActual = hoy.Format(formato)
+	return
+}
+
+func ValorTotal(m int) (valorTotal int, err error) {
+	o := orm.NewOrm()
+	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
 	return
 }
