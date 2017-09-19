@@ -771,7 +771,7 @@ func RamaRubros(done <-chan map[string]interface{}, unidadEjecutora int, forksin
 				var m []orm.Params
 				var res []map[string]interface{}
 				//funcion para conseguir los hijos de los rubros padre.
-				_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+				_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre" ,rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
 				  from financiera.rubro
 				  join financiera.rubro_rubro
 					on  rubro_rubro.rubro_hijo = rubro.id
@@ -809,7 +809,7 @@ func ArbolRubros(unidadEjecutora int) (padres []map[string]interface{}, err erro
 	o := orm.NewOrm()
 	var m []orm.Params
 	//funcion para conseguir los rubros padre.
-	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre" , rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
 	    from financiera.rubro
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
