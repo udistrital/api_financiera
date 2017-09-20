@@ -10,10 +10,12 @@ import (
 )
 
 type TipoOrdenPago struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Nombre       string `orm:"column(nombre)"`
-	EstadoActivo bool   `orm:"column(estado_activo)"`
-	Descripcion  string `orm:"column(descripcion);null"`
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Activo            bool    `orm:"column(activo)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
 func (t *TipoOrdenPago) TableName() string {
