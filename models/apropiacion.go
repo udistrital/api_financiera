@@ -157,12 +157,80 @@ func DeleteApropiacion(id int) (err error) {
 
 //funcion para comprobar saldo de la apropiacion de un Rubro
 
-func SaldoApropiacion(Id int) (valor float64) {
+func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
+	var valor float64
+	saldo = make(map[string]float64)
+	valorapr, err := ValorApropiacion(Id)
+	if err != nil {
+		return
+	}
+	valorcdpapr, err := ValorCdpPorApropiacion(Id)
+	if err != nil {
+		return
+	}
+	valoranuladocdpapr, err := ValorAnuladoCdpPorApropiacion(Id)
+	if err != nil {
+		return
+	}
+	valor = valorapr - valorcdpapr + valoranuladocdpapr
+	saldo["saldo"] = valor
+	saldo["comprometido"] = valorcdpapr
+	saldo["comprometido_anulado"] = valoranuladocdpapr
+	return
+}
+
+//funcion para determinar el valor con traslados de la apropiacion
+func ValorApropiacion(Id int) (valor float64, err error) {
 	o := orm.NewOrm()
 	var maps_valor_tot []orm.Params
-	o.Raw("SELECT * FROM financiera.saldo_apropiacion where id = ? AND estado = ?", Id, 2).Values(&maps_valor_tot)
+	_, err = o.Raw(`SELECT valor
+				FROM financiera.apropiacion
+				WHERE id= ?`, Id).Values(&maps_valor_tot)
 	fmt.Println("maps: ", len(maps_valor_tot))
-	if len(maps_valor_tot) > 0 {
+	if len(maps_valor_tot) > 0 && err == nil {
+		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
+	} else {
+		valor = 0
+	}
+
+	return
+}
+
+//funcion para determinar el total del valor de los cdp hechos a una apropiacion
+func ValorCdpPorApropiacion(Id int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps_valor_tot []orm.Params
+	_, err = o.Raw(`SELECT * FROM (SELECT  disponibilidad_apropiacion.apropiacion,
+		COALESCE(sum(disponibilidad_apropiacion.valor),0) AS valor
+	   FROM financiera.disponibilidad
+		 JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+	  GROUP BY disponibilidad_apropiacion.apropiacion) as saldo
+				WHERE apropiacion= ?`, Id).Values(&maps_valor_tot)
+	fmt.Println("maps: ", len(maps_valor_tot))
+	if len(maps_valor_tot) > 0 && err == nil {
+		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
+	} else {
+		valor = 0
+	}
+
+	return
+}
+
+//funcion para determinar el total del valor de los cdp hechos a una apropiacion
+func ValorAnuladoCdpPorApropiacion(Id int) (valor float64, err error) {
+	o := orm.NewOrm()
+	var maps_valor_tot []orm.Params
+	_, err = o.Raw(`SELECT * FROM(SELECT anulacion_disponibilidad.estado_anulacion,
+								disponibilidad_apropiacion.apropiacion,
+								COALESCE(sum(anulacion_disponibilidad_apropiacion.valor),0) AS valor
+	   						FROM financiera.anulacion_disponibilidad_apropiacion
+		 					JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
+		 					JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
+					 		JOIN financiera.anulacion_disponibilidad ON anulacion_disponibilidad.id = anulacion_disponibilidad_apropiacion.anulacion
+	  						GROUP BY  anulacion_disponibilidad.estado_anulacion, disponibilidad_apropiacion.apropiacion) as saldo
+							WHERE apropiacion = ?  AND estado_anulacion = 3`, Id).Values(&maps_valor_tot)
+	fmt.Println("maps: ", len(maps_valor_tot))
+	if len(maps_valor_tot) > 0 && err == nil {
 		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
 	} else {
 		valor = 0
