@@ -175,14 +175,28 @@ func (c *ApropiacionController) Delete() {
 	c.ServeJSON()
 }
 
-//funcion para verificar saldo de una apropiacion
-
+// SaldoApropiacion ...
+// @Title Get Saldo Apropiacion By Id
+// @Description Get Saldo Apropiacion By Id
+// @Param	Id	path 	string	true		"Id de la apropiacion"
+// @Success 200 {object} float64
+// @Failure 403
+// @router /SaldoApropiacion/:id [get]
 func (c *ApropiacionController) SaldoApropiacion() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 
-	valor := models.SaldoApropiacion(id)
-	c.Data["json"] = valor
+	valor, err := models.SaldoApropiacion(id)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = valor
+	}
+
 	c.ServeJSON()
 }
 
