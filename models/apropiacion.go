@@ -173,6 +173,7 @@ func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
 		return
 	}
 	valor = valorapr - valorcdpapr + valoranuladocdpapr
+	saldo["original"] = valorapr
 	saldo["saldo"] = valor
 	saldo["comprometido"] = valorcdpapr
 	saldo["comprometido_anulado"] = valoranuladocdpapr
@@ -375,6 +376,7 @@ func SaldoRubroPadre(Id int, unidadEjecutora int, Vigencia int) (saldo map[strin
 		for hijo := range RamaApropiaciones(done, unidadEjecutora, Vigencia, resch) {
 			saldoaux, err := sumaApropiacionesHoja(hijo)
 			if err == nil {
+				saldo["original"] = saldo["original"] + saldoaux["original"]
 				saldo["saldo"] = saldo["saldo"] + saldoaux["saldo"]
 				saldo["comprometido"] = saldo["comprometido"] + saldoaux["comprometido"]
 				saldo["comprometido_anulado"] = saldo["comprometido_anulado"] + saldoaux["comprometido_anulado"]
@@ -419,6 +421,7 @@ func sumaApropiacionesHoja(fork map[string]interface{}) (saldo map[string]float6
 				for _, subfork := range hijos {
 					saldoaux, err := sumaApropiacionesHoja(subfork)
 					if err == nil {
+						saldo["original"] = saldo["original"] + saldoaux["original"]
 						saldo["saldo"] = saldo["saldo"] + saldoaux["saldo"]
 						saldo["comprometido"] = saldo["comprometido"] + saldoaux["comprometido"]
 						saldo["comprometido_anulado"] = saldo["comprometido_anulado"] + saldoaux["comprometido_anulado"]
