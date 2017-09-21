@@ -186,7 +186,7 @@ func ValorApropiacion(Id int) (valor float64, err error) {
 	_, err = o.Raw(`SELECT valor
 				FROM financiera.apropiacion
 				WHERE id= ?`, Id).Values(&maps_valor_tot)
-	fmt.Println("maps: ", len(maps_valor_tot))
+	//fmt.Println("maps: ", len(maps_valor_tot))
 	if len(maps_valor_tot) > 0 && err == nil {
 		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
 	} else {
@@ -206,7 +206,7 @@ func ValorCdpPorApropiacion(Id int) (valor float64, err error) {
 		 JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
 	  GROUP BY disponibilidad_apropiacion.apropiacion) as saldo
 				WHERE apropiacion= ?`, Id).Values(&maps_valor_tot)
-	fmt.Println("maps: ", len(maps_valor_tot))
+	//fmt.Println("maps: ", len(maps_valor_tot))
 	if len(maps_valor_tot) > 0 && err == nil {
 		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
 	} else {
@@ -229,7 +229,7 @@ func ValorAnuladoCdpPorApropiacion(Id int) (valor float64, err error) {
 					 		JOIN financiera.anulacion_disponibilidad ON anulacion_disponibilidad.id = anulacion_disponibilidad_apropiacion.anulacion
 	  						GROUP BY  anulacion_disponibilidad.estado_anulacion, disponibilidad_apropiacion.apropiacion) as saldo
 							WHERE apropiacion = ?  AND estado_anulacion = 3`, Id).Values(&maps_valor_tot)
-	fmt.Println("maps: ", len(maps_valor_tot))
+	//fmt.Println("maps: ", len(maps_valor_tot))
 	if len(maps_valor_tot) > 0 && err == nil {
 		valor, _ = strconv.ParseFloat(maps_valor_tot[0]["valor"].(string), 64)
 	} else {
@@ -276,9 +276,9 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 					resch := genChanMapStr(res...)
 					var hijos []map[string]interface{}
 					wg.Add(1)
-					//subdone := make(chan map[string]interface{}) // HLdone
-					//defer close(subdone)
-					for hijo := range RamaApropiaciones(done, unidadEjecutora, Vigencia, resch) {
+					subdone := make(chan map[string]interface{}) // HLdone
+					defer close(subdone)
+					for hijo := range RamaApropiaciones(subdone, unidadEjecutora, Vigencia, resch) {
 						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
 					}
 					fork["Hijos"] = hijos
@@ -292,8 +292,10 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 						v, err := GetAllApropiacion(query, nil, nil, nil, 0, 1)
 						if v != nil && err == nil {
 							fork["Apropiacion"] = v[0]
+							fork["Hijos"] = nil
 						} else {
-							fork["Apropiacion"] = Apropiacion{Valor: 0, Vigencia: float64(Vigencia)}
+							fork["Apropiacion"] = nil
+							fork["Hijos"] = nil
 						}
 					} else {
 						ap := Apropiacion{}
@@ -350,4 +352,85 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 		}
 	}
 	return
+}
+
+//SaldoRubroPadre... Funcion para determinar el saldo de un rubro padre a partir de sus hijos.
+func SaldoRubroPadre(Id int, unidadEjecutora int, Vigencia int) (saldo map[string]float64, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	var res []map[string]interface{}
+	saldo = make(map[string]float64)
+	//funcion para conseguir los hijos de los rubros padre.
+	_, err = o.Raw(`SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre", rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
+	  from financiera.rubro
+	  join financiera.rubro_rubro
+		on  rubro_rubro.rubro_hijo = rubro.id
+	  WHERE rubro_rubro.rubro_padre = ?`, Id).Values(&m)
+	if err == nil {
+		err = utilidades.FillStruct(m, &res)
+
+		resch := genChanMapStr(res...)
+		done := make(chan map[string]interface{})
+		defer close(done)
+		for hijo := range RamaApropiaciones(done, unidadEjecutora, Vigencia, resch) {
+			saldoaux, err := sumaApropiacionesHoja(hijo)
+			if err == nil {
+				saldo["saldo"] = saldo["saldo"] + saldoaux["saldo"]
+				saldo["comprometido"] = saldo["comprometido"] + saldoaux["comprometido"]
+				saldo["comprometido_anulado"] = saldo["comprometido_anulado"] + saldoaux["comprometido_anulado"]
+			} else {
+				fmt.Println(err)
+				return saldo, err
+			}
+		}
+
+	}
+	return
+}
+
+//sumaApropiacionesHoja... suma de los saldos de las apropiaciones hoja.
+func sumaApropiacionesHoja(fork map[string]interface{}) (saldo map[string]float64, err error) {
+	saldo = make(map[string]float64)
+	ap := Apropiacion{}
+
+	if fork == nil {
+		return
+	} else {
+		if fork["Hijos"] == nil {
+			err = utilidades.FillStruct(fork["Apropiacion"], &ap)
+			if err == nil {
+				saldo, err = SaldoApropiacion(ap.Id)
+				if ap.Id == 240 {
+					fmt.Println(ap)
+				}
+				if err != nil {
+					fmt.Println("err 1 : ", err)
+				}
+
+				return
+			} else {
+				fmt.Println("err 1 : ", err)
+				return
+			}
+		} else {
+			var hijos []map[string]interface{}
+			err = utilidades.FillStruct(fork["Hijos"], &hijos)
+			if err == nil {
+				for _, subfork := range hijos {
+					saldoaux, err := sumaApropiacionesHoja(subfork)
+					if err == nil {
+						saldo["saldo"] = saldo["saldo"] + saldoaux["saldo"]
+						saldo["comprometido"] = saldo["comprometido"] + saldoaux["comprometido"]
+						saldo["comprometido_anulado"] = saldo["comprometido_anulado"] + saldoaux["comprometido_anulado"]
+
+					}
+
+				}
+				return
+			} else {
+				fmt.Println("err 2 : ", err)
+				return
+			}
+		}
+	}
 }

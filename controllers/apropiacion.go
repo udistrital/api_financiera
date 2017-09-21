@@ -187,6 +187,7 @@ func (c *ApropiacionController) SaldoApropiacion() {
 	id, _ := strconv.Atoi(idStr)
 
 	valor, err := models.SaldoApropiacion(id)
+	//valor, err := models.SaldoRubroPadre(id, 1, 2017)
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
@@ -195,6 +196,38 @@ func (c *ApropiacionController) SaldoApropiacion() {
 		c.Data["json"] = alert
 	} else {
 		c.Data["json"] = valor
+	}
+
+	c.ServeJSON()
+}
+
+// SaldoApropiacionPadre ...
+// @Title Get Saldo Apropiacion By Id
+// @Description Get Saldo Apropiacion By Id
+// @Param	Id	path 	string	true		"Id del rubro padre"
+// @Param	UnidadEjecutora	query	string	false	"Unidad Ejecutora de los rubros hijo"
+// @Param	Vigencia	query	string	false	"Vigencia de las apropiaciones a consultar"
+// @Success 200 {object} float64
+// @Failure 403
+// @router /SaldoApropiacionPadre/:id [get]
+func (c *ApropiacionController) SaldoApropiacionPadre() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	ue, err := c.GetInt("UnidadEjecutora")
+	vigencia, err1 := c.GetInt("Vigencia")
+	if err == nil && err1 == nil {
+		valor, err := models.SaldoRubroPadre(id, ue, vigencia)
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = valor
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: nil, Type: "error"}
 	}
 
 	c.ServeJSON()
