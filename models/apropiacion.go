@@ -13,7 +13,7 @@ import (
 )
 
 type Apropiacion struct {
-	Id       int                `orm:"column(id);pk"`
+	Id       int                `orm:"column(id);pk;auto"`
 	Vigencia float64            `orm:"column(vigencia)"`
 	Rubro    *Rubro             `orm:"column(rubro);rel(fk)"`
 	Valor    float64            `orm:"column(valor)"`
