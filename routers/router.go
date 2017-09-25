@@ -540,6 +540,12 @@ func init() {
 				&controllers.FormaPagoController{},
 			),
 		),
+
+		beego.NSNamespace("/sub_tipo_orden_pago",
+			beego.NSInclude(
+				&controllers.TipoOrdenPagoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
