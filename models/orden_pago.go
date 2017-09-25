@@ -21,15 +21,12 @@ type Data_OrdenPago_Concepto struct {
 type OrdenPago struct {
 	Id                       int                         `orm:"column(id);pk;auto"`
 	Vigencia                 float64                     `orm:"column(vigencia)"`
-	FechaCreacion            time.Time                   `orm:"column(fecha_creacion);type(date)"`
 	RegistroPresupuestal     *RegistroPresupuestal       `orm:"column(registro_presupuestal);rel(fk)"`
 	ValorBase                float64                     `orm:"column(valor_base)"`
-	PersonaElaboro           int                         `orm:"column(persona_elaboro)"`
 	Convenio                 int                         `orm:"column(convenio);null"`
-	TipoOrdenPago            *TipoOrdenPago              `orm:"column(tipo_orden_pago);rel(fk)"`
+	SubTipoOrdenPago         *SubTipoOrdenPago           `orm:"column(sub_tipo_orden_pago);rel(fk)"`
 	UnidadEjecutora          *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
 	Iva                      *Iva                        `orm:"column(iva);rel(fk)"`
-	Nomina                   string                      `orm:"column(nomina)"`
 	Liquidacion              int                         `orm:"column(liquidacion);null"`
 	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
 	Consecutivo              int                         `orm:"column(consecutivo)"`
@@ -182,8 +179,8 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
 	m.OrdenPago.Consecutivo = consecutivoOp
-	m.OrdenPago.FechaCreacion = time.Now()
-	m.OrdenPago.Nomina = "PROVEEDOR"
+	//16309 m.OrdenPago.FechaCreacion = time.Now()
+	//16309 m.OrdenPago.Nomina = "PROVEEDOR"
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
 	err = o.Read(&estadoOP, "CodigoAbreviacion")
@@ -261,7 +258,7 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 	orden := OrdenPago{Id: m.OrdenPago.Id}
 	if o.Read(&orden) == nil {
 		orden.Iva = m.OrdenPago.Iva
-		orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
+		// 16309 orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
 		orden.FormaPago = m.OrdenPago.FormaPago
 		orden.ValorBase = m.OrdenPago.ValorBase
 		if _, err = o.Update(&orden); err != nil {
@@ -348,10 +345,10 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
 	newOrden.Consecutivo = consecutivoOp
-	newOrden.FechaCreacion = time.Now()
-	newOrden.Nomina = "PLANTA"
-	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
+	// 16309 newOrden.FechaCreacion = time.Now()
+	// 16309 newOrden.Nomina = "PLANTA"
+	newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
+	// 16309 newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
 	err = o.Read(&estadoOP, "CodigoAbreviacion")
@@ -533,10 +530,10 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
 	newOrden.Consecutivo = consecutivoOp
-	newOrden.FechaCreacion = time.Now()
-	newOrden.Nomina = "SEGURIDAD SOCIAL"
-	newOrden.Iva = &Iva{Id: 1}                     //1 iva del 0%
-	newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
+	// 16309 newOrden.FechaCreacion = time.Now()
+	// 16309 newOrden.Nomina = "SEGURIDAD SOCIAL"
+	newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
+	// 16309 newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
 	err = o.Read(&estadoOP, "CodigoAbreviacion")
