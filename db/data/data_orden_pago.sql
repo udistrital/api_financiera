@@ -9,13 +9,18 @@ INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, 
 INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Enviada', true, 'Funcionario de Presupuesto Envia la OP a Tesoreria', 'EOP_06', 6.00);
 INSERT INTO estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Radicaca', true, 'Funcionario de Tesoreria Radica la OP', 'EOP_07', 7.00);
 
--- Tipo // falata estanar
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Factura', true, 'Documento de tipo OP');
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Cuenta de Cobro', true, 'Documento de tipo OP');
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Resolución', true, 'Documento de tipo OP');
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Sentencia Juridica', true, 'Documento de tipo OP');
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Pago Invitación', true, 'Documento de tipo OP');
-INSERT INTO tipo_orden_pago (nombre, estado_activo, descripcion) VALUES ('Poliza', true, 'Documento de tipo OP');
+-- Tipo //
+INSERT INTO tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Proveedor', true, 'Orden de pago para proveedores o contratistas', 'OP-PROV', 1);
+INSERT INTO tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Planta', true, 'Orden de pago para nominas de planta', 'OP-PLAN', 2);
+
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Factura', true, 'Orden de pago tipo Factura', 'OP-PROV-FACT', 1.1);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Cuenta de Cobro', true, 'Orden de pago para Cuenta de Cobro', 'OP-PROV-CC', 1.2);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Sentencia Juridica', true, 'Orden de pago para Sentencia Juridica', 'OP-PROV-SJ', 1.3);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Pago Invitación', true, 'Orden de pago para Pago Invitación', 'OP-PROV-PI', 1.4);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Poliza', true, 'Orden de pago para Poliza', 'OP-PROV-POLI', 1.5);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Seguridad Social', true, 'Orden de pago para Seguridad Social', 'OP-PROV-SS', 1.6);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Administrativa', true, 'Orden de pago para nominas de planta administrativa', 'OP-PLAN-ADMI', 2.1);
+INSERT INTO sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Docente', true, 'Orden de pago para nominas de nomina de Docentes', 'OP-PLAN-ADMI', 2.2);
 
 -- Tipo documento afectante  // falta estandar
 INSERT INTO tipo_documento_afectante (nombre, descripcion) VALUES ('Orden de Pago', NULL);
