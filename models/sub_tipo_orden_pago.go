@@ -5,52 +5,53 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type GiroEstadoGiro struct {
-	Id            int         `orm:"column(id);pk;auto"`
-	Giro          *Giro       `orm:"column(giro);rel(fk)"`
-	EstadoGiro    *EstadoGiro `orm:"column(estado_giro);rel(fk)"`
-	FechaRegistro time.Time   `orm:"column(fecha_registro);type(date)"`
-	Usuario       int         `orm:"column(usuario);null"`
+type SubTipoOrdenPago struct {
+	Id                int            `orm:"column(id);pk;auto"`
+	Nombre            string         `orm:"column(nombre)"`
+	Descripcion       string         `orm:"column(descripcion);null"`
+	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
+	Activo            bool           `orm:"column(activo)"`
+	NumeroOrden       float64        `orm:"column(numero_orden);null"`
+	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
 }
 
-func (t *GiroEstadoGiro) TableName() string {
-	return "giro_estado_giro"
+func (t *SubTipoOrdenPago) TableName() string {
+	return "sub_tipo_orden_pago"
 }
 
 func init() {
-	orm.RegisterModel(new(GiroEstadoGiro))
+	orm.RegisterModel(new(SubTipoOrdenPago))
 }
 
-// AddGiroEstadoGiro insert a new GiroEstadoGiro into database and returns
+// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
 // last inserted Id on success.
-func AddGiroEstadoGiro(m *GiroEstadoGiro) (id int64, err error) {
+func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetGiroEstadoGiroById retrieves GiroEstadoGiro by Id. Returns error if
+// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
 // Id doesn't exist
-func GetGiroEstadoGiroById(id int) (v *GiroEstadoGiro, err error) {
+func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
 	o := orm.NewOrm()
-	v = &GiroEstadoGiro{Id: id}
+	v = &SubTipoOrdenPago{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllGiroEstadoGiro retrieves all GiroEstadoGiro matches certain condition. Returns empty list if
+// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
 // no records exist
-func GetAllGiroEstadoGiro(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(GiroEstadoGiro))
+	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +101,7 @@ func GetAllGiroEstadoGiro(query map[string]string, fields []string, sortby []str
 		}
 	}
 
-	var l []GiroEstadoGiro
+	var l []SubTipoOrdenPago
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +124,11 @@ func GetAllGiroEstadoGiro(query map[string]string, fields []string, sortby []str
 	return nil, err
 }
 
-// UpdateGiroEstadoGiro updates GiroEstadoGiro by Id and returns error if
+// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateGiroEstadoGiroById(m *GiroEstadoGiro) (err error) {
+func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	o := orm.NewOrm()
-	v := GiroEstadoGiro{Id: m.Id}
+	v := SubTipoOrdenPago{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +139,15 @@ func UpdateGiroEstadoGiroById(m *GiroEstadoGiro) (err error) {
 	return
 }
 
-// DeleteGiroEstadoGiro deletes GiroEstadoGiro by Id and returns error if
+// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteGiroEstadoGiro(id int) (err error) {
+func DeleteSubTipoOrdenPago(id int) (err error) {
 	o := orm.NewOrm()
-	v := GiroEstadoGiro{Id: id}
+	v := SubTipoOrdenPago{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&GiroEstadoGiro{Id: id}); err == nil {
+		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
