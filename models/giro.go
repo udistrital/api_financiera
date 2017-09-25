@@ -16,7 +16,7 @@ type Giro struct {
 	ValorTotal     float64         `orm:"column(valor_total)"`
 	CuentaBancaria *CuentaBancaria `orm:"column(cuenta_bancaria);rel(fk)"`
 	Vigencia       float64         `orm:"column(vigencia);null"`
-	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *Giro) TableName() string {
