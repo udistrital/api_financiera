@@ -34,3 +34,10 @@ INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, co
 INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 291);
 INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 77, 1213);
 INSERT INTO homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 269);
+
+-- reiniciar secuencias
+alter sequence financiera.orden_pago_id_seq restart 1;
+alter sequence financiera.concepto_orden_pago_id_seq restart 1;
+delete from financiera.movimiento_contable;
+alter sequence financiera.movimiento_contable_id_seq restart 1;
+alter sequence financiera.orden_pago_estado_orden_pago_id_seq restart 1;
