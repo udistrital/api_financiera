@@ -1,0 +1,6 @@
+language: go
+go:
+- 1.7.x
+script:
+- go test -v ./...
+- GOOS=linux GOARCH=amd64 go build -o cancelacion_semestre_api main.go
