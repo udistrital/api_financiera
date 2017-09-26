@@ -14,7 +14,7 @@ type EstadoGiro struct {
 	Nombre            string  `orm:"column(nombre)"`
 	Descripcion       string  `orm:"column(descripcion);null"`
 	Activo            bool    `orm:"column(activo)"`
-	CodigoAbreviatura string  `orm:"column(codigo_abreviatura);null"`
+	CodigoAbreviatura string  `orm:"column(codigo_abreviacion);null"`
 	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
