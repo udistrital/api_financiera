@@ -16,6 +16,12 @@ import (
 func init() {
 	ns := beego.NewNamespace("/v1",
 
+		beego.NSNamespace("/etapa",
+			beego.NSInclude(
+				&controllers.EtapaController{},
+			),
+		),
+
 		beego.NSNamespace("/tipo_movimiento",
 			beego.NSInclude(
 				&controllers.TipoMovimientoController{},
