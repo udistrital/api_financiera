@@ -543,7 +543,7 @@ func init() {
 
 		beego.NSNamespace("/sub_tipo_orden_pago",
 			beego.NSInclude(
-				&controllers.TipoOrdenPagoController{},
+				&controllers.SubTipoOrdenPagoController{},
 			),
 		),
 	)
