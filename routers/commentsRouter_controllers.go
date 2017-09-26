@@ -289,6 +289,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"],
 		beego.ControllerComments{
+			Method: "AprobarPresupuesto",
+			Router: `/AprobacionAsignacionInicial/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
 			Method: "ArbolApropiaciones",
 			Router: `/ArbolApropiaciones/:vigencia`,
 			AllowHTTPMethods: []string{"get"},

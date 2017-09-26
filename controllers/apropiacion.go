@@ -298,3 +298,36 @@ func (c *ApropiacionController) ArbolApropiaciones() {
 
 	c.ServeJSON()
 }
+
+// AprobarPresupuesto ...
+// @Title AprobarPresupuesto
+// @Description aprueba la asignacion inicial de presupuesto
+// @Param	Vigencia		query 	string	true		"vigencia a comprobar"
+// @Param	UnidadEjecutora		query 	string	true		"unidad ejecutora de los rubros a comprobar"
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /AprobacionAsignacionInicial/ [get]
+func (c *ApropiacionController) AprobarPresupuesto() {
+	vigencia, err := c.GetInt("Vigencia")
+	if err == nil {
+		unidadejecutora, err := c.GetInt("UnidadEjecutora")
+		if err == nil {
+			err = models.AprobarPresupuesto(unidadejecutora, vigencia)
+			if err == nil {
+				c.Data["json"] = models.Alert{Code: "S_AP001", Body: nil, Type: "success"}
+			} else {
+				alertdb := structs.Map(err)
+				var code string
+				utilidades.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+			}
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+	c.ServeJSON()
+}

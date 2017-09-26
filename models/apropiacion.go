@@ -439,3 +439,26 @@ func sumaApropiacionesHoja(fork map[string]interface{}) (saldo map[string]float6
 		}
 	}
 }
+
+//AprobarPresupuesto... Aprobacion de presupuesto (cambio de estado).
+func AprobarPresupuesto(UnidadEjecutora int, Vigencia int) (err error) {
+	query := make(map[string]string)
+	o := orm.NewOrm()
+	query["Rubro.UnidadEjecutora"] = strconv.Itoa(UnidadEjecutora)
+	query["Vigencia"] = strconv.Itoa(Vigencia)
+	fmt.Println(query)
+	v, err := GetAllApropiacion(query, nil, nil, nil, 0, -1)
+	o.Begin()
+	ap := Apropiacion{}
+	for _, apropiacion := range v {
+		utilidades.FillStruct(apropiacion, &ap)
+		ap.Estado.Id = 2
+		_, err = o.Update(&ap)
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
+	o.Commit()
+	return
+}
