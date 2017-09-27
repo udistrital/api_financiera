@@ -17,6 +17,9 @@ type Data_OrdenPago_Concepto struct {
 	ConceptoOrdenPago  []ConceptoOrdenPago
 	MovimientoContable []MovimientoContable
 }
+type Usuario struct {
+	Id int
+}
 
 type OrdenPago struct {
 	Id                       int                         `orm:"column(id);pk;auto"`
@@ -171,19 +174,35 @@ func DeleteOrdenPago(id int) (err error) {
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, consecutivoOp int) {
+func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
 	var idOrdenPago int64
 	o := orm.NewOrm()
 	o.Begin()
-	// datos Orden de pago
+	// == GetData
+	ordenPago := OrdenPago{}
+	conceptoOrdenPago := []ConceptoOrdenPago{}
+	movimientoContable := []MovimientoContable{}
+	usuario := Usuario{}
+	err = utilidades.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
+	err = utilidades.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err = utilidades.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
+	err = utilidades.FillStruct(DataOpProveedor["Usuario"], &usuario)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //error en parametros de entrada
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
+	// == Datos Orden de pago
+	// Consecutivo
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
-	m.OrdenPago.Consecutivo = consecutivoOp
-	//16309 m.OrdenPago.FechaCreacion = time.Now()
-	//16309 m.OrdenPago.Nomina = "PROVEEDOR"
+	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
-	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
-	err = o.Read(&estadoOP, "CodigoAbreviacion")
+	estadoOpObj := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
+	err = o.Read(&estadoOpObj, "CodigoAbreviacion")
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //en busqueda de estado
@@ -192,7 +211,7 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 		return
 	}
 	// Registrar OP
-	idOrdenPago, err = o.Insert(&m.OrdenPago)
+	idOrdenPago, err = o.Insert(&ordenPago)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
@@ -200,12 +219,14 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 		o.Rollback()
 		return
 	}
-	// registrar estado OP
-	newEstadoOP := OrdenPagoEstadoOrdenPago{}
-	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
-	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
-	newEstadoOP.FechaRegistro = time.Now()
-	_, err = o.Insert(&newEstadoOP)
+	// Registrar estado OP
+	newEstadoOp := OrdenPagoEstadoOrdenPago{}
+	newEstadoOp.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
+	newEstadoOp.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOpObj.Id)}
+	newEstadoOp.FechaRegistro = time.Now()
+	newEstadoOp.Usuario = usuario.Id
+
+	_, err = o.Insert(&newEstadoOp)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
@@ -213,10 +234,11 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 		o.Rollback()
 		return
 	}
-	// Insertar data Conceptos
-	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
-		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
-		_, err = o.Insert(&m.ConceptoOrdenPago[i])
+
+	//== Insertar data Conceptos
+	for i := 0; i < len(conceptoOrdenPago); i++ {
+		conceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
+		_, err = o.Insert(&conceptoOrdenPago[i])
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_02"
@@ -226,18 +248,18 @@ func RegistrarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, 
 		}
 	}
 	// Insertar data Movimientos Contables
-	for i := 0; i < len(m.MovimientoContable); i++ {
-		movimientoContable := MovimientoContable{
-			Debito:                   m.MovimientoContable[i].Debito,
-			Credito:                  m.MovimientoContable[i].Credito,
+	for i := 0; i < len(movimientoContable); i++ {
+		movimientoContableData := MovimientoContable{
+			Debito:                   movimientoContable[i].Debito,
+			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
-			Concepto:                 m.MovimientoContable[i].Concepto,
-			CuentaContable:           m.MovimientoContable[i].CuentaContable,
+			Concepto:                 movimientoContable[i].Concepto,
+			CuentaContable:           movimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			Aprobado:                 false,
 		}
-		_, err = o.Insert(&movimientoContable)
+		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_03"

@@ -1,4 +1,11 @@
-SET search_path TO financiera;
+-- eliminar todas las ordens
+
+delete from financiera.movimiento_contable;
+delete from financiera.concepto_orden_pago;
+delete from financiera.orden_pago_estado_orden_pago;
+delete from financiera.orden_pago;
+
+
 -- orden  pago
 delete from financiera.orden_pago;
 alter sequence financiera.orden_pago_id_seq restart 1;
