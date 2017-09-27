@@ -17,7 +17,7 @@ type AvanceEstadoAvance struct {
 	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
 	Observaciones   string           `orm:"column(observaciones)"`
 	Usuario         string           `orm:"column(usuario)"`
-	Estado          string           `orm:"column(estado)"`
+	Activo          bool             `orm:"column(activo)"`
 }
 
 func (t *AvanceEstadoAvance) TableName() string {

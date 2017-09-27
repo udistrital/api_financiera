@@ -78,11 +78,13 @@ func (c *RubroController) GetOne() {
 // ArbolRubros ...
 // @Title ArbolRubros
 // @Description genera arbol rubros
+// @Param	idpadre		path 	string	true		"Id del padre para armar la rama default todos"
 // @Success 200 {object} models.Rubro
 // @Failure 403 :id is empty
 // @router ArbolRubros/ [get]
 func (c *RubroController) ArbolRubros() {
-	v, err := models.ArbolRubros(1)
+	idpadre, err := c.GetInt("idpadre")
+	v, err := models.ArbolRubros(1, idpadre)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {

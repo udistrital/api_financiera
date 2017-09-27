@@ -805,16 +805,21 @@ func RamaRubros(done <-chan map[string]interface{}, unidadEjecutora int, forksin
 }
 
 // Generar arbol de rubros.
-func ArbolRubros(unidadEjecutora int) (padres []map[string]interface{}, err error) {
+func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	//funcion para conseguir los rubros padre.
+	searchparam := ""
+	if CodigoPadre != 0 {
+		searchparam = strconv.Itoa(CodigoPadre)
+	}
+	searchparam = searchparam + "%"
+
+	//funcion para conseguir los rubros padre. OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
 	_, err = o.Raw(`  SELECT rubro.id as "Id", rubro.codigo as "Codigo",rubro.nombre as "Nombre" , rubro.descripcion as "Descripcion", rubro.unidad_ejecutora as "UnidadEjecutora"
 	    from financiera.rubro
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
-			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
-			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+			  AND rubro.codigo LIKE ?`, searchparam).Values(&m)
 	if err == nil {
 		var res []map[string]interface{}
 		err = utilidades.FillStruct(m, &res)

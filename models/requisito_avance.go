@@ -12,12 +12,12 @@ import (
 
 type RequisitoAvance struct {
 	Id            int       `orm:"column(id);pk;auto"`
-	Referencia    string    `orm:"column(referencia)"`
+	CodigoAbreviacion    string    `orm:"column(codigo_abreviacion)"`
 	Nombre        string    `orm:"column(nombre)"`
 	Descripcion   string    `orm:"column(descripcion)"`
-	Estado        string    `orm:"column(estado)"`
-	Etapa         string    `orm:"column(etapa)"`
-	FechaRegistro time.Time `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	Activo        bool      `orm:"column(activo)"`
+	Etapa 		  *Etapa    `orm:"column(etapa);rel(fk)"`
+	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *RequisitoAvance) TableName() string {
@@ -32,8 +32,8 @@ func init() {
 // last inserted Id on success.
 func AddRequisitoAvance(m *RequisitoAvance) (id int64, err error) {
 	o := orm.NewOrm()
-	m.Estado = "A"
-	m.FechaRegistro = time.Now()
+	m.Activo = true
+	m.FechaRegistro = time.Now().Local()
 	id, err = o.Insert(m)
 	return
 }
@@ -54,7 +54,7 @@ func GetRequisitoAvanceById(id int) (v *RequisitoAvance, err error) {
 func GetAllRequisitoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RequisitoAvance))
+	qs := o.QueryTable(new(RequisitoAvance)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
