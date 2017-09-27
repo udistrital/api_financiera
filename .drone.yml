@@ -20,7 +20,9 @@ build:
       - GOOS=windows GOARCH=amd64 go build -o target/api_financiera-$${COMMIT:0:7}-windows-x86_64.exe
       - GOOS=darwin GOARCH=amd64 go build -o target/api_financiera-$${COMMIT:0:7}-darwin-x86_64
     when:
-      branch: master
+      branch:
+        - develop
+        - master
 
 # package:
 #   image: alpine
@@ -42,14 +44,24 @@ publish:
     when:
       branch: master
 
-# notify:
-#   webhook:
-#     urls:
-#       - https://api.telegram.org/bot$$DRONE_TELEGRAM_TOKEN/sendMessage
-#     content_type: application/json
-#     template: >
-#       {
-#         "chat_id": "-129350403",
-#         "parse_mode": "Markdown",
-#         "text": "`{{repo.full_name}}` [{{uppercase build.status}}]({{build.link_url}}) `{{build.branch}}`@{{truncate build.commit 7}}"
-# }
+deploy:
+  ssh:
+    host: 10.20.0.254
+    user: alejandrodc
+    port: 37511
+    commands:
+      - touch hello_world.txt
+    when:
+      branch: develop
+
+notify:
+  webhook:
+    urls:
+      - https://api.telegram.org/bot$$DRONE_TELEGRAM_TOKEN/sendMessage
+    content_type: application/json
+    template: >
+      {
+        "chat_id": "-162718164",
+        "parse_mode": "Markdown",
+        "text": "`{{repo.full_name}}` [{{uppercase build.status}}]({{build.link_url}}) `{{build.branch}}`@{{truncate build.commit 7}}"
+}
