@@ -211,9 +211,10 @@ func (c *OrdenPagoController) RegistrarOpProveedor() {
 // @Failure 403 body is empty
 // @router ActualizarOpProveedor [post]
 func (c *OrdenPagoController) ActualizarOpProveedor() {
-	var v models.Data_OrdenPago_Concepto
+	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		alerta, err, consecutivoOp := models.ActualizarOpProveedor(&v)
+		m := v.(map[string]interface{})
+		alerta, err, consecutivoOp := models.ActualizarOpProveedor(m)
 		if err != nil {
 			c.Data["json"] = alerta
 		} else {

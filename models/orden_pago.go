@@ -12,11 +12,6 @@ import (
 	"github.com/udistrital/api_financiera/utilidades"
 )
 
-type Data_OrdenPago_Concepto struct {
-	OrdenPago          OrdenPago
-	ConceptoOrdenPago  []ConceptoOrdenPago
-	MovimientoContable []MovimientoContable
-}
 type Usuario struct {
 	Id int
 }
@@ -273,16 +268,33 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 }
 
 // personalizado Actualiza orden_pago, concepto_ordenpago y movimeintos contalbes
-func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error, consecutivoOp int) {
+func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
 	o := orm.NewOrm()
 	o.Begin()
+	// GetData
+	ordenPago := OrdenPago{}
+	conceptoOrdenPago := []ConceptoOrdenPago{}
+	movimientoContable := []MovimientoContable{}
+	usuario := Usuario{}
+	err = utilidades.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
+	err = utilidades.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err = utilidades.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
+	err = utilidades.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_UPD_01" //error en parametros de entrada
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
 	// Actualizar datos de la Orden
-	orden := OrdenPago{Id: m.OrdenPago.Id}
+	orden := OrdenPago{Id: ordenPago.Id}
 	if o.Read(&orden) == nil {
-		orden.Iva = m.OrdenPago.Iva
-		// 16309 orden.TipoOrdenPago = m.OrdenPago.TipoOrdenPago
-		orden.FormaPago = m.OrdenPago.FormaPago
-		orden.ValorBase = m.OrdenPago.ValorBase
+		orden.Iva = ordenPago.Iva
+		orden.SubTipoOrdenPago = ordenPago.SubTipoOrdenPago
+		orden.FormaPago = ordenPago.FormaPago
+		orden.ValorBase = ordenPago.ValorBase
 		if _, err = o.Update(&orden); err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_UPD_01"
@@ -293,9 +305,10 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 			consecutivoOp = orden.Consecutivo
 		}
 	}
+
 	// Eliminar Conceptos Orden de Pagos y Movimientos contables
-	if len(m.ConceptoOrdenPago) > 0 {
-		_, err = o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", m.OrdenPago.Id).Exec()
+	if len(conceptoOrdenPago) > 0 {
+		_, err = o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", ordenPago.Id).Exec()
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_UPD_02"
@@ -304,8 +317,8 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 			return
 		}
 	}
-	if len(m.MovimientoContable) > 0 {
-		_, err = o.Raw("DELETE FROM financiera.movimiento_contable where codigo_documento_afectante = ?", m.OrdenPago.Id).Exec()
+	if len(movimientoContable) > 0 {
+		_, err = o.Raw("DELETE FROM financiera.movimiento_contable where codigo_documento_afectante = ?", ordenPago.Id).Exec()
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_UPD_03"
@@ -316,9 +329,9 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 	}
 	// Insertar Nueva Data Conceptos Orden de Pagos y Movimientos contables
 	//Conceptos
-	for i := 0; i < len(m.ConceptoOrdenPago); i++ {
-		m.ConceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(m.OrdenPago.Id)}
-		_, err = o.Insert(&m.ConceptoOrdenPago[i])
+	for i := 0; i < len(conceptoOrdenPago); i++ {
+		conceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(ordenPago.Id)}
+		_, err = o.Insert(&conceptoOrdenPago[i])
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_UPD_04"
@@ -328,18 +341,18 @@ func ActualizarOpProveedor(m *Data_OrdenPago_Concepto) (alerta Alert, err error,
 		}
 	}
 	//Movimientos
-	for i := 0; i < len(m.MovimientoContable); i++ {
-		movimientoContable := MovimientoContable{
-			Debito:                   m.MovimientoContable[i].Debito,
-			Credito:                  m.MovimientoContable[i].Credito,
+	for i := 0; i < len(movimientoContable); i++ {
+		movimientoContableData := MovimientoContable{
+			Debito:                   movimientoContable[i].Debito,
+			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
-			Concepto:                 m.MovimientoContable[i].Concepto,
-			CuentaContable:           m.MovimientoContable[i].CuentaContable,
+			Concepto:                 movimientoContable[i].Concepto,
+			CuentaContable:           movimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
-			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
+			CodigoDocumentoAfectante: int(ordenPago.Id),
 			Aprobado:                 false,
 		}
-		_, err = o.Insert(&movimientoContable)
+		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
 			alerta.Type = "error"
 			alerta.Code = "E_OPP_UPD_05"
