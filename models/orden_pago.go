@@ -193,7 +193,11 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 	// == Datos Orden de pago
 	// Consecutivo
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
-			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+				FROM financiera.orden_pago as op
+				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
+				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
+				and tipo.codigo_abreviacion = 'OP-PROV'
+	`).QueryRow(&consecutivoOp)
 	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
 	estadoOpObj := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
