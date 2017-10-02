@@ -22,7 +22,6 @@ type SolicitudAvance struct {
 	Convenio                 string  `orm:"column(convenio);null"`
 	CodigoProyectoInv        string  `orm:"column(codigo_proyecto_inv);null"`
 	ProyectoInv              string  `orm:"column(proyecto_inv);null"`
-	Activo                   bool  `orm:"column(activo)"`
 }
 
 func (t *SolicitudAvance) TableName() string {
@@ -38,7 +37,6 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
 	if err == nil {
 		fmt.Println("Solicitud: ", solicitud)
-		solicitud.Activo = true
 		//solicitud.Fecha = time.Now()
 		solicitud.Vigencia = int(time.Now().Year())
 		o := orm.NewOrm()
@@ -69,9 +67,7 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 						estadoAvance.SolicitudAvance = &solicitud
 						estadoAvance.FechaRegistro = time.Now()
 						estadoAvance.Observaciones = "Registro inicial de la Solicitud de Avance"
-						estadoAvance.Usuario = "System"
-						estadoAvance.Usuario = "System"
-						estadoAvance.Activo = true
+						estadoAvance.Responsable = 1
 						_, err = o.Insert(&estadoAvance)
 						if err == nil {
 							o.Commit()
