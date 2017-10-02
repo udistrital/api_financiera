@@ -819,6 +819,8 @@ func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]inte
 	    from financiera.rubro
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+					AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
 			  AND rubro.codigo LIKE ?`, searchparam).Values(&m)
 	if err == nil {
 		var res []map[string]interface{}

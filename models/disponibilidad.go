@@ -38,18 +38,45 @@ func init() {
 
 // AddDisponibilidad insert a new Disponibilidad into database and returns
 // last inserted Id on success.
-func AddDisponibilidad(m *Disponibilidad) (id int64, err error) {
+func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	var consecutivo float64
+	var afectacion []DisponibilidadApropiacion
 	err = o.Raw(`SELECT COALESCE(MAX(numero_disponibilidad), 0)+1  as consecutivo
-					FROM financiera.disponibilidad WHERE vigencia = ?`, m.Vigencia).QueryRow(&consecutivo)
-	m.NumeroDisponibilidad = consecutivo
+					FROM financiera.disponibilidad WHERE vigencia = ?`, int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64))).QueryRow(&consecutivo)
+	err = utilidades.FillStruct(m["Disponibilidad"], &v)
+	if err != nil {
+		o.Rollback()
+		fmt.Println(m["Disponibilidad"])
+		return
+	}
+	v.NumeroDisponibilidad = consecutivo
 	if err != nil {
 		o.Rollback()
 		return
 	}
-	id, err = o.Insert(m)
+	_, err = o.Insert(&v)
+	if err == nil {
+		err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+		if err == nil {
+			for _, row := range afectacion {
+				row.Disponibilidad = &v
+				_, err = o.Insert(&row)
+				if err != nil {
+					o.Rollback()
+					return
+				}
+			}
+		} else {
+			o.Rollback()
+			return
+		}
+
+	} else {
+		o.Rollback()
+		return
+	}
 	o.Commit()
 	return
 }
