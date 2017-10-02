@@ -24,7 +24,6 @@ type OrdenPago struct {
 	Convenio                 int                         `orm:"column(convenio);null"`
 	SubTipoOrdenPago         *SubTipoOrdenPago           `orm:"column(sub_tipo_orden_pago);rel(fk)"`
 	UnidadEjecutora          *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	Iva                      *Iva                        `orm:"column(iva);rel(fk)"`
 	Liquidacion              int                         `orm:"column(liquidacion);null"`
 	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
 	Consecutivo              int                         `orm:"column(consecutivo)"`
@@ -295,7 +294,7 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	// Actualizar datos de la Orden
 	orden := OrdenPago{Id: ordenPago.Id}
 	if o.Read(&orden) == nil {
-		orden.Iva = ordenPago.Iva
+		//orden.Iva = ordenPago.Iva
 		orden.SubTipoOrdenPago = ordenPago.SubTipoOrdenPago
 		orden.FormaPago = ordenPago.FormaPago
 		orden.ValorBase = ordenPago.ValorBase
@@ -386,7 +385,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	newOrden.Consecutivo = consecutivoOp
 	// 16309 newOrden.FechaCreacion = time.Now()
 	// 16309 newOrden.Nomina = "PLANTA"
-	newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
+	//newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
 	// 16309 newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
@@ -571,7 +570,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 	newOrden.Consecutivo = consecutivoOp
 	// 16309 newOrden.FechaCreacion = time.Now()
 	// 16309 newOrden.Nomina = "SEGURIDAD SOCIAL"
-	newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
+	//newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
 	// 16309 newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}

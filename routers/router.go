@@ -446,18 +446,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/categoria_iva",
-			beego.NSInclude(
-				&controllers.CategoriaIvaController{},
-			),
-		),
-
-		beego.NSNamespace("/iva",
-			beego.NSInclude(
-				&controllers.IvaController{},
-			),
-		),
-
 		beego.NSNamespace("/arbol_plan_cuentas",
 			beego.NSInclude(
 				&controllers.ArbolPlanCuentasController{},
