@@ -60,9 +60,8 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 			estadoAvance.EstadoAvance = &estadoVerificado
 			estadoAvance.SolicitudAvance = &solicitud
 			estadoAvance.FechaRegistro = time.Now()
-			estadoAvance.Usuario = "System"
+			estadoAvance.Responsable = 1
 			estadoAvance.Observaciones = "Requisitos Verificados"
-			estadoAvance.Activo = true
 			fmt.Println("solicitud: ", solicitud)
 			_, err = o.Insert(&estadoAvance)
 			if err == nil {

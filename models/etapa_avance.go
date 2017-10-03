@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type Etapa struct {
+type EtapaAvance struct {
 	Id                int     `orm:"column(id);pk"`
 	Nombre            string  `orm:"column(nombre)"`
 	Descripcion       string  `orm:"column(descripcion);null"`
@@ -18,39 +18,39 @@ type Etapa struct {
 	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *Etapa) TableName() string {
-	return "etapa"
+func (t *EtapaAvance) TableName() string {
+	return "etapa_avance"
 }
 
 func init() {
-	orm.RegisterModel(new(Etapa))
+	orm.RegisterModel(new(EtapaAvance))
 }
 
-// AddEtapa insert a new Etapa into database and returns
+// AddEtapaAvance insert a new EtapaAvance into database and returns
 // last inserted Id on success.
-func AddEtapa(m *Etapa) (id int64, err error) {
+func AddEtapaAvance(m *EtapaAvance) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEtapaById retrieves Etapa by Id. Returns error if
+// GetEtapaAvanceById retrieves EtapaAvance by Id. Returns error if
 // Id doesn't exist
-func GetEtapaById(id int) (v *Etapa, err error) {
+func GetEtapaAvanceById(id int) (v *EtapaAvance, err error) {
 	o := orm.NewOrm()
-	v = &Etapa{Id: id}
+	v = &EtapaAvance{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEtapa retrieves all Etapa matches certain condition. Returns empty list if
+// GetAllEtapaAvance retrieves all EtapaAvance matches certain condition. Returns empty list if
 // no records exist
-func GetAllEtapa(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEtapaAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Etapa))
+	qs := o.QueryTable(new(EtapaAvance))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +100,7 @@ func GetAllEtapa(query map[string]string, fields []string, sortby []string, orde
 		}
 	}
 
-	var l []Etapa
+	var l []EtapaAvance
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +123,11 @@ func GetAllEtapa(query map[string]string, fields []string, sortby []string, orde
 	return nil, err
 }
 
-// UpdateEtapa updates Etapa by Id and returns error if
+// UpdateEtapaAvance updates EtapaAvance by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEtapaById(m *Etapa) (err error) {
+func UpdateEtapaAvanceById(m *EtapaAvance) (err error) {
 	o := orm.NewOrm()
-	v := Etapa{Id: m.Id}
+	v := EtapaAvance{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +138,15 @@ func UpdateEtapaById(m *Etapa) (err error) {
 	return
 }
 
-// DeleteEtapa deletes Etapa by Id and returns error if
+// DeleteEtapaAvance deletes EtapaAvance by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEtapa(id int) (err error) {
+func DeleteEtapaAvance(id int) (err error) {
 	o := orm.NewOrm()
-	v := Etapa{Id: id}
+	v := EtapaAvance{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Etapa{Id: id}); err == nil {
+		if num, err = o.Delete(&EtapaAvance{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
