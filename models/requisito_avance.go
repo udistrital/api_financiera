@@ -16,7 +16,7 @@ type RequisitoAvance struct {
 	Nombre        string    `orm:"column(nombre)"`
 	Descripcion   string    `orm:"column(descripcion)"`
 	Activo        bool      `orm:"column(activo)"`
-	Etapa 		  *Etapa    `orm:"column(etapa);rel(fk)"`
+	EtapaAvance   *EtapaAvance    `orm:"column(etapa_avance);rel(fk)"`
 	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
 }
 
