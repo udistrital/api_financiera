@@ -62,7 +62,7 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 					if err == nil {
 						estado := EstadoAvance{}
 						estadoAvance := AvanceEstadoAvance{}
-						estado.Id = 4
+						estado.Id = 2
 						estadoAvance.EstadoAvance = &estado
 						estadoAvance.SolicitudAvance = &solicitud
 						estadoAvance.FechaRegistro = time.Now()
