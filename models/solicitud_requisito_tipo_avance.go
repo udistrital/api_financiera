@@ -56,7 +56,7 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 		if err == nil {
 			estadoAvance := AvanceEstadoAvance{}
 			estadoVerificado := EstadoAvance{}
-			estadoVerificado.Id = 6
+			estadoVerificado.Id = 3
 			estadoAvance.EstadoAvance = &estadoVerificado
 			estadoAvance.SolicitudAvance = &solicitud
 			estadoAvance.FechaRegistro = time.Now()
