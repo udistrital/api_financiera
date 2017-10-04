@@ -5,55 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type Concepto struct {
-	Id              int           `orm:"column(id);pk;auto"`
-	Codigo          string        `orm:"column(codigo)"`
-	Nombre          string        `orm:"column(nombre)"`
-	FechaCreacion   time.Time     `orm:"column(fecha_creacion);type(date)"`
-	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
-	Descripcion     string        `orm:"column(descripcion);null"`
-	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto_tesoral);rel(fk)"`
-	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null"`
+type EstadoMovimientoContable struct {
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Estado            bool    `orm:"column(estado)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *Concepto) TableName() string {
-	return "concepto_tesoral"
+func (t *EstadoMovimientoContable) TableName() string {
+	return "estado_movimiento_contable"
 }
 
 func init() {
-	orm.RegisterModel(new(Concepto))
+	orm.RegisterModel(new(EstadoMovimientoContable))
 }
 
-// AddConcepto insert a new Concepto into database and returns
+// AddEstadoMovimientoContable insert a new EstadoMovimientoContable into database and returns
 // last inserted Id on success.
-func AddConcepto(m *Concepto) (id int64, err error) {
+func AddEstadoMovimientoContable(m *EstadoMovimientoContable) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetConceptoById retrieves Concepto by Id. Returns error if
+// GetEstadoMovimientoContableById retrieves EstadoMovimientoContable by Id. Returns error if
 // Id doesn't exist
-func GetConceptoById(id int) (v *Concepto, err error) {
+func GetEstadoMovimientoContableById(id int) (v *EstadoMovimientoContable, err error) {
 	o := orm.NewOrm()
-	v = &Concepto{Id: id}
+	v = &EstadoMovimientoContable{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllConcepto retrieves all Concepto matches certain condition. Returns empty list if
+// GetAllEstadoMovimientoContable retrieves all EstadoMovimientoContable matches certain condition. Returns empty list if
 // no records exist
-func GetAllConcepto(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoMovimientoContable(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Concepto)).RelatedSel()
+	qs := o.QueryTable(new(EstadoMovimientoContable)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -103,7 +100,7 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 		}
 	}
 
-	var l []Concepto
+	var l []EstadoMovimientoContable
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -126,11 +123,11 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 	return nil, err
 }
 
-// UpdateConcepto updates Concepto by Id and returns error if
+// UpdateEstadoMovimientoContable updates EstadoMovimientoContable by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateConceptoById(m *Concepto) (err error) {
+func UpdateEstadoMovimientoContableById(m *EstadoMovimientoContable) (err error) {
 	o := orm.NewOrm()
-	v := Concepto{Id: m.Id}
+	v := EstadoMovimientoContable{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -141,15 +138,15 @@ func UpdateConceptoById(m *Concepto) (err error) {
 	return
 }
 
-// DeleteConcepto deletes Concepto by Id and returns error if
+// DeleteEstadoMovimientoContable deletes EstadoMovimientoContable by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteConcepto(id int) (err error) {
+func DeleteEstadoMovimientoContable(id int) (err error) {
 	o := orm.NewOrm()
-	v := Concepto{Id: id}
+	v := EstadoMovimientoContable{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Concepto{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoMovimientoContable{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

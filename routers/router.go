@@ -546,6 +546,12 @@ func init() {
 				&controllers.FormaPagoController{},
 			),
 		),
+
+		beego.NSNamespace("/estado_movimiento_contable",
+			beego.NSInclude(
+				&controllers.EstadoMovimientoContableController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
