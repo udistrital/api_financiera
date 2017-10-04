@@ -63,7 +63,7 @@ func (c *SolicitudAvanceController) TrSolicitudAvance() {
 		m := v.(map[string]interface{})
 		if res, err := models.TrSolicitudAvance(m); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
+			alert := models.Alert{Type: "success", Code: "SMA_001", Body: res}
 			c.Data["json"] = alert
 		} else {
 			fmt.Println(err.Error())
