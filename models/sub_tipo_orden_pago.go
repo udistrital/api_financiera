@@ -9,46 +9,49 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type Iva struct {
-	Id           int           `orm:"column(id);pk;auto"`
-	CategoriaIva *CategoriaIva `orm:"column(categoria_iva);rel(fk)"`
-	Valor        float64       `orm:"column(valor)"`
-	EstadoActivo bool          `orm:"column(estado_activo)"`
+type SubTipoOrdenPago struct {
+	Id                int            `orm:"column(id);pk;auto"`
+	Nombre            string         `orm:"column(nombre)"`
+	Descripcion       string         `orm:"column(descripcion);null"`
+	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
+	Activo            bool           `orm:"column(activo)"`
+	NumeroOrden       float64        `orm:"column(numero_orden);null"`
+	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
 }
 
-func (t *Iva) TableName() string {
-	return "iva"
+func (t *SubTipoOrdenPago) TableName() string {
+	return "sub_tipo_orden_pago"
 }
 
 func init() {
-	orm.RegisterModel(new(Iva))
+	orm.RegisterModel(new(SubTipoOrdenPago))
 }
 
-// AddIva insert a new Iva into database and returns
+// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
 // last inserted Id on success.
-func AddIva(m *Iva) (id int64, err error) {
+func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetIvaById retrieves Iva by Id. Returns error if
+// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
 // Id doesn't exist
-func GetIvaById(id int) (v *Iva, err error) {
+func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
 	o := orm.NewOrm()
-	v = &Iva{Id: id}
+	v = &SubTipoOrdenPago{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllIva retrieves all Iva matches certain condition. Returns empty list if
+// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
 // no records exist
-func GetAllIva(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Iva)).RelatedSel()
+	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,7 +101,7 @@ func GetAllIva(query map[string]string, fields []string, sortby []string, order 
 		}
 	}
 
-	var l []Iva
+	var l []SubTipoOrdenPago
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -121,11 +124,11 @@ func GetAllIva(query map[string]string, fields []string, sortby []string, order 
 	return nil, err
 }
 
-// UpdateIva updates Iva by Id and returns error if
+// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateIvaById(m *Iva) (err error) {
+func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	o := orm.NewOrm()
-	v := Iva{Id: m.Id}
+	v := SubTipoOrdenPago{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,15 +139,15 @@ func UpdateIvaById(m *Iva) (err error) {
 	return
 }
 
-// DeleteIva deletes Iva by Id and returns error if
+// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteIva(id int) (err error) {
+func DeleteSubTipoOrdenPago(id int) (err error) {
 	o := orm.NewOrm()
-	v := Iva{Id: id}
+	v := SubTipoOrdenPago{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Iva{Id: id}); err == nil {
+		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
