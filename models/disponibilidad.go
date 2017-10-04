@@ -43,8 +43,19 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o.Begin()
 	var consecutivo float64
 	var afectacion []DisponibilidadApropiacion
-	err = o.Raw(`SELECT COALESCE(MAX(numero_disponibilidad), 0)+1  as consecutivo
-					FROM financiera.disponibilidad WHERE vigencia = ?`, int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64))).QueryRow(&consecutivo)
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COALESCE(MAX(numero_disponibilidad), 0)+1 as consecutivo").
+		From("financiera.disponibilidad").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("apropiacion.rubro = rubro.id").
+		Where("disponibilidad.vigencia = ?").
+		And("rubro.unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64)),
+		int(m["Disponibilidad"].(map[string]interface{})["UnidadEjecutora"].(float64))).QueryRow(&consecutivo)
 	err = utilidades.FillStruct(m["Disponibilidad"], &v)
 	if err != nil {
 		o.Rollback()
