@@ -14,7 +14,8 @@ type GiroEstadoGiro struct {
 	Id            int         `orm:"column(id);pk;auto"`
 	Giro          *Giro       `orm:"column(giro);rel(fk)"`
 	EstadoGiro    *EstadoGiro `orm:"column(estado_giro);rel(fk)"`
-	FechaRegistro time.Time   `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro time.Time   `orm:"column(fecha_registro);type(date)"`
+	Usuario       int         `orm:"column(usuario);null"`
 }
 
 func (t *GiroEstadoGiro) TableName() string {

@@ -446,18 +446,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/categoria_iva",
-			beego.NSInclude(
-				&controllers.CategoriaIvaController{},
-			),
-		),
-
-		beego.NSNamespace("/iva",
-			beego.NSInclude(
-				&controllers.IvaController{},
-			),
-		),
-
 		beego.NSNamespace("/arbol_plan_cuentas",
 			beego.NSInclude(
 				&controllers.ArbolPlanCuentasController{},
@@ -544,6 +532,12 @@ func init() {
 		beego.NSNamespace("/forma_pago",
 			beego.NSInclude(
 				&controllers.FormaPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/sub_tipo_orden_pago",
+			beego.NSInclude(
+				&controllers.SubTipoOrdenPagoController{},
 			),
 		),
 	)

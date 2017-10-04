@@ -186,11 +186,12 @@ func (c *OrdenPagoController) Delete() {
 // @Failure 403 body is empty
 // @router RegistrarOpProveedor [post]
 func (c *OrdenPagoController) RegistrarOpProveedor() {
-	var v models.Data_OrdenPago_Concepto
+	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		alerta, err, consecutivoOp := models.RegistrarOpProveedor(&v)
+		m := v.(map[string]interface{})
+		mensaje, err, consecutivoOp := models.RegistrarOpProveedor(m)
 		if err != nil {
-			c.Data["json"] = alerta
+			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
 			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
@@ -210,9 +211,10 @@ func (c *OrdenPagoController) RegistrarOpProveedor() {
 // @Failure 403 body is empty
 // @router ActualizarOpProveedor [post]
 func (c *OrdenPagoController) ActualizarOpProveedor() {
-	var v models.Data_OrdenPago_Concepto
+	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		alerta, err, consecutivoOp := models.ActualizarOpProveedor(&v)
+		m := v.(map[string]interface{})
+		alerta, err, consecutivoOp := models.ActualizarOpProveedor(m)
 		if err != nil {
 			c.Data["json"] = alerta
 		} else {
