@@ -352,7 +352,7 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op      
-			CodigoDocumentoAfectante: int(m.OrdenPago.Id),
+			CodigoDocumentoAfectante: int(OrdenPago.Id),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
 
 		}
