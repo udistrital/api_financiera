@@ -19,13 +19,14 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                   int                   `orm:"auto;column(id);pk"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
-	Responsable          int                   `orm:"column(responsable);null"`
-	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
-	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
-	Solicitud            int                   `orm:"column(solicitud)"`
+	Id                        int                          `orm:"auto;column(id);pk"`
+	Vigencia                  float64                      `orm:"column(vigencia)"`
+	NumeroDisponibilidad      float64                      `orm:"column(numero_disponibilidad);null"`
+	Responsable               int                          `orm:"column(responsable);null"`
+	FechaRegistro             time.Time                    `orm:"column(fecha_registro);type(date);null"`
+	Estado                    *EstadoDisponibilidad        `orm:"column(estado);rel(fk)"`
+	Solicitud                 int                          `orm:"column(solicitud)"`
+	DisponibilidadApropiacion []*DisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -166,6 +167,7 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "DisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
