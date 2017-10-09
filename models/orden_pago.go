@@ -255,7 +255,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 			CuentaContable:           movimientoContable[i].CuentaContable,
 			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
-			Aprobado:                 false,
+			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
 		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
@@ -351,9 +351,10 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op      
 			CodigoDocumentoAfectante: int(ordenPago.Id),
-			Aprobado:                 false,
+			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
+
 		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
@@ -535,7 +536,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 				newMovimientoContable.CuentaContable = v.CuentaContable
 				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
-				newMovimientoContable.Aprobado = false
+				newMovimientoContable.EstadoMovimientoContable.Id = 1
 				// insertar OP Planta
 				_, err = o.Insert(&newMovimientoContable)
 				if err != nil {
@@ -732,7 +733,7 @@ func RegistrarOpSeguridadSocial(OrdenDetalle map[string]interface{}) (alerta Ale
 				newMovimientoContable.CuentaContable = v.CuentaContable
 				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
-				newMovimientoContable.Aprobado = false
+				newMovimientoContable.EstadoMovimientoContable.Id = 1
 				// insertar OP Planta
 				_, err4 := o.Insert(&newMovimientoContable)
 				if err4 != nil {

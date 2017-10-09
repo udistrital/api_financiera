@@ -71,7 +71,7 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 		return
 	}
 	for _, element := range mov {
-		element.Aprobado = true
+		element.EstadoMovimientoContable.Id = 1
 		_, err = o.Update(&element, "Aprobado")
 		if err != nil {
 			o.Rollback()
