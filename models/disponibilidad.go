@@ -19,13 +19,14 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                   int                   `orm:"auto;column(id);pk"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
-	Responsable          int                   `orm:"column(responsable);null"`
-	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
-	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
-	Solicitud            int                   `orm:"column(solicitud)"`
+	Id                        int                          `orm:"auto;column(id);pk"`
+	Vigencia                  float64                      `orm:"column(vigencia)"`
+	NumeroDisponibilidad      float64                      `orm:"column(numero_disponibilidad);null"`
+	Responsable               int                          `orm:"column(responsable);null"`
+	FechaRegistro             time.Time                    `orm:"column(fecha_registro);type(date);null"`
+	Estado                    *EstadoDisponibilidad        `orm:"column(estado);rel(fk)"`
+	Solicitud                 int                          `orm:"column(solicitud)"`
+	DisponibilidadApropiacion []*DisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -43,8 +44,19 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o.Begin()
 	var consecutivo float64
 	var afectacion []DisponibilidadApropiacion
-	err = o.Raw(`SELECT COALESCE(MAX(numero_disponibilidad), 0)+1  as consecutivo
-					FROM financiera.disponibilidad WHERE vigencia = ?`, int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64))).QueryRow(&consecutivo)
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COALESCE(MAX(numero_disponibilidad), 0)+1 as consecutivo").
+		From("financiera.disponibilidad").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("apropiacion.rubro = rubro.id").
+		Where("disponibilidad.vigencia = ?").
+		And("rubro.unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64)),
+		int(m["Disponibilidad"].(map[string]interface{})["UnidadEjecutora"].(float64))).QueryRow(&consecutivo)
 	err = utilidades.FillStruct(m["Disponibilidad"], &v)
 	if err != nil {
 		o.Rollback()
@@ -155,6 +167,7 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "DisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
