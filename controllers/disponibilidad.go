@@ -263,14 +263,25 @@ func (c *DisponibilidadController) AprobarAnulacionDisponibilidad() {
 // @Title AprobarAnulacionDisponibilidad
 // @Description aprueba la anulacion de un cdp ya sea total o parcial
 // @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de cdp"
+// @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de cdp"
 // @Success 201 {int} total
 // @Failure 403 vigencia is empty
 // @router /TotalDisponibilidades/:vigencia [get]
 func (c *DisponibilidadController) TotalDisponibilidades() {
 	vigenciaStr := c.Ctx.Input.Param(":vigencia")
 	vigencia, err := strconv.Atoi(vigenciaStr)
+	var startrange string
+	var endrange string
+	if r := c.GetString("rangoinicio"); r != "" {
+		startrange = r
+
+	}
+	if r := c.GetString("rangofin"); r != "" {
+		endrange = r
+	}
 	if err == nil {
-		total, err := models.GetTotalDisponibilidades(vigencia)
+		total, err := models.GetTotalDisponibilidades(vigencia, startrange, endrange)
 		if err == nil {
 			c.Data["json"] = total
 		} else {
