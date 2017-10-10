@@ -37,6 +37,17 @@ func init() {
 	orm.RegisterModel(new(Disponibilidad))
 }
 
+// totalDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalDisponibilidades(vigencia int) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COUNT(*)").
+		From("financiera.disponibilidad").
+		Where("vigencia = ?")
+	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+	return
+}
+
 // AddDisponibilidad insert a new Disponibilidad into database and returns
 // last inserted Id on success.
 func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {

@@ -259,4 +259,28 @@ func (c *DisponibilidadController) AprobarAnulacionDisponibilidad() {
 	c.ServeJSON()
 }
 
+// AprobarAnulacionDisponibilidad ...
+// @Title AprobarAnulacionDisponibilidad
+// @Description aprueba la anulacion de un cdp ya sea total o parcial
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalDisponibilidades/:vigencia [get]
+func (c *DisponibilidadController) TotalDisponibilidades() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	if err == nil {
+		total, err := models.GetTotalDisponibilidades(vigencia)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+	c.ServeJSON()
+}
+
 //-------------------
