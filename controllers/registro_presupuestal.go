@@ -293,7 +293,7 @@ func (c *RegistroPresupuestalController) AprobarAnulacionRp() {
 // @Success 201 {int} total
 // @Failure 403 vigencia is empty
 // @router /TotalRp/:vigencia [get]
-func (c *DisponibilidadController) TotalRp() {
+func (c *RegistroPresupuestalController) TotalRp() {
 	vigenciaStr := c.Ctx.Input.Param(":vigencia")
 	vigencia, err := strconv.Atoi(vigenciaStr)
 	var startrange string
