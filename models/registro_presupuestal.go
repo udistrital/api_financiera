@@ -642,3 +642,24 @@ func GetValorActualRp(rp_id int) (total float64, err error) {
 	total = valor - comprometido - anulado
 	return
 }
+
+// totalDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalRp(vigencia int, finicio string, ffin string) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	if finicio != "" && ffin != "" {
+		qb.Select("COUNT(*)").
+			From("financiera.registro_presupuestal").
+			Where("vigencia = ?").
+			And("fecha_registro >= ?").
+			And("fecha_registro <= ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin).QueryRow(&total)
+		return
+	}
+	qb.Select("COUNT(*)").
+		From("financiera.registro_presupuestal").
+		Where("vigencia = ?")
+	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+	return
+
+}

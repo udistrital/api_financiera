@@ -259,9 +259,9 @@ func (c *DisponibilidadController) AprobarAnulacionDisponibilidad() {
 	c.ServeJSON()
 }
 
-// AprobarAnulacionDisponibilidad ...
-// @Title AprobarAnulacionDisponibilidad
-// @Description aprueba la anulacion de un cdp ya sea total o parcial
+// TotalDisponibilidades ...
+// @Title TotalDisponibilidades
+// @Description numero de dispònibilidades segun vigencia o rango de fechas
 // @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
 // @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de cdp"
 // @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de cdp"
