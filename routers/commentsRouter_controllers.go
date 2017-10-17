@@ -487,46 +487,6 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"],
-		beego.ControllerComments{
-			Method: "Post",
-			Router: `/`,
-			AllowHTTPMethods: []string{"post"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"],
-		beego.ControllerComments{
-			Method: "GetAll",
-			Router: `/`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"],
-		beego.ControllerComments{
-			Method: "GetOne",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"],
-		beego.ControllerComments{
-			Method: "Put",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"put"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CategoriaIvaController"],
-		beego.ControllerComments{
-			Method: "Delete",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"delete"},
-			MethodParams: param.Make(),
-			Params: nil})
-
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CierrePeriodoPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CierrePeriodoPresupuestalController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -2156,46 +2116,6 @@ func init() {
 			Method: "RechazarIngreso",
 			Router: `/RechazarIngreso`,
 			AllowHTTPMethods: []string{"post"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"],
-		beego.ControllerComments{
-			Method: "Post",
-			Router: `/`,
-			AllowHTTPMethods: []string{"post"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"],
-		beego.ControllerComments{
-			Method: "GetAll",
-			Router: `/`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"],
-		beego.ControllerComments{
-			Method: "GetOne",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"],
-		beego.ControllerComments{
-			Method: "Put",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"put"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IvaController"],
-		beego.ControllerComments{
-			Method: "Delete",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"delete"},
 			MethodParams: param.Make(),
 			Params: nil})
 
