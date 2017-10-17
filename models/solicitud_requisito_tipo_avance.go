@@ -15,12 +15,11 @@ type SolicitudRequisitoTipoAvance struct {
 	Id                  int                  `orm:"column(id);pk;auto"`
 	RequisitoTipoAvance *RequisitoTipoAvance `orm:"column(requisito_tipo_avance);rel(fk)"`
 	SolicitudTipoAvance *SolicitudTipoAvance `orm:"column(solicitud_tipo_avance);rel(fk)"`
-	Valido              string               `orm:"column(valido);null"`
 	Observaciones       string               `orm:"column(observaciones);null"`
-	FechaRegistro       time.Time            `orm:"column(fecha_registro);type(timestamp with time zone)"`
 	Documento           string               `orm:"column(documento);null"`
-	Estado              string               `orm:"column(estado)"`
-	UbicacionDoc        string               `orm:"column(ubicacion_doc);null"`
+	Activo              bool                 `orm:"column(activo)"`
+	Valido              bool                 `orm:"column(valido);null"`
+	FechaRegistro       time.Time            `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *SolicitudRequisitoTipoAvance) TableName() string {
@@ -48,22 +47,21 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 	o.Begin()
 	if err == nil {
 		for _, data := range solicitudRequisitoTipoAvance {
-			data.Estado = "A"
-			data.Valido = "SI"
-			data.FechaRegistro = time.Now()
+			data.Activo = true
+			data.Valido = true
+			data.FechaRegistro = time.Now().Local()
 			fmt.Println("solicitud_requisito_tipo_avance: ", data)
 			_, err = o.Insert(&data)
 		}
 		if err == nil {
 			estadoAvance := AvanceEstadoAvance{}
 			estadoVerificado := EstadoAvance{}
-			estadoVerificado.Id = 6
+			estadoVerificado.Id = 3
 			estadoAvance.EstadoAvance = &estadoVerificado
 			estadoAvance.SolicitudAvance = &solicitud
 			estadoAvance.FechaRegistro = time.Now()
-			estadoAvance.Usuario = "System"
+			estadoAvance.Responsable = 1
 			estadoAvance.Observaciones = "Requisitos Verificados"
-			estadoAvance.Estado = "A"
 			fmt.Println("solicitud: ", solicitud)
 			_, err = o.Insert(&estadoAvance)
 			if err == nil {

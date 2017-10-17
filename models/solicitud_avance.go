@@ -13,23 +13,15 @@ import (
 
 type SolicitudAvance struct {
 	Id                       int     `orm:"column(id);pk;auto"`
-	IdBeneficiario           float64 `orm:"column(id_beneficiario)"`
+	Beneficiario             float64 `orm:"column(beneficiario)"`
 	Vigencia                 int     `orm:"column(vigencia)"`
 	Consecutivo              int     `orm:"column(consecutivo)"`
 	Objetivo                 string  `orm:"column(objetivo)"`
 	Justificacion            string  `orm:"column(justificacion)"`
-	ValorTotal               float64 `orm:"column(valor_total)"`
-	CodigoDependencia        string  `orm:"column(codigo_dependencia)"`
-	Dependencia              string  `orm:"column(dependencia)"`
-	CodigoFacultad           string  `orm:"column(codigo_facultad);null"`
-	Facultad                 string  `orm:"column(facultad);null"`
-	CodigoProyectoCurricular string  `orm:"column(codigo_proyecto_curricular)"`
-	ProyectoCurricular       string  `orm:"column(proyecto_curricular)"`
 	CodigoConvenio           string  `orm:"column(codigo_convenio);null"`
 	Convenio                 string  `orm:"column(convenio);null"`
 	CodigoProyectoInv        string  `orm:"column(codigo_proyecto_inv);null"`
 	ProyectoInv              string  `orm:"column(proyecto_inv);null"`
-	Estado                   string  `orm:"column(estado)"`
 }
 
 func (t *SolicitudAvance) TableName() string {
@@ -45,7 +37,6 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
 	if err == nil {
 		fmt.Println("Solicitud: ", solicitud)
-		solicitud.Estado = "A"
 		//solicitud.Fecha = time.Now()
 		solicitud.Vigencia = int(time.Now().Year())
 		o := orm.NewOrm()
@@ -62,7 +53,7 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 				err = utilidades.FillStruct(m["TipoAvance"], &solicitudTipoAvance)
 				if err == nil {
 					for _, data := range solicitudTipoAvance {
-						data.Estado = "A"
+						data.Activo = true
 						data.SolicitudAvance = &solicitud
 						fmt.Println("tipo_avance: ", data)
 						_, err = o.Insert(&data)
@@ -71,14 +62,12 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 					if err == nil {
 						estado := EstadoAvance{}
 						estadoAvance := AvanceEstadoAvance{}
-						estado.Id = 4
+						estado.Id = 2
 						estadoAvance.EstadoAvance = &estado
 						estadoAvance.SolicitudAvance = &solicitud
 						estadoAvance.FechaRegistro = time.Now()
 						estadoAvance.Observaciones = "Registro inicial de la Solicitud de Avance"
-						estadoAvance.Usuario = "System"
-						estadoAvance.Usuario = "System"
-						estadoAvance.Estado = "A"
+						estadoAvance.Responsable = 1
 						_, err = o.Insert(&estadoAvance)
 						if err == nil {
 							o.Commit()

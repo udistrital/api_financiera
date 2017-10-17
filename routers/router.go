@@ -16,6 +16,12 @@ import (
 func init() {
 	ns := beego.NewNamespace("/v1",
 
+		beego.NSNamespace("/etapa_avance",
+			beego.NSInclude(
+				&controllers.EtapaAvanceController{},
+			),
+		),
+
 		beego.NSNamespace("/tipo_movimiento",
 			beego.NSInclude(
 				&controllers.TipoMovimientoController{},
@@ -440,18 +446,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/categoria_iva",
-			beego.NSInclude(
-				&controllers.CategoriaIvaController{},
-			),
-		),
-
-		beego.NSNamespace("/iva",
-			beego.NSInclude(
-				&controllers.IvaController{},
-			),
-		),
-
 		beego.NSNamespace("/arbol_plan_cuentas",
 			beego.NSInclude(
 				&controllers.ArbolPlanCuentasController{},
@@ -540,6 +534,19 @@ func init() {
 				&controllers.FormaPagoController{},
 			),
 		),
+
+		beego.NSNamespace("/estado_movimiento_contable",
+			beego.NSInclude(
+				&controllers.EstadoMovimientoContableController{},
+        ),
+		),
+
+    beego.NSNamespace("/sub_tipo_orden_pago",
+      beego.NSInclude(
+        &controllers.SubTipoOrdenPagoController{},
+      ),
+    ),
+                           
 	)
 	beego.AddNamespace(ns)
 }

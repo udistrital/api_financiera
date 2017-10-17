@@ -9,46 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type Iva struct {
-	Id           int           `orm:"column(id);pk;auto"`
-	CategoriaIva *CategoriaIva `orm:"column(categoria_iva);rel(fk)"`
-	Valor        float64       `orm:"column(valor)"`
-	EstadoActivo bool          `orm:"column(estado_activo)"`
+type EtapaAvance struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *Iva) TableName() string {
-	return "iva"
+func (t *EtapaAvance) TableName() string {
+	return "etapa_avance"
 }
 
 func init() {
-	orm.RegisterModel(new(Iva))
+	orm.RegisterModel(new(EtapaAvance))
 }
 
-// AddIva insert a new Iva into database and returns
+// AddEtapaAvance insert a new EtapaAvance into database and returns
 // last inserted Id on success.
-func AddIva(m *Iva) (id int64, err error) {
+func AddEtapaAvance(m *EtapaAvance) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetIvaById retrieves Iva by Id. Returns error if
+// GetEtapaAvanceById retrieves EtapaAvance by Id. Returns error if
 // Id doesn't exist
-func GetIvaById(id int) (v *Iva, err error) {
+func GetEtapaAvanceById(id int) (v *EtapaAvance, err error) {
 	o := orm.NewOrm()
-	v = &Iva{Id: id}
+	v = &EtapaAvance{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllIva retrieves all Iva matches certain condition. Returns empty list if
+// GetAllEtapaAvance retrieves all EtapaAvance matches certain condition. Returns empty list if
 // no records exist
-func GetAllIva(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEtapaAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Iva)).RelatedSel()
+	qs := o.QueryTable(new(EtapaAvance))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,7 +100,7 @@ func GetAllIva(query map[string]string, fields []string, sortby []string, order 
 		}
 	}
 
-	var l []Iva
+	var l []EtapaAvance
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -121,11 +123,11 @@ func GetAllIva(query map[string]string, fields []string, sortby []string, order 
 	return nil, err
 }
 
-// UpdateIva updates Iva by Id and returns error if
+// UpdateEtapaAvance updates EtapaAvance by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateIvaById(m *Iva) (err error) {
+func UpdateEtapaAvanceById(m *EtapaAvance) (err error) {
 	o := orm.NewOrm()
-	v := Iva{Id: m.Id}
+	v := EtapaAvance{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,15 +138,15 @@ func UpdateIvaById(m *Iva) (err error) {
 	return
 }
 
-// DeleteIva deletes Iva by Id and returns error if
+// DeleteEtapaAvance deletes EtapaAvance by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteIva(id int) (err error) {
+func DeleteEtapaAvance(id int) (err error) {
 	o := orm.NewOrm()
-	v := Iva{Id: id}
+	v := EtapaAvance{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Iva{Id: id}); err == nil {
+		if num, err = o.Delete(&EtapaAvance{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

@@ -14,8 +14,8 @@ type RequisitoTipoAvance struct {
 	Id              int              `orm:"column(id);pk;auto"`
 	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
 	RequisitoAvance *RequisitoAvance `orm:"column(requisito_avance);rel(fk)"`
-	Estado          string           `orm:"column(estado)"`
-	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	Activo          bool           	 `orm:"column(activo)"`
+	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *RequisitoTipoAvance) TableName() string {
@@ -30,7 +30,7 @@ func init() {
 // last inserted Id on success.
 func AddRequisitoTipoAvance(m *RequisitoTipoAvance) (id int64, err error) {
 	o := orm.NewOrm()
-	m.Estado = "A"
+	m.Activo = true
 	m.FechaRegistro = time.Now()
 	id, err = o.Insert(m)
 	return

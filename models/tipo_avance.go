@@ -17,7 +17,7 @@ type TipoAvance struct {
 	Descripcion       string    `orm:"column(descripcion)"`
 	Activo            bool      `orm:"column(activo)"`
 	NumeroOrden       float64   `orm:"column(numero_orden)"`
-	FechaRegistro     time.Time `orm:"column(fecha_registro);type(timestamp with time zone)"`
+	FechaRegistro     time.Time `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *TipoAvance) TableName() string {
@@ -32,7 +32,7 @@ func init() {
 // last inserted Id on success.
 func AddTipoAvance(m *TipoAvance) (id int64, err error) {
 	o := orm.NewOrm()
-	m.FechaRegistro = time.Now()
+	m.FechaRegistro = time.Now().Local()
 	id, err = o.Insert(m)
 	return
 }

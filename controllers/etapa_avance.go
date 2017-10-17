@@ -1,22 +1,22 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
 )
 
-// IvaController operations for Iva
-type IvaController struct {
+// EtapaAvanceController operations for EtapaAvance
+type EtapaAvanceController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *IvaController) URLMapping() {
+func (c *EtapaAvanceController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *IvaController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create Iva
-// @Param	body		body 	models.Iva	true		"body for Iva content"
-// @Success 201 {int} models.Iva
+// @Description create EtapaAvance
+// @Param	body		body 	models.EtapaAvance	true		"body for EtapaAvance content"
+// @Success 201 {int} models.EtapaAvance
 // @Failure 403 body is empty
 // @router / [post]
-func (c *IvaController) Post() {
-	var v models.Iva
+func (c *EtapaAvanceController) Post() {
+	var v models.EtapaAvance
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddIva(&v); err == nil {
+		if _, err := models.AddEtapaAvance(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *IvaController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get Iva by id
+// @Description get EtapaAvance by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.Iva
+// @Success 200 {object} models.EtapaAvance
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *IvaController) GetOne() {
+func (c *EtapaAvanceController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetIvaById(id)
+	v, err := models.GetEtapaAvanceById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *IvaController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get Iva
+// @Description get EtapaAvance
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.Iva
+// @Success 200 {object} models.EtapaAvance
 // @Failure 403
 // @router / [get]
-func (c *IvaController) GetAll() {
+func (c *EtapaAvanceController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *IvaController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllIva(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllEtapaAvance(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *IvaController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the Iva
+// @Description update the EtapaAvance
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.Iva	true		"body for Iva content"
-// @Success 200 {object} models.Iva
+// @Param	body		body 	models.EtapaAvance	true		"body for EtapaAvance content"
+// @Success 200 {object} models.EtapaAvance
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *IvaController) Put() {
+func (c *EtapaAvanceController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.Iva{Id: id}
+	v := models.EtapaAvance{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateIvaById(&v); err == nil {
+		if err := models.UpdateEtapaAvanceById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *IvaController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the Iva
+// @Description delete the EtapaAvance
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *IvaController) Delete() {
+func (c *EtapaAvanceController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteIva(id); err == nil {
+	if err := models.DeleteEtapaAvance(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

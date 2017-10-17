@@ -16,8 +16,7 @@ type AvanceEstadoAvance struct {
 	SolicitudAvance *SolicitudAvance `orm:"column(solicitud_avance);rel(fk)"`
 	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp with time zone)"`
 	Observaciones   string           `orm:"column(observaciones)"`
-	Usuario         string           `orm:"column(usuario)"`
-	Estado          string           `orm:"column(estado)"`
+	Responsable     int64           `orm:"column(responsable)"`
 }
 
 func (t *AvanceEstadoAvance) TableName() string {
