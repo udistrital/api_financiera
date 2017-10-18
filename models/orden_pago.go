@@ -351,10 +351,9 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op      
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(ordenPago.Id),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
-
 		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
@@ -370,24 +369,35 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 }
 
 // personalizado Registrar orden_pago nomina planta, homologa conceptos titan-kronos, concepto_ordenpago y transacciones
-func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
-	var idOrdenPago int64
+func RegistrarOpNomina(DataOpNomina map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
 	o := orm.NewOrm()
 	o.Begin()
 	newOrden := OrdenPago{}
-	var detalle []interface{}
-	err = utilidades.FillStruct(OrdenDetalle["OrdenPago"], &newOrden)
-	err = utilidades.FillStruct(OrdenDetalle["DetalleLiquidacion"], &detalle)
+	var detalleLiquidacion []interface{}
+	usuario := Usuario{}
+	var idOrdenPago int64
 	var allConceptoOrdenPago []ConceptoOrdenPago
+
+	err = utilidades.FillStruct(DataOpNomina["OrdenPago"], &newOrden)
+	err = utilidades.FillStruct(DataOpNomina["DetalleLiquidacion"], &detalleLiquidacion)
+	err = utilidades.FillStruct(DataOpNomina["Usuario"], &usuario)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //error en parametros de entrada
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 
 	// Datos Orden de Pago Planta
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
-			FROM financiera.orden_pago`).QueryRow(&consecutivoOp)
+				FROM financiera.orden_pago as op
+				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
+				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
+				and tipo.codigo_abreviacion = 'OP-PLAN'
+				and sub.codigo_abreviacion = ?
+				`, newOrden.SubTipoOrdenPago.CodigoAbreviacion).QueryRow(&consecutivoOp)
 	newOrden.Consecutivo = consecutivoOp
-	// 16309 newOrden.FechaCreacion = time.Now()
-	// 16309 newOrden.Nomina = "PLANTA"
-	//newOrden.Iva = &Iva{Id: 1} //1 iva del 0%
-	// 16309 newOrden.TipoOrdenPago = &TipoOrdenPago{Id: 2} //2 cuenta de cobro
 	// Estado OP
 	estadoOP := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
 	err = o.Read(&estadoOP, "CodigoAbreviacion")
@@ -412,6 +422,8 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	newEstadoOP.OrdenPago = &OrdenPago{Id: int(idOrdenPago)}
 	newEstadoOP.EstadoOrdenPago = &EstadoOrdenPago{Id: int(estadoOP.Id)}
 	newEstadoOP.FechaRegistro = time.Now()
+	newEstadoOP.Usuario = usuario.Id
+
 	_, err = o.Insert(&newEstadoOP)
 	if err != nil {
 		alerta.Type = "error"
@@ -422,7 +434,7 @@ func RegistrarOpNomina(OrdenDetalle map[string]interface{}) (alerta Alert, err e
 	}
 
 	// Agrupar valores por conceptos del detalle de la liquidacion y guardamos su homologado
-	for i, element := range detalle {
+	for i, element := range detalleLiquidacion {
 		det := element.(map[string]interface{})
 		var idconceptotitan int
 		// data valorCalculado
