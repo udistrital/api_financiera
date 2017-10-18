@@ -259,4 +259,39 @@ func (c *DisponibilidadController) AprobarAnulacionDisponibilidad() {
 	c.ServeJSON()
 }
 
+// TotalDisponibilidades ...
+// @Title TotalDisponibilidades
+// @Description numero de dispònibilidades segun vigencia o rango de fechas
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de cdp"
+// @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de cdp"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalDisponibilidades/:vigencia [get]
+func (c *DisponibilidadController) TotalDisponibilidades() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	var startrange string
+	var endrange string
+	if r := c.GetString("rangoinicio"); r != "" {
+		startrange = r
+
+	}
+	if r := c.GetString("rangofin"); r != "" {
+		endrange = r
+	}
+	if err == nil {
+		total, err := models.GetTotalDisponibilidades(vigencia, startrange, endrange)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+	c.ServeJSON()
+}
+
 //-------------------
