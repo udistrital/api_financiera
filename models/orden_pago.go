@@ -233,6 +233,27 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 		return
 	}
 
+	// Data MovimientoContable
+	estadoMovimientoContable := EstadoMovimientoContable{CodigoAbreviacion: "AF"} //Afectado
+	err = o.Read(&estadoMovimientoContable, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// TipoDocumentoAfectante
+	tipoDocumentoAfectante := TipoDocumentoAfectante{CodigoAbreviacion: "DA-OP"} //documento Orden Pago
+	err = o.Read(&tipoDocumentoAfectante, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
 	//== Insertar data Conceptos
 	for i := 0; i < len(conceptoOrdenPago); i++ {
 		conceptoOrdenPago[i].OrdenDePago = &OrdenPago{Id: int(idOrdenPago)}
@@ -253,9 +274,9 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
-			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
+			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
@@ -309,6 +330,27 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 		}
 	}
 
+	// Data MovimientoContable
+	estadoMovimientoContable := EstadoMovimientoContable{CodigoAbreviacion: "AF"} //Afectado
+	err = o.Read(&estadoMovimientoContable, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// TipoDocumentoAfectante
+	tipoDocumentoAfectante := TipoDocumentoAfectante{CodigoAbreviacion: "DA-OP"} //documento Orden Pago
+	err = o.Read(&tipoDocumentoAfectante, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
 	// Eliminar Conceptos Orden de Pagos y Movimientos contables
 	if len(conceptoOrdenPago) > 0 {
 		_, err = o.Raw("DELETE FROM financiera.concepto_orden_pago where orden_de_pago = ?", ordenPago.Id).Exec()
@@ -351,9 +393,9 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: 1}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(ordenPago.Id),
-			EstadoMovimientoContable: &EstadoMovimientoContable{Id: 1},
+			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
@@ -428,6 +470,27 @@ func RegistrarOpNomina(DataOpNomina map[string]interface{}) (alerta Alert, err e
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+
+	// Data MovimientoContable
+	estadoMovimientoContable := EstadoMovimientoContable{CodigoAbreviacion: "AF"} //Afectado
+	err = o.Read(&estadoMovimientoContable, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// TipoDocumentoAfectante
+	tipoDocumentoAfectante := TipoDocumentoAfectante{CodigoAbreviacion: "DA-OP"} //documento Orden Pago
+	err = o.Read(&tipoDocumentoAfectante, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPN_02"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -546,9 +609,9 @@ func RegistrarOpNomina(DataOpNomina map[string]interface{}) (alerta Alert, err e
 				newMovimientoContable.Fecha = time.Now()
 				newMovimientoContable.Concepto = v.Concepto
 				newMovimientoContable.CuentaContable = v.CuentaContable
-				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 1} //documento afectante tipo op
+				newMovimientoContable.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)} //documento afectante tipo op
 				newMovimientoContable.CodigoDocumentoAfectante = int(idOrdenPago)
-				newMovimientoContable.EstadoMovimientoContable.Id = 1
+				newMovimientoContable.EstadoMovimientoContable = &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)}
 				// insertar OP Planta
 				_, err = o.Insert(&newMovimientoContable)
 				if err != nil {
