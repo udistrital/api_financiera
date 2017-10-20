@@ -11,6 +11,11 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+type ConceptoValor struct {
+	Concepto *Concepto
+	Valor    int64
+}
+
 type HomologacionConcepto struct {
 	Id             int       `orm:"column(id);pk;auto"`
 	Vigencia       float64   `orm:"column(vigencia)"`
@@ -153,6 +158,8 @@ func DeleteHomologacionConcepto(id int) (err error) {
 // Homologacion conceptos de titan
 func HomolgacionConceptosTitan(DataOpProveedor []interface{}) (alerta Alert, err error, consecutivoOp int) {
 	fmt.Println("Model HomolgacionConceptosTitan")
+	o := orm.NewOrm()
+	var allConceptoValor []ConceptoValor
 
 	for i, row := range DataOpProveedor {
 		m := row.(map[string]interface{})
@@ -168,10 +175,66 @@ func HomolgacionConceptosTitan(DataOpProveedor []interface{}) (alerta Alert, err
 			alerta.Body = err.Error()
 			return
 		}
-		idConceptoTitan := concepto["Id"].(float64)
+		idConceptoTitanFloat := concepto["Id"].(float64)
+		idConceptoTitan := int(idConceptoTitanFloat)
 		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
+		if i == 0 {
+			// Buscamos concepto kronos homologado
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: 2017} //parametro
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idConceptoTitan)
+			}
+			fmt.Println("***Priner append ***")
+			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
+			fmt.Println(valorCalculado)
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
+			newConceptoValor := ConceptoValor{
+				Valor:    valorCalculado,
+				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+			}
+			allConceptoValor = append(allConceptoValor, newConceptoValor)
+		} else {
+			fmt.Println("***Sumar o Append***")
+			// Buscamos concepto kronos homologado
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: 2017} //parametro
+			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = strconv.Itoa(idConceptoTitan)
+				o.Rollback()
+				return
+			}
+			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
+			fmt.Println(valorCalculado)
+			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
 
-		fmt.Println(idConceptoTitan, valorCalculado)
-	}
+			if esta, idlista := estaConceptoValor(conceptoKronosHomologado.ConceptoKronos.Id, allConceptoValor); esta == true {
+				fmt.Println("---Sumar")
+				sumaValor := allConceptoValor[idlista].Valor + valorCalculado
+				allConceptoValor[idlista].Valor = sumaValor
+			} else {
+				fmt.Println("---Append")
+				newConceptoValor2 := ConceptoValor{
+					Valor:    valorCalculado,
+					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
+				}
+				allConceptoValor = append(allConceptoValor, newConceptoValor2)
+			}
+		}
+	} //for
+	// fin  data retornar
 	return
+}
+
+func estaConceptoValor(idConcepto int, lista []ConceptoValor) (esta bool, idlista int) {
+	for or := 0; or < len(lista); or++ {
+		if lista[or].Concepto.Id == idConcepto {
+			return true, or
+		}
+	}
+	return false, 0
 }
