@@ -156,7 +156,7 @@ func DeleteHomologacionConcepto(id int) (err error) {
 }
 
 // Homologacion conceptos de titan
-func HomolgacionConceptosTitan(DataOpProveedor []interface{}) (alerta Alert, err error, consecutivoOp int) {
+func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
 	fmt.Println("Model HomolgacionConceptosTitan")
 	o := orm.NewOrm()
 	var allConceptoValor []ConceptoValor

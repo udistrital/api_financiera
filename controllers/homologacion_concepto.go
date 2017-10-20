@@ -182,9 +182,10 @@ func (c *HomologacionConceptoController) Delete() {
 // @router /HomolgacionConceptosTitan [post]
 func (c *HomologacionConceptoController) HomolgacionConceptosTitan() {
 	fmt.Println("controller HomolgacionConceptosTitan")
-	var v []interface{}
+	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		mensaje, err, consecutivoOp := models.HomolgacionConceptosTitan(v)
+		m := v.(map[string]interface{})
+		mensaje, err, consecutivoOp := models.HomolgacionConceptosTitan(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
