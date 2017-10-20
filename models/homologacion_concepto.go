@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -145,6 +146,32 @@ func DeleteHomologacionConcepto(id int) (err error) {
 		if num, err = o.Delete(&HomologacionConcepto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
+	}
+	return
+}
+
+// Homologacion conceptos de titan
+func HomolgacionConceptosTitan(DataOpProveedor []interface{}) (alerta Alert, err error, consecutivoOp int) {
+	fmt.Println("Model HomolgacionConceptosTitan")
+
+	for i, row := range DataOpProveedor {
+		m := row.(map[string]interface{})
+		//fmt.Println(m["Id"])
+		// data valorCalculado
+		valorCalculadoFloat := m["ValorCalculado"].(float64)
+		valorCalculado := int64(valorCalculadoFloat)
+		// data concepto
+		concepto, e := m["Concepto"].(map[string]interface{})
+		if e != true {
+			alerta.Type = "error"
+			alerta.Code = "E_OPN_01_2"
+			alerta.Body = err.Error()
+			return
+		}
+		idConceptoTitan := concepto["Id"].(float64)
+		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
+
+		fmt.Println(idConceptoTitan, valorCalculado)
 	}
 	return
 }

@@ -3,9 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -22,6 +24,7 @@ func (c *HomologacionConceptoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("HomolgacionConceptosTitan", c.HomolgacionConceptosTitan)
 }
 
 // Post ...
@@ -166,6 +169,31 @@ func (c *HomologacionConceptoController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// HomolgacionConceptosTitan ...
+// @Title HomolgacionConceptosTitan
+// @Description Homologa los conceptos de titan con los del kronos
+// @Param	body		body 	models.DetallePreliquidacion sistema titan
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router /HomolgacionConceptosTitan [post]
+func (c *HomologacionConceptoController) HomolgacionConceptosTitan() {
+	fmt.Println("controller HomolgacionConceptosTitan")
+	var v []interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		mensaje, err, consecutivoOp := models.HomolgacionConceptosTitan(v)
+		if err != nil {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err
 	}
 	c.ServeJSON()
 }
