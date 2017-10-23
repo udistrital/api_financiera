@@ -178,7 +178,7 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	}
 
 	var l []RegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
