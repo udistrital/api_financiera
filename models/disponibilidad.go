@@ -38,22 +38,36 @@ func init() {
 }
 
 // totalDisponibilidades retorna total de disponibilidades por vigencia
-func GetTotalDisponibilidades(vigencia int, finicio string, ffin string) (total int, err error) {
+func GetTotalDisponibilidades(vigencia int, unidadEjecutora int, finicio string, ffin string) (total int, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	if finicio != "" && ffin != "" {
-		qb.Select("COUNT(*)").
+		qb.Select("COUNT(DISTINCT(disponibilidad))").
 			From("financiera.disponibilidad").
-			Where("vigencia = ?").
+			InnerJoin("financiera.disponibilidad_apropiacion").
+			On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+			InnerJoin("financiera.apropiacion").
+			On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+			InnerJoin("financiera.rubro").
+			On("rubro.id = apropiacion.rubro").
+			Where("disponibilidad.vigencia = ?").
 			And("fecha_registro >= ?").
-			And("fecha_registro <= ?")
-		err = o.Raw(qb.String(), vigencia, finicio, ffin).QueryRow(&total)
+			And("fecha_registro <= ?").
+			And("unidad_ejecutora = ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin, unidadEjecutora).QueryRow(&total)
 		return
 	}
-	qb.Select("COUNT(*)").
+	qb.Select("COUNT(DISTINCT(disponibilidad))").
 		From("financiera.disponibilidad").
-		Where("vigencia = ?")
-	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("rubro.id = apropiacion.rubro").
+		Where("disponibilidad.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
 	return
 
 }
