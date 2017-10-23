@@ -38,7 +38,7 @@ func (c *CompromisoController) Post() {
 	var v models.Compromiso
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddCompromiso(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			alert := models.Alert{Type: "success", Code: "S_543", Body: nil} //codigo de registro exitoso
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alert
 		} else {
@@ -150,13 +150,20 @@ func (c *CompromisoController) Put() {
 	id, _ := strconv.Atoi(idStr)
 	v := models.Compromiso{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateCompromisoById(&v); err == nil {
-			c.Data["json"] = "OK"
+		if err = models.UpdateCompromisoById(&v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_542", Body: nil} //codigo de registro exitoso
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -171,10 +178,27 @@ func (c *CompromisoController) Put() {
 func (c *CompromisoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteCompromiso(id); err == nil {
+	if v, err := models.GetCompromisoById(id); err == nil {
+		v.EstadoCompromiso.Id = 4 // Id compromiso cancelado
+		if err = models.UpdateCompromisoById(v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_542", Body: v} //codigo de cambio exitoso
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	/*if err := models.DeleteCompromiso(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
-	}
+	}*/
 	c.ServeJSON()
 }
