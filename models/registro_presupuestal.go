@@ -178,7 +178,7 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	}
 
 	var l []RegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -644,22 +644,40 @@ func GetValorActualRp(rp_id int) (total float64, err error) {
 }
 
 // totalDisponibilidades retorna total de disponibilidades por vigencia
-func GetTotalRp(vigencia int, finicio string, ffin string) (total int, err error) {
+func GetTotalRp(vigencia int, UnidadEjecutora int, finicio string, ffin string) (total int, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	if finicio != "" && ffin != "" {
-		qb.Select("COUNT(*)").
+		qb.Select("COUNT(DISTINCT(registro_presupuestal))").
 			From("financiera.registro_presupuestal").
-			Where("vigencia = ?").
+			InnerJoin("financiera.registro_presupuestal_disponibilidad_apropiacion").
+			On("registro_presupuestal.id=registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal").
+			InnerJoin("financiera.disponibilidad_apropiacion").
+			On("disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion").
+			InnerJoin("financiera.apropiacion").
+			On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+			InnerJoin("financiera.rubro").
+			On("rubro.id = apropiacion.rubro").
+			Where("registro_presupuestal.vigencia = ?").
 			And("fecha_registro >= ?").
-			And("fecha_registro <= ?")
-		err = o.Raw(qb.String(), vigencia, finicio, ffin).QueryRow(&total)
+			And("fecha_registro <= ?").
+			And("unidad_ejecutora = ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin, UnidadEjecutora).QueryRow(&total)
 		return
 	}
-	qb.Select("COUNT(*)").
+	qb.Select("COUNT(DISTINCT(registro_presupuestal))").
 		From("financiera.registro_presupuestal").
-		Where("vigencia = ?")
-	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+		InnerJoin("financiera.registro_presupuestal_disponibilidad_apropiacion").
+		On("registro_presupuestal.id=registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("rubro.id = apropiacion.rubro").
+		Where("registro_presupuestal.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, UnidadEjecutora).QueryRow(&total)
 	return
 
 }
