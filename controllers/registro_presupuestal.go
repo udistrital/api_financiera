@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/utilidades"
 	"github.com/astaxie/beego"
 	"github.com/udistrital/api_financiera/models"
 )
@@ -248,7 +249,7 @@ func (c *RegistroPresupuestalController) Anular() {
 // @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
 // @Success 201 {int} suma valor de los RegistroPresupuestal por id
 // @Failure 403 body is empty
-// @router /:id [get]
+// @router ValorTotalRp/:id [get]
 
 func (c *RegistroPresupuestalController) ValorTotalRp() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -259,6 +260,34 @@ func (c *RegistroPresupuestalController) ValorTotalRp() {
 	} else {
 		c.Data["json"] = v
 	}
+	c.ServeJSON()
+}
+// ValorActualRp ...
+// @Title Valor Actual Rp
+// @Description retorna valor actual del RegistroPresupuestal por id
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} suma valor de los RegistroPresupuestal por id
+// @Failure 403 body is empty
+// @router ValorActualRp/:id [get]
+func (c *RegistroPresupuestalController) ValorActualRp() {
+	idStr := c.Ctx.Input.Param(":id")
+	if idStr != ""{
+		id, _ := strconv.Atoi(idStr)
+		v, err := models.GetValorActualRp(id)
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = v
+		}
+	}else{
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
+		c.Data["json"] = alert
+	}
+
 	c.ServeJSON()
 }
 

@@ -341,10 +341,10 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 						JOIN
 						financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id 
+						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id
 						JOIN
 						financiera.registro_presupuestal_disponibilidad_apropiacion
-						ON 
+						ON
 						registro_presupuestal_disponibilidad_apropiacion.id = ada.registro_presupuestal_disponibilidad_apropiacion
 						JOIN
 						financiera.registro_presupuestal
@@ -431,10 +431,10 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 						JOIN
 						financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id 
+						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id
 						JOIN
 						financiera.registro_presupuestal_disponibilidad_apropiacion
-						ON 
+						ON
 						registro_presupuestal_disponibilidad_apropiacion.id = ada.registro_presupuestal_disponibilidad_apropiacion
 						JOIN
 						financiera.registro_presupuestal
@@ -598,15 +598,13 @@ func GetValorTotalComprometidoRp(rp_id int) (total float64, err error) {
 	o := orm.NewOrm()
 	var totalSql float64
 	err = o.Raw(`SELECT valor FROM(SELECT registro_presupuestal.id,
-            sum(concepto_orden_pago.valor) AS valor
-           FROM financiera.orden_pago
-             JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
-             JOIN financiera.concepto ON concepto.id = concepto_orden_pago.concepto
-             JOIN financiera.rubro ON concepto.rubro = rubro.id
-             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = orden_pago.registro_presupuestal
-             JOIN financiera.apropiacion ON apropiacion.rubro = rubro.id AND apropiacion.vigencia = registro_presupuestal.vigencia
-          GROUP BY registro_presupuestal.id) as comprometido
-					WHERE id = ?`, rp_id).QueryRow(&totalSql)
+             sum(concepto_orden_pago.valor) AS valor
+            FROM financiera.orden_pago
+              JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
+              JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON concepto_orden_pago.registro_presupuestal_disponibilidad_apropiacion = registro_presupuestal_disponibilidad_apropiacion.id
+              JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
+           GROUP BY registro_presupuestal.id) as comprometido
+ 					WHERE id = ?`, rp_id).QueryRow(&totalSql)
 	if err == nil {
 		fmt.Println("total: ", totalSql)
 		return totalSql, nil
@@ -639,8 +637,10 @@ func GetValorActualRp(rp_id int) (total float64, err error) {
 	valor, err := GetValorTotalRp(rp_id)
 	comprometido, err := GetValorTotalComprometidoRp(rp_id)
 	anulado, err := GetValorTotalAnuladoRp(rp_id)
+	fmt.Println(anulado)
 	total = valor - comprometido - anulado
 	return
+
 }
 
 // totalDisponibilidades retorna total de disponibilidades por vigencia
