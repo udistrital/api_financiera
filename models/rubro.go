@@ -13,12 +13,13 @@ import (
 )
 
 type Rubro struct {
-	Id              int      `orm:"auto;column(id);pk"`
-	Entidad         *Entidad `orm:"column(entidad);rel(fk)"`
-	Codigo          string   `orm:"column(codigo)"`
-	Descripcion     string   `orm:"column(descripcion);null"`
-	UnidadEjecutora int16    `orm:"column(unidad_ejecutora)"`
-	Nombre          string   `orm:"column(nombre);null"`
+	Id              int         `orm:"auto;column(id);pk"`
+	Entidad         *Entidad    `orm:"column(entidad);rel(fk)"`
+	Codigo          string      `orm:"column(codigo)"`
+	Descripcion     string      `orm:"column(descripcion);null"`
+	UnidadEjecutora int16       `orm:"column(unidad_ejecutora)"`
+	Nombre          string      `orm:"column(nombre);null"`
+	Concepto        []*Concepto `orm:"reverse(many)"`
 }
 
 func (t *Rubro) TableName() string {
@@ -109,6 +110,7 @@ func GetAllRubro(query map[string]string, group []string, fields []string, sortb
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "Concepto", 5)
 				ml = append(ml, v)
 			}
 		} else {
