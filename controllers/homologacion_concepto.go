@@ -185,12 +185,12 @@ func (c *HomologacionConceptoController) HomolgacionConceptosTitan() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, consecutivoOp := models.HomolgacionConceptosTitan(m)
+		mensaje, err, dataConceptoValor := models.HomolgacionConceptosTitan(m)
 		if err != nil {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
+			alert := models.Alert{Type: "success", Code: "MSN_OPP_S_HO_CONC", Body: dataConceptoValor}
 			c.Data["json"] = alert
 		}
 	} else {

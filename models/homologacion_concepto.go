@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/core_api/utilidades"
 )
 
 type ConceptoValor struct {
@@ -156,14 +157,24 @@ func DeleteHomologacionConcepto(id int) (err error) {
 }
 
 // Homologacion conceptos de titan
-func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, allConceptoValor []ConceptoValor) {
 	fmt.Println("Model HomolgacionConceptosTitan")
 	o := orm.NewOrm()
-	var allConceptoValor []ConceptoValor
+	//var allConceptoValor []ConceptoValor
+	var detalleLiquidacion []interface{}
+	var vigencia float64
 
-	for i, row := range DataOpProveedor {
+	err = utilidades.FillStruct(DataOpProveedor["DetalleLiquidacion"], &detalleLiquidacion)
+	err = utilidades.FillStruct(DataOpProveedor["Vigencia"], &vigencia)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_TRANS_01" //error en parametros de entrada
+		alerta.Body = err.Error()
+		return
+	}
+
+	for i, row := range detalleLiquidacion {
 		m := row.(map[string]interface{})
-		//fmt.Println(m["Id"])
 		// data valorCalculado
 		valorCalculadoFloat := m["ValorCalculado"].(float64)
 		valorCalculado := int64(valorCalculadoFloat)
@@ -171,7 +182,7 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		concepto, e := m["Concepto"].(map[string]interface{})
 		if e != true {
 			alerta.Type = "error"
-			alerta.Code = "E_OPN_01_2"
+			alerta.Code = "E_HO_CONC_TITAN"
 			alerta.Body = err.Error()
 			return
 		}
@@ -180,12 +191,13 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
 		if i == 0 {
 			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: 2017} //parametro
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: vigencia}
 			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idConceptoTitan)
+				return
 			}
 			fmt.Println("***Priner append ***")
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
@@ -199,13 +211,12 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		} else {
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: 2017} //parametro
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: vigencia}
 			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err != nil {
 				alerta.Type = "error"
 				alerta.Code = "E_OPN_02_3"
 				alerta.Body = strconv.Itoa(idConceptoTitan)
-				o.Rollback()
 				return
 			}
 			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
@@ -226,7 +237,6 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 			}
 		}
 	} //for
-	// fin  data retornar
 	return
 }
 
