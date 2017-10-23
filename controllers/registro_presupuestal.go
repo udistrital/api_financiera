@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 	"strconv"
 	"strings"
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/utilidades"
-	"github.com/astaxie/beego"
-	"github.com/udistrital/api_financiera/models"
 )
 
 // RegistroPresupuestalController operations for RegistroPresupuestal
@@ -262,6 +262,7 @@ func (c *RegistroPresupuestalController) ValorTotalRp() {
 	}
 	c.ServeJSON()
 }
+
 // ValorActualRp ...
 // @Title Valor Actual Rp
 // @Description retorna valor actual del RegistroPresupuestal por id
@@ -271,7 +272,7 @@ func (c *RegistroPresupuestalController) ValorTotalRp() {
 // @router ValorActualRp/:id [get]
 func (c *RegistroPresupuestalController) ValorActualRp() {
 	idStr := c.Ctx.Input.Param(":id")
-	if idStr != ""{
+	if idStr != "" {
 		id, _ := strconv.Atoi(idStr)
 		v, err := models.GetValorActualRp(id)
 		if err != nil {
@@ -283,7 +284,7 @@ func (c *RegistroPresupuestalController) ValorActualRp() {
 		} else {
 			c.Data["json"] = v
 		}
-	}else{
+	} else {
 		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
 		c.Data["json"] = alert
 	}
@@ -317,6 +318,7 @@ func (c *RegistroPresupuestalController) AprobarAnulacionRp() {
 // @Title TotalRp
 // @Description numero de rp segun vigencia o rango de fechas
 // @Param	vigencia		query 	string	true		"vigencia para la consulta del total de rp"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
 // @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de rp"
 // @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de rp"
 // @Success 201 {int} total
@@ -334,15 +336,16 @@ func (c *RegistroPresupuestalController) TotalRp() {
 	if r := c.GetString("rangofin"); r != "" {
 		endrange = r
 	}
-	if err == nil {
-		total, err := models.GetTotalRp(vigencia, startrange, endrange)
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalRp(vigencia, UnidadEjecutora, startrange, endrange)
 		if err == nil {
 			c.Data["json"] = total
 		} else {
 			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 		}
 	} else {
-		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
 	}
 
 	c.ServeJSON()
