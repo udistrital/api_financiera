@@ -162,17 +162,16 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 	o := orm.NewOrm()
 	//var allConceptoValor []ConceptoValor
 	var detalleLiquidacion []interface{}
-	var vigencia float64
+	var registroPresupuestal RegistroPresupuestal
 
 	err = utilidades.FillStruct(DataOpProveedor["DetalleLiquidacion"], &detalleLiquidacion)
-	err = utilidades.FillStruct(DataOpProveedor["Vigencia"], &vigencia)
+	err = utilidades.FillStruct(DataOpProveedor["RegistroPresupuestal"], &registroPresupuestal)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_TRANS_01" //error en parametros de entrada
 		alerta.Body = err.Error()
 		return
 	}
-
 	for i, row := range detalleLiquidacion {
 		m := row.(map[string]interface{})
 		// data valorCalculado
@@ -191,7 +190,7 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
 		if i == 0 {
 			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: vigencia}
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: registroPresupuestal.Vigencia}
 			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err != nil {
 				alerta.Type = "error"
@@ -211,7 +210,7 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		} else {
 			fmt.Println("***Sumar o Append***")
 			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: vigencia}
+			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: registroPresupuestal.Vigencia}
 			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
 			if err != nil {
 				alerta.Type = "error"
