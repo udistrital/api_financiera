@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
@@ -139,7 +140,7 @@ func (c *CompromisoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the Compromiso
+// @Description El compromiso unicamente actualiza el objeto y las fechas de inicio y fin
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.Compromiso	true		"body for Compromiso content"
 // @Success 200 {object} models.Compromiso
@@ -148,12 +149,30 @@ func (c *CompromisoController) GetAll() {
 func (c *CompromisoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.Compromiso{Id: id}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err = models.UpdateCompromisoById(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_542", Body: nil} //codigo de registro exitoso
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = alert
+	uv := models.Compromiso{Id: id}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &uv); err == nil {
+		if v, err := models.GetCompromisoById(uv.Id); err == nil {
+			if uv.EstadoCompromiso.Id == 1 {
+				v.Objeto = uv.Objeto
+				v.FechaInicio = uv.FechaInicio
+				v.FechaFin = uv.FechaFin
+				v.FechaModificacion = time.Now()
+				if err = models.UpdateCompromisoById(v); err == nil {
+					alert := models.Alert{Type: "success", Code: "S_542", Body: v} //codigo de registro exitoso
+					c.Ctx.Output.SetStatus(201)
+					c.Data["json"] = alert
+				} else {
+					alertdb := structs.Map(err)
+					var code string
+					utilidades.FillStruct(alertdb["Code"], &code)
+					alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+					c.Data["json"] = alert
+				}
+			} else {
+				alert := models.Alert{Type: "error", Code: "E_0471", Body: "No es posible realizar actualizacion debido al estado del registro"}
+				c.Data["json"] = alert
+			}
+
 		} else {
 			alertdb := structs.Map(err)
 			var code string
@@ -161,6 +180,7 @@ func (c *CompromisoController) Put() {
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
 			c.Data["json"] = alert
 		}
+
 	} else {
 		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
 		c.Data["json"] = alert
