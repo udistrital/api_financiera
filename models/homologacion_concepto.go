@@ -246,9 +246,9 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 	// **
 
 	// buscamos los registroPresupuestalDisponibilidadApropiacion asociados al RP
-	qs := o.QueryTable(new(RegistroPresupuestalDisponibilidadApropiacion)).RelatedSel()
+	qs := o.QueryTable(new(RegistroPresupuestalDisponibilidadApropiacion)).RelatedSel(5)
 	qs = qs.Filter("RegistroPresupuestal", registroPresupuestal.Id)
-	qs = qs.RelatedSel()
+	qs = qs.RelatedSel(5)
 	var l []RegistroPresupuestalDisponibilidadApropiacion
 	if _, err = qs.Limit(-1, 0).All(&l); err == nil {
 		for _, v := range l {
@@ -269,9 +269,9 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 			}
 			fmt.Println(rubro)
 			//conceptos
-			qsc := o.QueryTable(new(Concepto)).RelatedSel()
+			qsc := o.QueryTable(new(Concepto)).RelatedSel(5)
 			qsc = qsc.Filter("Rubro", rubro.Id)
-			qsc = qsc.RelatedSel()
+			qsc = qsc.RelatedSel(5)
 			var lc []Concepto
 			var allConceptoPorRubro []ConceptoValor
 			var add_concepto bool
