@@ -17,6 +17,11 @@ type ConceptoValor struct {
 	Valor    int64
 }
 
+type RpCdpRubroConceptoValor struct {
+	RegistroPresupuestalDisponibilidadApropiacion *RegistroPresupuestalDisponibilidadApropiacion
+	ConceptoValor                                 []*ConceptoValor
+}
+
 type HomologacionConcepto struct {
 	Id             int       `orm:"column(id);pk;auto"`
 	Vigencia       float64   `orm:"column(vigencia)"`
@@ -160,7 +165,6 @@ func DeleteHomologacionConcepto(id int) (err error) {
 func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, allConceptoValor []ConceptoValor) {
 	fmt.Println("Model HomolgacionConceptosTitan")
 	o := orm.NewOrm()
-	//var allConceptoValor []ConceptoValor
 	var detalleLiquidacion []interface{}
 	var registroPresupuestal RegistroPresupuestal
 
@@ -172,6 +176,7 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 		alerta.Body = err.Error()
 		return
 	}
+
 	for i, row := range detalleLiquidacion {
 		m := row.(map[string]interface{})
 		// data valorCalculado
@@ -236,6 +241,59 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 			}
 		}
 	} //for
+	//trabajar con toda la estructura de RegistroPresupuestalDisponibilidadApropiacion
+	fmt.Println("Registro Presupuestal ID: ", registroPresupuestal.Id)
+	// buscamos los registroPresupuestalDisponibilidadApropiacion asociados al RP
+	qs := o.QueryTable(new(RegistroPresupuestalDisponibilidadApropiacion)).RelatedSel()
+	qs = qs.Filter("RegistroPresupuestal", registroPresupuestal.Id)
+	qs = qs.RelatedSel()
+	var l []RegistroPresupuestalDisponibilidadApropiacion
+	if _, err = qs.Limit(-1, 0).All(&l); err == nil {
+		for _, v := range l {
+			fmt.Println("Id que necesita miguel ", v.Id)
+			disponibilidadApropiacion := DisponibilidadApropiacion{}
+			apropiacion := Apropiacion{}
+			rubro := Rubro{}
+			err = utilidades.FillStruct(v.DisponibilidadApropiacion, &disponibilidadApropiacion)
+			err = utilidades.FillStruct(disponibilidadApropiacion.Apropiacion, &apropiacion)
+			err = utilidades.FillStruct(apropiacion.Rubro, &rubro)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPN_02_3"
+				alerta.Body = err.Error()
+				return
+			}
+			fmt.Println(rubro)
+			//conceptos
+			qsc := o.QueryTable(new(Concepto)).RelatedSel()
+			qsc = qsc.Filter("Rubro", rubro.Id)
+			qsc = qsc.RelatedSel()
+			var lc []Concepto
+			var allConceptoPorRubro []ConceptoValor
+			var add_concepto bool
+			if _, err = qsc.Limit(-1, 0).All(&lc); err == nil {
+				for _, vc := range lc {
+					fmt.Println(vc.Codigo)
+					// comparar
+					if esta, idlista := estaConceptoValor(vc.Id, allConceptoValor); esta == true {
+						fmt.Println("Esta")
+						add_concepto = true
+						allConceptoPorRubro = append(allConceptoPorRubro, allConceptoValor[idlista])
+					}
+				}
+				fmt.Println("resultado")
+				fmt.Println(add_concepto)
+				if add_concepto {
+					newRpCdpRubroConceptoValor := RpCdpRubroConceptoValor{
+						RegistroPresupuestalDisponibilidadApropiacion: &RegistroPresupuestalDisponibilidadApropiacion{Id: v.Id},
+					}
+					fmt.Println(newRpCdpRubroConceptoValor)
+				}
+			}
+		}
+		//
+	}
+	//
 	return
 }
 
