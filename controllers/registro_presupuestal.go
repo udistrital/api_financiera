@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 	"strconv"
 	"strings"
-
-	"github.com/astaxie/beego"
-	"github.com/udistrital/api_financiera/models"
 )
 
 // RegistroPresupuestalController operations for RegistroPresupuestal
@@ -248,7 +249,7 @@ func (c *RegistroPresupuestalController) Anular() {
 // @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
 // @Success 201 {int} suma valor de los RegistroPresupuestal por id
 // @Failure 403 body is empty
-// @router /:id [get]
+// @router ValorTotalRp/:id [get]
 
 func (c *RegistroPresupuestalController) ValorTotalRp() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -259,6 +260,35 @@ func (c *RegistroPresupuestalController) ValorTotalRp() {
 	} else {
 		c.Data["json"] = v
 	}
+	c.ServeJSON()
+}
+
+// ValorActualRp ...
+// @Title Valor Actual Rp
+// @Description retorna valor actual del RegistroPresupuestal por id
+// @Param	body		body 	models.RegistroPresupuestal	true		"body for RegistroPresupuestal content"
+// @Success 201 {int} suma valor de los RegistroPresupuestal por id
+// @Failure 403 body is empty
+// @router ValorActualRp/:id [get]
+func (c *RegistroPresupuestalController) ValorActualRp() {
+	idStr := c.Ctx.Input.Param(":id")
+	if idStr != "" {
+		id, _ := strconv.Atoi(idStr)
+		v, err := models.GetValorActualRp(id)
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = v
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
+		c.Data["json"] = alert
+	}
+
 	c.ServeJSON()
 }
 
@@ -281,5 +311,42 @@ func (c *RegistroPresupuestalController) AprobarAnulacionRp() {
 	} else {
 		c.Data["json"] = err.Error()
 	}
+	c.ServeJSON()
+}
+
+// TotalRp ...
+// @Title TotalRp
+// @Description numero de rp segun vigencia o rango de fechas
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de rp"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
+// @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de rp"
+// @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de rp"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalRp/:vigencia [get]
+func (c *RegistroPresupuestalController) TotalRp() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	var startrange string
+	var endrange string
+	if r := c.GetString("rangoinicio"); r != "" {
+		startrange = r
+
+	}
+	if r := c.GetString("rangofin"); r != "" {
+		endrange = r
+	}
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalRp(vigencia, UnidadEjecutora, startrange, endrange)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+
 	c.ServeJSON()
 }

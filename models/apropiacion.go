@@ -273,7 +273,8 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 				  from financiera.rubro
 				  join financiera.rubro_rubro
 					on  rubro_rubro.rubro_hijo = rubro.id
-				  WHERE rubro_rubro.rubro_padre = ?`, fork["Id"]).Values(&m)
+				  WHERE rubro_rubro.rubro_padre = ?
+				  AND unidad_ejecutora in (?,0)`, fork["Id"], unidadEjecutora).Values(&m)
 				if err == nil {
 					err = utilidades.FillStruct(m, &res)
 					resch := genChanMapStr(res...)
@@ -368,7 +369,8 @@ func SaldoRubroPadre(Id int, unidadEjecutora int, Vigencia int) (saldo map[strin
 	  from financiera.rubro
 	  join financiera.rubro_rubro
 		on  rubro_rubro.rubro_hijo = rubro.id
-	  WHERE rubro_rubro.rubro_padre = ?`, Id).Values(&m)
+	  WHERE rubro_rubro.rubro_padre = ?
+	  AND unidad_ejecutora in (?,0)`, Id, unidadEjecutora).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
 

@@ -12,15 +12,13 @@ import (
 
 type MovimientoFuenteFinanciamientoApropiacion struct {
 	Id                                        int                              `orm:"column(id);pk;auto"`
-	Fecha                                     time.Time                        `orm:"column(fecha);type(date)"`
+	Fecha                                     time.Time                        `orm:"column(fecha_registro);type(date)"`
 	Valor                                     float64                          `orm:"column(valor)"`
 	TipoMovimiento                            *TipoMovimiento                  `orm:"column(tipo_movimiento);rel(fk)"`
 	Descripcion                               string                           `orm:"column(descripcion);null"`
 	FuenteFinanciamientoApropiacion           *FuenteFinanciamientoApropiacion `orm:"column(fuente_financiamiento_apropiacion);rel(fk)"`
 	MovimientoFuenteFinanciamientoApropiacion int                              `orm:"column(movimiento_fuente_financiamiento_apropiacion);null"`
-	TipoDocumento                             int          										 `orm:"column(tipo_documento)"`
-	NoDocumento                               string                           `orm:"column(no_documento)"`
-	FechaDocumento                            time.Time                        `orm:"column(fecha_documento)"`
+	TipoDocumento                             int         			   `orm:"column(tipo_documento)"`
 }
 
 func (t *MovimientoFuenteFinanciamientoApropiacion) TableName() string {

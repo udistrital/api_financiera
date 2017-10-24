@@ -37,6 +37,41 @@ func init() {
 	orm.RegisterModel(new(Disponibilidad))
 }
 
+// totalDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalDisponibilidades(vigencia int, unidadEjecutora int, finicio string, ffin string) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	if finicio != "" && ffin != "" {
+		qb.Select("COUNT(DISTINCT(disponibilidad))").
+			From("financiera.disponibilidad").
+			InnerJoin("financiera.disponibilidad_apropiacion").
+			On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+			InnerJoin("financiera.apropiacion").
+			On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+			InnerJoin("financiera.rubro").
+			On("rubro.id = apropiacion.rubro").
+			Where("disponibilidad.vigencia = ?").
+			And("fecha_registro >= ?").
+			And("fecha_registro <= ?").
+			And("unidad_ejecutora = ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin, unidadEjecutora).QueryRow(&total)
+		return
+	}
+	qb.Select("COUNT(DISTINCT(disponibilidad))").
+		From("financiera.disponibilidad").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("rubro.id = apropiacion.rubro").
+		Where("disponibilidad.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
+	return
+
+}
+
 // AddDisponibilidad insert a new Disponibilidad into database and returns
 // last inserted Id on success.
 func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
@@ -163,7 +198,7 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	}
 
 	var l []Disponibilidad
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {

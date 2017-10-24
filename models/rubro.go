@@ -14,7 +14,7 @@ import (
 
 type Rubro struct {
 	Id              int         `orm:"auto;column(id);pk"`
-	Entidad         *Entidad    `orm:"column(entidad);rel(fk)"`
+	Entidad         int         `orm:"column(entidad)"`
 	Codigo          string      `orm:"column(codigo)"`
 	Descripcion     string      `orm:"column(descripcion);null"`
 	UnidadEjecutora int16       `orm:"column(unidad_ejecutora)"`
@@ -757,7 +757,7 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 	err = utilidades.FillStruct(m, &res)
 	return
 }
-func RamaRubros(forkin interface{}) (forkout interface{}) {
+func RamaRubros(forkin interface{}, params ...interface{}) (forkout interface{}) {
 	fork := forkin.(map[string]interface{})
 	o := orm.NewOrm()
 	var m []orm.Params
@@ -767,14 +767,15 @@ func RamaRubros(forkin interface{}) (forkout interface{}) {
 	  from financiera.rubro
 	  join financiera.rubro_rubro
 		on  rubro_rubro.rubro_hijo = rubro.id
-	  WHERE rubro_rubro.rubro_padre = ?`, fork["Id"]).Values(&m)
+	  WHERE rubro_rubro.rubro_padre = ?
+	  AND unidad_ejecutora in (?,0)`, fork["Id"], params).Values(&m)
 	if err == nil {
 		err = utilidades.FillStruct(m, &res)
 		var hijos []map[string]interface{}
 		done := make(chan interface{})
 		defer close(done)
 		resch := utilidades.GenChanInterface(res...)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch)
+		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
 		for hijo := range charbolrubros {
 			if hijo != nil {
 				hijos = append(hijos, hijo.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
@@ -804,14 +805,17 @@ func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]inte
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
 			  OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 					AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
-			  AND rubro.codigo LIKE ?`, searchparam).Values(&m)
+			  AND rubro.codigo LIKE ?
+			  AND rubro.unidad_ejecutora IN (?,0)`, searchparam, unidadEjecutora).Values(&m)
 	if err == nil {
 		var res []interface{}
 		err = utilidades.FillStruct(m, &res)
 		done := make(chan interface{})
 		defer close(done)
 		resch := utilidades.GenChanInterface(res...)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch)
+		var params []interface{}
+		params = append(params, unidadEjecutora)
+		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
 		for padre := range charbolrubros {
 			padres = append(padres, padre.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
 		}
