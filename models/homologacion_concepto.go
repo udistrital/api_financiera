@@ -18,8 +18,8 @@ type ConceptoValor struct {
 }
 
 type RpCdpRubroConceptoValor struct {
-	RegistroPresupuestalDisponibilidadApropiacion *RegistroPresupuestalDisponibilidadApropiacion
-	ConceptoValor                                 []*ConceptoValor
+	RegistroPresupuestalDisponibilidadApropiacion RegistroPresupuestalDisponibilidadApropiacion
+	ConceptoValor                                 []ConceptoValor
 }
 
 type HomologacionConcepto struct {
@@ -162,9 +162,9 @@ func DeleteHomologacionConcepto(id int) (err error) {
 }
 
 // Homologacion conceptos de titan
-func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, allConceptoValor []ConceptoValor) {
-	fmt.Println("Model HomolgacionConceptosTitan")
+func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, allRpCdpRubroConceptoValor []RpCdpRubroConceptoValor) {
 	o := orm.NewOrm()
+	var allConceptoValor []ConceptoValor
 	var detalleLiquidacion []interface{}
 	var registroPresupuestal RegistroPresupuestal
 
@@ -240,9 +240,11 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 				allConceptoValor = append(allConceptoValor, newConceptoValor2)
 			}
 		}
-	} //for
+	}
+	//**
 	//trabajar con toda la estructura de RegistroPresupuestalDisponibilidadApropiacion
-	fmt.Println("Registro Presupuestal ID: ", registroPresupuestal.Id)
+	// **
+
 	// buscamos los registroPresupuestalDisponibilidadApropiacion asociados al RP
 	qs := o.QueryTable(new(RegistroPresupuestalDisponibilidadApropiacion)).RelatedSel()
 	qs = qs.Filter("RegistroPresupuestal", registroPresupuestal.Id)
@@ -250,10 +252,12 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 	var l []RegistroPresupuestalDisponibilidadApropiacion
 	if _, err = qs.Limit(-1, 0).All(&l); err == nil {
 		for _, v := range l {
-			fmt.Println("Id que necesita miguel ", v.Id)
+			fmt.Println("*********** Id que necesita miguel ", v.Id)
+			registroPresupuestalDisponibilidadApropiacion := RegistroPresupuestalDisponibilidadApropiacion{}
 			disponibilidadApropiacion := DisponibilidadApropiacion{}
 			apropiacion := Apropiacion{}
 			rubro := Rubro{}
+			err = utilidades.FillStruct(v, &registroPresupuestalDisponibilidadApropiacion)
 			err = utilidades.FillStruct(v.DisponibilidadApropiacion, &disponibilidadApropiacion)
 			err = utilidades.FillStruct(disponibilidadApropiacion.Apropiacion, &apropiacion)
 			err = utilidades.FillStruct(apropiacion.Rubro, &rubro)
@@ -281,17 +285,17 @@ func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta A
 						allConceptoPorRubro = append(allConceptoPorRubro, allConceptoValor[idlista])
 					}
 				}
-				fmt.Println("resultado")
-				fmt.Println(add_concepto)
+				fmt.Println("resultado: ", add_concepto)
 				if add_concepto {
 					newRpCdpRubroConceptoValor := RpCdpRubroConceptoValor{
-						RegistroPresupuestalDisponibilidadApropiacion: &RegistroPresupuestalDisponibilidadApropiacion{Id: v.Id},
+						RegistroPresupuestalDisponibilidadApropiacion: registroPresupuestalDisponibilidadApropiacion,
+						ConceptoValor:                                 allConceptoPorRubro,
 					}
-					fmt.Println(newRpCdpRubroConceptoValor)
+					//
+					allRpCdpRubroConceptoValor = append(allRpCdpRubroConceptoValor, newRpCdpRubroConceptoValor)
 				}
 			}
 		}
-		//
 	}
 	//
 	return
