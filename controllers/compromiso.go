@@ -38,8 +38,9 @@ func (c *CompromisoController) URLMapping() {
 func (c *CompromisoController) Post() {
 	var v models.Compromiso
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddCompromiso(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: nil} //codigo de registro exitoso
+		v.FechaModificacion = time.Now()
+		if _, err = models.AddCompromiso(&v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v.Id} //codigo de registro exitoso
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alert
 		} else {
@@ -157,8 +158,10 @@ func (c *CompromisoController) Put() {
 				v.FechaInicio = uv.FechaInicio
 				v.FechaFin = uv.FechaFin
 				v.FechaModificacion = time.Now()
+				v.Vigencia = uv.Vigencia
+				//v.Vigencia = float64(uv.FechaInicio.Year())
 				if err = models.UpdateCompromisoById(v); err == nil {
-					alert := models.Alert{Type: "success", Code: "S_542", Body: v} //codigo de registro exitoso
+					alert := models.Alert{Type: "success", Code: "S_542", Body: v.Id} //codigo de registro exitoso
 					c.Ctx.Output.SetStatus(201)
 					c.Data["json"] = alert
 				} else {
@@ -201,7 +204,7 @@ func (c *CompromisoController) Delete() {
 	if v, err := models.GetCompromisoById(id); err == nil {
 		v.EstadoCompromiso.Id = 4 // Id compromiso cancelado
 		if err = models.UpdateCompromisoById(v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_542", Body: v} //codigo de cambio exitoso
+			alert := models.Alert{Type: "success", Code: "S_5412", Body: v.Id} //codigo de cambio exitoso
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alert
 		} else {

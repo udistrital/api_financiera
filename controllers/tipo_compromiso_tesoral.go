@@ -38,7 +38,7 @@ func (c *TipoCompromisoTesoralController) Post() {
 	var v models.TipoCompromisoTesoral
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddTipoCompromisoTesoral(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v.Nombre}
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alert
 		} else {
