@@ -10,9 +10,10 @@ import (
 )
 
 type CategoriaCompromiso struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
+	Id               int                      `orm:"column(id);pk;auto"`
+	Nombre           string                   `orm:"column(nombre)"`
+	Descripcion      string                   `orm:"column(descripcion);null"`
+	TiposCompromisos []*TipoCompromisoTesoral `orm:"reverse(many);null"`
 }
 
 func (t *CategoriaCompromiso) TableName() string {
@@ -102,8 +103,13 @@ func GetAllCategoriaCompromiso(query map[string]string, fields []string, sortby 
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "TiposCompromisos", 5)
 				ml = append(ml, v)
 			}
+			/*for _, v := range l {
+				ml = append(ml, v)
+			}*/
+
 		} else {
 			// trim unused fields
 			for _, v := range l {

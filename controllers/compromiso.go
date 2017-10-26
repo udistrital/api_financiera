@@ -1,11 +1,15 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -34,14 +38,21 @@ func (c *CompromisoController) URLMapping() {
 func (c *CompromisoController) Post() {
 	var v models.Compromiso
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddCompromiso(&v); err == nil {
+		v.FechaModificacion = time.Now()
+		if _, err = models.AddCompromiso(&v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v.Id} //codigo de registro exitoso
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -130,7 +141,7 @@ func (c *CompromisoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the Compromiso
+// @Description El compromiso unicamente actualiza el objeto y las fechas de inicio y fin
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.Compromiso	true		"body for Compromiso content"
 // @Success 200 {object} models.Compromiso
@@ -139,15 +150,43 @@ func (c *CompromisoController) GetAll() {
 func (c *CompromisoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.Compromiso{Id: id}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateCompromisoById(&v); err == nil {
-			c.Data["json"] = "OK"
+	uv := models.Compromiso{Id: id}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &uv); err == nil {
+		if v, err := models.GetCompromisoById(uv.Id); err == nil {
+			if uv.EstadoCompromiso.Id == 1 {
+				v.Objeto = uv.Objeto
+				v.FechaInicio = uv.FechaInicio
+				v.FechaFin = uv.FechaFin
+				v.FechaModificacion = time.Now()
+				v.Vigencia = uv.Vigencia
+				//v.Vigencia = float64(uv.FechaInicio.Year())
+				if err = models.UpdateCompromisoById(v); err == nil {
+					alert := models.Alert{Type: "success", Code: "S_542", Body: v.Id} //codigo de registro exitoso
+					c.Ctx.Output.SetStatus(201)
+					c.Data["json"] = alert
+				} else {
+					alertdb := structs.Map(err)
+					var code string
+					utilidades.FillStruct(alertdb["Code"], &code)
+					alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+					c.Data["json"] = alert
+				}
+			} else {
+				alert := models.Alert{Type: "error", Code: "E_0471", Body: "No es posible realizar actualizacion debido al estado del registro"}
+				c.Data["json"] = alert
+			}
+
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
+
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -162,10 +201,27 @@ func (c *CompromisoController) Put() {
 func (c *CompromisoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteCompromiso(id); err == nil {
+	if v, err := models.GetCompromisoById(id); err == nil {
+		v.EstadoCompromiso.Id = 4 // Id compromiso cancelado
+		if err = models.UpdateCompromisoById(v); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_5412", Body: v.Id} //codigo de cambio exitoso
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	/*if err := models.DeleteCompromiso(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
-	}
+	}*/
 	c.ServeJSON()
 }
