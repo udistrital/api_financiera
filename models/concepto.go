@@ -11,14 +11,15 @@ import (
 )
 
 type Concepto struct {
-	Id              int           `orm:"column(id);pk;auto"`
-	Codigo          string        `orm:"column(codigo)"`
-	Nombre          string        `orm:"column(nombre)"`
-	FechaCreacion   time.Time     `orm:"column(fecha_creacion);type(date)"`
-	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
-	Descripcion     string        `orm:"column(descripcion);null"`
-	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto_tesoral);rel(fk)"`
-	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null"`
+	Id                     int                       `orm:"column(id);pk;auto"`
+	Codigo                 string                    `orm:"column(codigo)"`
+	Nombre                 string                    `orm:"column(nombre)"`
+	FechaCreacion          time.Time                 `orm:"column(fecha_creacion);type(date)"`
+	FechaExpiracion        time.Time                 `orm:"column(fecha_expiracion);type(date);null"`
+	Descripcion            string                    `orm:"column(descripcion);null"`
+	TipoConcepto           *TipoConcepto             `orm:"column(tipo_concepto_tesoral);rel(fk)"`
+	Rubro                  *Rubro                    `orm:"column(rubro);rel(fk);null"`
+	ConceptoCuentaContable []*ConceptoCuentaContable `orm:"reverse(many)"`
 }
 
 func (t *Concepto) TableName() string {
@@ -53,7 +54,7 @@ func GetConceptoById(id int) (v *Concepto, err error) {
 func GetAllConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Concepto)).RelatedSel()
+	qs := o.QueryTable(new(Concepto))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -104,10 +105,11 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 	}
 
 	var l []Concepto
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "ConceptoCuentaContable", 5)
 				ml = append(ml, v)
 			}
 		} else {
