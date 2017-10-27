@@ -14,10 +14,10 @@ type TrConcepto struct {
 	Cuentas       *[]CuentaContable
 }
 
-//funcion para la transaccion de conceptos -Agregar un concepto
-func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
+//AddTransaccionConcepto funcion para la transaccion de conceptos -Agregar un concepto
+func AddTransaccionConcepto(m *TrConcepto) (err error) {
 	o := orm.NewOrm()
-	alerta = append(alerta, "success")
+	//alerta = append(alerta, "success")
 	m.Concepto.FechaCreacion = time.Now()
 	fmt.Println("Concepto!!!!", m.Concepto.FechaCreacion)
 	o.Begin()
@@ -31,8 +31,10 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 			if _, err = o.Insert(&v); err != nil {
 				fmt.Println("Afectacion", &v)
 				o.Rollback()
-				alerta[0] = "error"
-				alerta = append(alerta, "Ocurrio un error al insertar las afectaciones!")
+				//alerta := models.Alert{Type: "error", Code: "E_3542", Body: nil}
+				return err
+				//alerta[0] = "error"
+				//alerta = append(alerta, "Ocurrio un error al insertar las afectaciones!")
 			}
 			fmt.Println("Afectacion", &v)
 		}
@@ -49,8 +51,9 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 			if _, err = o.Insert(&concepto_cuentas); err != nil {
 				fmt.Println("error concepto_cuentas", err)
 				o.Rollback()
-				alerta[0] = "error"
-				alerta = append(alerta, "Ocurrio un error al insertar las cuentas al concepto!")
+				return err
+				//alerta[0] = "error"
+				//alerta = append(alerta, "Ocurrio un error al insertar las cuentas al concepto!")
 			}
 			fmt.Println("exito concepto_cuentas", &concepto_cuentas)
 		}
@@ -63,17 +66,19 @@ func AddTransaccionConcepto(m *TrConcepto) (alerta []string, err error) {
 			fmt.Println("padre estructura", conceptoestructura.ConceptoPadre)
 			if _, err = o.Insert(conceptoestructura); err != nil {
 				o.Rollback()
-				alerta[0] = "error"
-				alerta = append(alerta, "Ocurrio un error al insertar el concepto en la estructura!")
+				return err
+				//alerta[0] = "error"
+				//alerta = append(alerta, "Ocurrio un error al insertar el concepto en la estructura!")
 			}
 		}
 		o.Commit()
-		alerta = append(alerta, "El concepto se agrego exitosamente!")
-	} else {
-		fmt.Println(err)
-		o.Rollback()
-		alerta[0] = "error"
-		alerta = append(alerta, "Ocurrio un error al insertar el concepto!")
+		return nil
+		//alerta = append(alerta, "El concepto se agrego exitosamente!")
 	}
-	return
+	fmt.Println(err)
+	o.Rollback()
+	return err
+	//alerta[0] = "error"
+	//alerta = append(alerta, "Ocurrio un error al insertar el concepto!")
+
 }
