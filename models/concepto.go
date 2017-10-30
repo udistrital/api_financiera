@@ -11,15 +11,16 @@ import (
 )
 
 type Concepto struct {
-	Id                     int                       `orm:"column(id);pk;auto"`
-	Codigo                 string                    `orm:"column(codigo)"`
-	Nombre                 string                    `orm:"column(nombre)"`
-	FechaCreacion          time.Time                 `orm:"column(fecha_creacion);type(date)"`
-	FechaExpiracion        time.Time                 `orm:"column(fecha_expiracion);type(date);null"`
-	Descripcion            string                    `orm:"column(descripcion);null"`
-	TipoConcepto           *TipoConcepto             `orm:"column(tipo_concepto_tesoral);rel(fk)"`
-	Rubro                  *Rubro                    `orm:"column(rubro);rel(fk);null"`
-	ConceptoCuentaContable []*ConceptoCuentaContable `orm:"reverse(many)"`
+	Id                              int                                `orm:"column(id);pk;auto"`
+	Codigo                          string                             `orm:"column(codigo)"`
+	Nombre                          string                             `orm:"column(nombre)"`
+	FechaCreacion                   time.Time                          `orm:"column(fecha_creacion);type(date)"`
+	FechaExpiracion                 time.Time                          `orm:"column(fecha_expiracion);type(date);null"`
+	Descripcion                     string                             `orm:"column(descripcion);null"`
+	TipoConcepto                    *TipoConcepto                      `orm:"column(tipo_concepto_tesoral);rel(fk)"`
+	Rubro                           *Rubro                             `orm:"column(rubro);rel(fk);null"`
+	ConceptoCuentaContable          []*ConceptoCuentaContable          `orm:"reverse(many)"`
+	ConceptoTesoralFacultadProyecto []*ConceptoTesoralFacultadProyecto `orm:"reverse(many)"`
 }
 
 func (t *Concepto) TableName() string {
@@ -110,6 +111,7 @@ func GetAllConcepto(query map[string]string, fields []string, sortby []string, o
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "ConceptoCuentaContable", 5)
+				o.LoadRelated(&v, "ConceptoTesoralFacultadProyecto", 5)
 				ml = append(ml, v)
 			}
 		} else {

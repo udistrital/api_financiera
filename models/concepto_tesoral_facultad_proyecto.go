@@ -10,10 +10,10 @@ import (
 )
 
 type ConceptoTesoralFacultadProyecto struct {
-	Id                 int `orm:"column(id);pk;auto"`
-	ConceptoTesoral    int `orm:"column(concepto_tesoral)"`
-	Facultad           int `orm:"column(facultad)"`
-	ProyectoCurricular int `orm:"column(proyecto_curricular);null"`
+	Id                 int       `orm:"column(id);pk;auto"`
+	ConceptoTesoral    *Concepto `orm:"column(concepto_tesoral);rel(fk)"`
+	Facultad           int       `orm:"column(facultad)"`
+	ProyectoCurricular int       `orm:"column(proyecto_curricular);null"`
 }
 
 func (t *ConceptoTesoralFacultadProyecto) TableName() string {
