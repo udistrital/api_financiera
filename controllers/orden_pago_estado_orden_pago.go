@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -22,6 +23,7 @@ func (c *OrdenPagoEstadoOrdenPagoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("WorkFlowOrdenPago", c.WorkFlowOrdenPago)
 }
 
 // Post ...
@@ -166,6 +168,31 @@ func (c *OrdenPagoEstadoOrdenPagoController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// WorkFlowOrdenPago ...
+// @Title WorkFlowOrdenPago
+// @Description Registrar orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router WorkFlowOrdenPago [post]
+func (c *OrdenPagoEstadoOrdenPagoController) WorkFlowOrdenPago() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		mensaje, err := models.WorkFlowOrdenPago(m)
+		if err != nil {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_OP_ESTADO", Body: mensaje}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err
 	}
 	c.ServeJSON()
 }
