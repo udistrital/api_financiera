@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -24,41 +25,52 @@ func AddTransaccionConcepto(m *TrConcepto) (err error) {
 
 	if id, err := o.Insert(m.Concepto); err == nil {
 		m.Concepto.Id = int(id)
+		fmt.Print("entro aqui")
 
 		fmt.Println("Concepto", m.Concepto)
-		for _, v := range *m.Afectaciones {
-			v.Concepto = m.Concepto
-			if _, err = o.Insert(&v); err != nil {
+		if m.Afectaciones != nil {
+			for _, v := range *m.Afectaciones {
+				v.Concepto = m.Concepto
+				if _, err = o.Insert(&v); err != nil {
+					fmt.Println("Afectacion", &v)
+					o.Rollback()
+					//alerta := models.Alert{Type: "error", Code: "E_3542", Body: nil}
+					return err
+					//alerta[0] = "error"
+					//alerta = append(alerta, "Ocurrio un error al insertar las afectaciones!")
+				}
 				fmt.Println("Afectacion", &v)
-				o.Rollback()
-				//alerta := models.Alert{Type: "error", Code: "E_3542", Body: nil}
-				return err
-				//alerta[0] = "error"
-				//alerta = append(alerta, "Ocurrio un error al insertar las afectaciones!")
 			}
-			fmt.Println("Afectacion", &v)
 		}
+
 		fmt.Println("padre", m.ConceptoPadre)
 
-		for _, c := range *m.Cuentas {
-			var concepto_cuentas ConceptoCuentaContable
-			concepto_cuentas.Concepto = m.Concepto
-			concepto_cuentas.CuentaContable = &c
-			if string(c.Codigo[0]) == "9" {
-				fmt.Println("CODIGO:", string(c.Codigo[0]))
-				concepto_cuentas.CuentaAcreedora = true
+		if m.Cuentas != nil {
+			for _, c := range *m.Cuentas {
+				var concepto_cuentas ConceptoCuentaContable
+				concepto_cuentas.Concepto = m.Concepto
+				concepto_cuentas.CuentaContable = &c
+				if string(c.Codigo[0]) == "9" {
+					fmt.Println("CODIGO:", string(c.Codigo[0]))
+					concepto_cuentas.CuentaAcreedora = true
+				}
+				if _, err = o.Insert(&concepto_cuentas); err != nil {
+					fmt.Println("error concepto_cuentas", err)
+					o.Rollback()
+					return err
+					//alerta[0] = "error"
+					//alerta = append(alerta, "Ocurrio un error al insertar las cuentas al concepto!")
+				}
+				fmt.Println("exito concepto_cuentas", &concepto_cuentas)
 			}
-			if _, err = o.Insert(&concepto_cuentas); err != nil {
-				fmt.Println("error concepto_cuentas", err)
-				o.Rollback()
-				return err
-				//alerta[0] = "error"
-				//alerta = append(alerta, "Ocurrio un error al insertar las cuentas al concepto!")
-			}
-			fmt.Println("exito concepto_cuentas", &concepto_cuentas)
 		}
 
 		if m.ConceptoPadre.Id != 0 {
+			if m.ConceptoPadre.Clasificador != true {
+				o.Rollback()
+				err = errors.New("C92011")
+				return err
+			}
 			var conceptoestructura = new(ConceptoConcepto)
 			conceptoestructura.ConceptoHijo = m.Concepto
 			conceptoestructura.ConceptoPadre = m.ConceptoPadre
@@ -74,10 +86,11 @@ func AddTransaccionConcepto(m *TrConcepto) (err error) {
 		o.Commit()
 		return nil
 		//alerta = append(alerta, "El concepto se agrego exitosamente!")
+	} else {
+		fmt.Println("murio", err)
+		o.Rollback()
+		return err
 	}
-	fmt.Println(err)
-	o.Rollback()
-	return err
 	//alerta[0] = "error"
 	//alerta = append(alerta, "Ocurrio un error al insertar el concepto!")
 

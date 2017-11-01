@@ -31,7 +31,12 @@ func (c *TrConceptoController) Post() {
 			alertdb := structs.Map(err)
 			var code string
 			utilidades.FillStruct(alertdb["Code"], &code)
+
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			if err.Error() == "C92011" {
+				alert = models.Alert{Type: "error", Code: "E_" + err.Error(), Body: nil}
+			}
+
 			c.Data["json"] = alert
 		}
 	} else {

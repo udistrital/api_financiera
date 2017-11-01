@@ -19,6 +19,7 @@ type Concepto struct {
 	Descripcion            string                    `orm:"column(descripcion);null"`
 	TipoConcepto           *TipoConcepto             `orm:"column(tipo_concepto_tesoral);rel(fk)"`
 	Rubro                  *Rubro                    `orm:"column(rubro);rel(fk);null"`
+	Clasificador           bool                      `orm:"column(clasificador);null"`
 	ConceptoCuentaContable []*ConceptoCuentaContable `orm:"reverse(many)"`
 }
 
