@@ -21,6 +21,7 @@ type Concepto struct {
 	Rubro                           *Rubro                             `orm:"column(rubro);rel(fk);null"`
 	ConceptoCuentaContable          []*ConceptoCuentaContable          `orm:"reverse(many)"`
 	ConceptoTesoralFacultadProyecto []*ConceptoTesoralFacultadProyecto `orm:"reverse(many)"`
+	Clasificador                    bool                               `orm:"column(clasificador);null"`
 }
 
 func (t *Concepto) TableName() string {
