@@ -538,15 +538,20 @@ func init() {
 		beego.NSNamespace("/estado_movimiento_contable",
 			beego.NSInclude(
 				&controllers.EstadoMovimientoContableController{},
-        ),
+			),
 		),
 
-    beego.NSNamespace("/sub_tipo_orden_pago",
-      beego.NSInclude(
-        &controllers.SubTipoOrdenPagoController{},
-      ),
-    ),
-                           
+		beego.NSNamespace("/sub_tipo_orden_pago",
+			beego.NSInclude(
+				&controllers.SubTipoOrdenPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/concepto_tesoral_facultad_proyecto",
+			beego.NSInclude(
+				&controllers.ConceptoTesoralFacultadProyectoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
