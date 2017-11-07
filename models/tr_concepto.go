@@ -13,6 +13,7 @@ type TrConcepto struct {
 	ConceptoPadre *Concepto
 	Afectaciones  *[]AfectacionConcepto
 	Cuentas       *[]CuentaContable
+	DelCuentas    *[]ConceptoCuentaContable
 }
 
 //AddTransaccionConcepto funcion para la transaccion de conceptos -Agregar un concepto
@@ -93,5 +94,98 @@ func AddTransaccionConcepto(m *TrConcepto) (err error) {
 	}
 	//alerta[0] = "error"
 	//alerta = append(alerta, "Ocurrio un error al insertar el concepto!")
+
+}
+
+func UpdateConceptoTr(m *TrConcepto) (err error) {
+	o := orm.NewOrm()
+	v := Concepto{Id: m.Concepto.Id}
+	o.Begin()
+	// ascertain id exists in the database
+	if err = o.Read(&v); err == nil {
+		var num int64
+		if o.Raw("select count(concepto_tesoral) from financiera.movimiento_contable where concepto_tesoral=?", v.Id).QueryRow(&num); num > 0 {
+			err = errors.New("04566")
+			return
+		} else {
+			uc := &Concepto{
+				Id:              v.Id,
+				Codigo:          v.Codigo,
+				Clasificador:    v.Clasificador,
+				TipoConcepto:    v.TipoConcepto,
+				Rubro:           m.Concepto.Rubro,
+				FechaCreacion:   v.FechaCreacion,
+				Nombre:          m.Concepto.Nombre,
+				Descripcion:     m.Concepto.Descripcion,
+				FechaExpiracion: m.Concepto.FechaExpiracion,
+			}
+			//var num int64
+
+			if _, err = o.Update(uc); err == nil {
+				//fmt.Println("Number of records updated in database:", num)
+				if m.Afectaciones != nil {
+					for _, af := range *m.Afectaciones {
+						vaf := AfectacionConcepto{Id: af.Id}
+						// ascertain id exists in the database
+						if err = o.Read(&vaf); err == nil {
+							//var num int64
+							if _, err = o.Update(&af); err != nil {
+								o.Rollback()
+								return
+								//fmt.Println("Number of records updated in database:", num)
+							}
+						} else {
+							o.Rollback()
+							return
+						}
+					}
+				}
+
+				if m.Cuentas != nil {
+					for _, c := range *m.Cuentas {
+						var concepto_cuentas ConceptoCuentaContable
+						concepto_cuentas.Concepto = m.Concepto
+						concepto_cuentas.CuentaContable = &c
+						if string(c.Codigo[0]) == "9" {
+							fmt.Println("CODIGO:", string(c.Codigo[0]))
+							concepto_cuentas.CuentaAcreedora = true
+						}
+						if _, err = o.Insert(&concepto_cuentas); err != nil {
+							o.Rollback()
+							return err
+							//alerta[0] = "error"
+							//alerta = append(alerta, "Ocurrio un error al insertar las cuentas al concepto!")
+						}
+					}
+				}
+
+				if m.DelCuentas != nil {
+					for _, cdel := range *m.DelCuentas {
+						vcdel := ConceptoCuentaContable{Id: cdel.Id}
+						// ascertain id exists in the database
+						if err = o.Read(&vcdel); err == nil {
+							//var num int64
+							if _, err = o.Delete(&vcdel); err != nil {
+								o.Rollback()
+								return
+								//fmt.Println("Number of records deleted in database:", num)
+							}
+						} else {
+							o.Rollback()
+							return
+						}
+					}
+				}
+				o.Commit()
+				return
+			} else {
+				o.Rollback()
+				return
+			}
+		}
+	} else {
+		o.Rollback()
+		return
+	}
 
 }
