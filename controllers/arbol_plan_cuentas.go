@@ -33,8 +33,16 @@ func (c *ArbolPlanCuentasController) URLMapping() {
 func (c *ArbolPlanCuentasController) MakeTreeCuentas() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	l := models.MakeTreePlanCuentas(id)
-	c.Data["json"] = l
+	l, err := models.MakeTreePlanCuentas(id)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = l
+	}
 	//Generera el Json con los datos obtenidos
 	c.ServeJSON()
 }
