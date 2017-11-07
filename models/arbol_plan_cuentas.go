@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 //ArbolPlanCuentas estructura que se retorna al consultar un plan de cuentas
@@ -21,7 +22,7 @@ type ArbolPlanCuentas struct {
 }
 
 //MakeTreePlanCuentas construye el arbol de la estructura de un plan de cuentas
-func MakeTreePlanCuentas(plan int) (a []ArbolPlanCuentas) {
+/*func MakeTreePlanCuentas(plan int) (a []ArbolPlanCuentas) {
 	o := orm.NewOrm()
 	//Arreglo
 	var arbol []ArbolPlanCuentas
@@ -66,7 +67,7 @@ func MakeBranchesPlan(Padre *ArbolPlanCuentas, plan int) (a []ArbolPlanCuentas) 
 		}
 	}
 	return arbol
-}
+}*/
 
 //DeleteBranchPlan Funcion para eliminar una rama del arbol
 func DeleteBranchPlan(IdCuenta int, IdPlan int) (err error) {
@@ -115,5 +116,79 @@ func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (err error) {
 		}
 	}
 	o.Commit()
+	return
+}
+
+// Generar arbol de rubros.
+func MakeTreePlanCuentas(plan int) (padres []map[string]interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	idplan := strconv.Itoa(plan)
+	//funcion para conseguir los rubros padre. OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
+	_, err = o.Raw(`select cuenta_contable.id as "Id", cuenta_contable.nombre as "Nombre", cuenta_contable.naturaleza as "Naturaleza",
+		cuenta_contable.descripcion as "Descripcion", cuenta_contable.codigo as "Codigo", cuenta_contable.cuenta_bancaria as "CuentaBancaria",
+		cuenta_contable.nivel_clasificacion_cuenta_contable as "NivelClasificacion" from financiera.cuenta_contable where id not in
+		(select cuenta_hijo from financiera.estructura_cuentas where cuenta_hijo is not null)
+		 and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas= ? ) order by id;`, idplan).Values(&m)
+	if err == nil {
+		var res []interface{}
+		err = utilidades.FillStruct(m, &res)
+		done := make(chan interface{})
+		defer close(done)
+		resch := utilidades.GenChanInterface(res...)
+		var params []interface{}
+		params = append(params, idplan)
+		charbolcuentas := utilidades.Digest(done, MakeBranchesPlan, resch, params)
+		for padre := range charbolcuentas {
+			p := padre.(map[string]interface{})
+			kl, _ := strconv.Atoi(p["Id"].(string))
+			p["Id"] = kl
+			kln, _ := strconv.Atoi(p["NivelClasificacion"].(string))
+			v := NivelClasificacion{Id: kln}
+			if err = o.Read(&v); err == nil {
+				p["NivelClasificacion"] = v
+			}
+
+			padres = append(padres, p) //tomar valores del canal y agregarlos al array de hijos.
+		}
+	}
+	return
+}
+
+func MakeBranchesPlan(forkin interface{}, params ...interface{}) (forkout interface{}) {
+	fork := forkin.(map[string]interface{})
+	o := orm.NewOrm()
+	var m []orm.Params
+	var res []interface{}
+	//funcion para conseguir los hijos de los rubros padre.
+	_, err := o.Raw(`select a.id as "Id", a.nombre as "Nombre", a.naturaleza as "Naturaleza",
+		a.descripcion as "Descripcion", a.codigo as "Codigo", a.cuenta_bancaria as "CuentaBancaria",
+		a.nivel_clasificacion_cuenta_contable as "NivelClasificacion" from financiera.cuenta_contable a
+		left join financiera.estructura_cuentas b on a.id =b.cuenta_hijo
+		where b.cuenta_padre= ? and b.plan_cuentas = ? ORDER BY a.id`, fork["Id"], params).Values(&m)
+	if err == nil {
+		err = utilidades.FillStruct(m, &res)
+		var hijos []map[string]interface{}
+		done := make(chan interface{})
+		defer close(done)
+		resch := utilidades.GenChanInterface(res...)
+		charbolcuentas := utilidades.Digest(done, MakeBranchesPlan, resch, params)
+		for hijo := range charbolcuentas {
+			if hijo != nil {
+				h := hijo.(map[string]interface{})
+				kl, _ := strconv.Atoi(h["Id"].(string))
+				h["Id"] = kl
+				kln, _ := strconv.Atoi(h["NivelClasificacion"].(string))
+				v := NivelClasificacion{Id: kln}
+				if err = o.Read(&v); err == nil {
+					h["NivelClasificacion"] = v
+				}
+
+				hijos = append(hijos, h) //tomar valores del canal y agregarlos al array de hijos.
+			}
+		}
+		fork["Hijos"] = hijos
+		return fork
+	}
 	return
 }
