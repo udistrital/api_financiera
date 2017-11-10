@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 )
 
 //ArbolPlanCuentas estructura que se retorna al consultar un plan de cuentas
@@ -22,13 +21,13 @@ type ArbolPlanCuentas struct {
 }
 
 //MakeTreePlanCuentas construye el arbol de la estructura de un plan de cuentas
-/*func MakeTreePlanCuentas(plan int) (a []ArbolPlanCuentas) {
+func MakeTreePlanCuentas(plan int) (a []ArbolPlanCuentas, err error) {
 	o := orm.NewOrm()
 	//Arreglo
 	var arbol []ArbolPlanCuentas
 	idplan := strconv.Itoa(plan)
 
-	_, err := o.Raw("select * from financiera.cuenta_contable where id not in (select cuenta_hijo from financiera.estructura_cuentas where cuenta_hijo is not null) and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas=" + idplan + ") order by id;").QueryRows(&arbol)
+	_, err = o.Raw("select * from financiera.cuenta_contable where id not in (select cuenta_hijo from financiera.estructura_cuentas where cuenta_hijo is not null) and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas=" + idplan + ") order by id;").QueryRows(&arbol)
 
 	if err == nil {
 		//For para que recorra los Ids en busca de hijos
@@ -41,7 +40,7 @@ type ArbolPlanCuentas struct {
 		}
 
 	}
-	return arbol
+	return arbol, nil
 }
 
 //MakeBranchesPlan Función que construye los hijos del arbol
@@ -67,7 +66,7 @@ func MakeBranchesPlan(Padre *ArbolPlanCuentas, plan int) (a []ArbolPlanCuentas) 
 		}
 	}
 	return arbol
-}*/
+}
 
 //DeleteBranchPlan Funcion para eliminar una rama del arbol
 func DeleteBranchPlan(IdCuenta int, IdPlan int) (err error) {
@@ -119,6 +118,7 @@ func AddBranchPlan(Rama *ArbolPlanCuentas, IdPlan int) (err error) {
 	return
 }
 
+/*
 // Generar arbol de rubros.
 func MakeTreePlanCuentas(plan int) (padres []map[string]interface{}, err error) {
 	o := orm.NewOrm()
@@ -191,4 +191,4 @@ func MakeBranchesPlan(forkin interface{}, params ...interface{}) (forkout interf
 		return fork
 	}
 	return
-}
+}*/
