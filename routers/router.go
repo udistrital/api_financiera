@@ -552,6 +552,12 @@ func init() {
 				&controllers.ConceptoTesoralFacultadProyectoController{},
 			),
 		),
+
+		beego.NSNamespace("/homologacion_descuento",
+			beego.NSInclude(
+				&controllers.HomologacionDescuentoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
