@@ -151,12 +151,19 @@ func (c *CuentaEspecialController) Put() {
 	v := models.CuentaEspecial{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateCuentaEspecialById(&v); err == nil {
-			c.Data["json"] = "OK"
+			alert := models.Alert{Type: "success", Code: "S_542", Body: v.Id} //codigo de registro exitoso
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
