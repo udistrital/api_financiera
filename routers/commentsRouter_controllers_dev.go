@@ -7,12 +7,12 @@ import (
 
 func init() {
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrConceptoController"],
-		beego.ControllerComments{
-			Method:           "Post",
-			Router:           `/`,
-			AllowHTTPMethods: []string{"post"},
-			Params:           nil})
+	/*beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrConceptoController"],
+	beego.ControllerComments{
+		Method:           "Post",
+		Router:           `/`,
+		AllowHTTPMethods: []string{"post"},
+		Params:           nil})*/
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"],
 		beego.ControllerComments{

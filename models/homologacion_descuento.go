@@ -10,52 +10,47 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type MovimientoContable struct {
-	Id                       int                       `orm:"column(id);pk;auto"`
-	Debito                   int64                     `orm:"column(debito)"`
-	Credito                  int64                     `orm:"column(credito)"`
-	Fecha                    time.Time                 `orm:"column(fecha);type(timestamp without time zone)"`
-	Concepto                 *Concepto                 `orm:"column(concepto_tesoral);rel(fk)"`
-	CuentaContable           *CuentaContable           `orm:"column(cuenta_contable);rel(fk)"`
-	TipoDocumentoAfectante   *TipoDocumentoAfectante   `orm:"column(tipo_documento_afectante);rel(fk)"`
-	CodigoDocumentoAfectante int                       `orm:"column(codigo_documento_afectante)"`
-	EstadoMovimientoContable *EstadoMovimientoContable `orm:"column(estado_movimiento_contable);rel(fk);null"`
-	CuentaEspecial           *CuentaEspecial           `orm:"column(cuenta_especial);rel(fk);null"`
+type HomologacionDescuento struct {
+	Id                   int             `orm:"column(id);pk;auto"`
+	Vigencia             float64         `orm:"column(vigencia)"`
+	FechaCreacion        time.Time       `orm:"column(fecha_creacion);type(date)"`
+	CuentaEspecialKronos *CuentaEspecial `orm:"column(cuenta_especial_kronos);rel(fk)"`
+	ConceptoTitan        int             `orm:"column(concepto_titan)"`
 }
 
-func (t *MovimientoContable) TableName() string {
-	return "movimiento_contable"
+func (t *HomologacionDescuento) TableName() string {
+	return "homologacion_descuento"
 }
 
 func init() {
-	orm.RegisterModel(new(MovimientoContable))
+	orm.RegisterModel(new(HomologacionDescuento))
 }
 
-// AddMovimientoContable insert a new MovimientoContable into database and returns
+// AddHomologacionDescuento insert a new HomologacionDescuento into database and returns
 // last inserted Id on success.
-func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
+func AddHomologacionDescuento(m *HomologacionDescuento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetMovimientoContableById retrieves MovimientoContable by Id. Returns error if
+// GetHomologacionDescuentoById retrieves HomologacionDescuento by Id. Returns error if
 // Id doesn't exist
-func GetMovimientoContableById(id int) (v *MovimientoContable, err error) {
+func GetHomologacionDescuentoById(id int) (v *HomologacionDescuento, err error) {
 	o := orm.NewOrm()
-	v = &MovimientoContable{Id: id}
+	v = &HomologacionDescuento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllMovimientoContable retrieves all MovimientoContable matches certain condition. Returns empty list if
+// GetAllHomologacionDescuento retrieves all HomologacionDescuento matches certain condition. Returns empty list if
 // no records exist
-func GetAllMovimientoContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllHomologacionDescuento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(MovimientoContable)).RelatedSel()
+	qs := o.QueryTable(new(HomologacionDescuento)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -105,7 +100,7 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []MovimientoContable
+	var l []HomologacionDescuento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -128,11 +123,11 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateMovimientoContable updates MovimientoContable by Id and returns error if
+// UpdateHomologacionDescuento updates HomologacionDescuento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
+func UpdateHomologacionDescuentoById(m *HomologacionDescuento) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: m.Id}
+	v := HomologacionDescuento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -143,15 +138,15 @@ func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
 	return
 }
 
-// DeleteMovimientoContable deletes MovimientoContable by Id and returns error if
+// DeleteHomologacionDescuento deletes HomologacionDescuento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMovimientoContable(id int) (err error) {
+func DeleteHomologacionDescuento(id int) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: id}
+	v := HomologacionDescuento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&MovimientoContable{Id: id}); err == nil {
+		if num, err = o.Delete(&HomologacionDescuento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

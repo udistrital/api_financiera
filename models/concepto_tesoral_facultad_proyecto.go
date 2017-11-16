@@ -5,57 +5,50 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type MovimientoContable struct {
-	Id                       int                       `orm:"column(id);pk;auto"`
-	Debito                   int64                     `orm:"column(debito)"`
-	Credito                  int64                     `orm:"column(credito)"`
-	Fecha                    time.Time                 `orm:"column(fecha);type(timestamp without time zone)"`
-	Concepto                 *Concepto                 `orm:"column(concepto_tesoral);rel(fk)"`
-	CuentaContable           *CuentaContable           `orm:"column(cuenta_contable);rel(fk)"`
-	TipoDocumentoAfectante   *TipoDocumentoAfectante   `orm:"column(tipo_documento_afectante);rel(fk)"`
-	CodigoDocumentoAfectante int                       `orm:"column(codigo_documento_afectante)"`
-	EstadoMovimientoContable *EstadoMovimientoContable `orm:"column(estado_movimiento_contable);rel(fk);null"`
-	CuentaEspecial           *CuentaEspecial           `orm:"column(cuenta_especial);rel(fk);null"`
+type ConceptoTesoralFacultadProyecto struct {
+	Id                 int       `orm:"column(id);pk;auto"`
+	ConceptoTesoral    *Concepto `orm:"column(concepto_tesoral);rel(fk)"`
+	Facultad           int       `orm:"column(facultad)"`
+	ProyectoCurricular int       `orm:"column(proyecto_curricular);null"`
 }
 
-func (t *MovimientoContable) TableName() string {
-	return "movimiento_contable"
+func (t *ConceptoTesoralFacultadProyecto) TableName() string {
+	return "concepto_tesoral_facultad_proyecto"
 }
 
 func init() {
-	orm.RegisterModel(new(MovimientoContable))
+	orm.RegisterModel(new(ConceptoTesoralFacultadProyecto))
 }
 
-// AddMovimientoContable insert a new MovimientoContable into database and returns
+// AddConceptoTesoralFacultadProyecto insert a new ConceptoTesoralFacultadProyecto into database and returns
 // last inserted Id on success.
-func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
+func AddConceptoTesoralFacultadProyecto(m *ConceptoTesoralFacultadProyecto) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetMovimientoContableById retrieves MovimientoContable by Id. Returns error if
+// GetConceptoTesoralFacultadProyectoById retrieves ConceptoTesoralFacultadProyecto by Id. Returns error if
 // Id doesn't exist
-func GetMovimientoContableById(id int) (v *MovimientoContable, err error) {
+func GetConceptoTesoralFacultadProyectoById(id int) (v *ConceptoTesoralFacultadProyecto, err error) {
 	o := orm.NewOrm()
-	v = &MovimientoContable{Id: id}
+	v = &ConceptoTesoralFacultadProyecto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllMovimientoContable retrieves all MovimientoContable matches certain condition. Returns empty list if
+// GetAllConceptoTesoralFacultadProyecto retrieves all ConceptoTesoralFacultadProyecto matches certain condition. Returns empty list if
 // no records exist
-func GetAllMovimientoContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllConceptoTesoralFacultadProyecto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(MovimientoContable)).RelatedSel()
+	qs := o.QueryTable(new(ConceptoTesoralFacultadProyecto)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -105,7 +98,7 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []MovimientoContable
+	var l []ConceptoTesoralFacultadProyecto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -128,11 +121,11 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateMovimientoContable updates MovimientoContable by Id and returns error if
+// UpdateConceptoTesoralFacultadProyecto updates ConceptoTesoralFacultadProyecto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
+func UpdateConceptoTesoralFacultadProyectoById(m *ConceptoTesoralFacultadProyecto) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: m.Id}
+	v := ConceptoTesoralFacultadProyecto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -143,15 +136,15 @@ func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
 	return
 }
 
-// DeleteMovimientoContable deletes MovimientoContable by Id and returns error if
+// DeleteConceptoTesoralFacultadProyecto deletes ConceptoTesoralFacultadProyecto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMovimientoContable(id int) (err error) {
+func DeleteConceptoTesoralFacultadProyecto(id int) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: id}
+	v := ConceptoTesoralFacultadProyecto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&MovimientoContable{Id: id}); err == nil {
+		if num, err = o.Delete(&ConceptoTesoralFacultadProyecto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
