@@ -278,6 +278,10 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
+		if movimientoContable[i].CuentaEspecial != nil {
+			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
+		}
+
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
 			alerta.Type = "error"
