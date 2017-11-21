@@ -9,6 +9,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/astaxie/beego"
 )
 
 type Ingreso struct {
@@ -99,21 +100,25 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		ingreso.Consecutivo = consecutivo
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
+		beego.Info(err)
 		//insert MovimientoContable
 		var mov []MovimientoContable
 		err = utilidades.FillStruct(m["Movimientos"], &mov)
 		for _, element := range mov {
 			element.Fecha = time.Now()
 			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
-			element.CodigoDocumentoAfectante = ingreso.Id
+			element.CodigoDocumentoAfectante = int(id)
+			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
 			_, err = o.Insert(&element)
 			if err != nil {
+				beego.Info(err.Error())
 				o.Rollback()
 				return
 			}
 		}
 
 		if err != nil {
+			beego.Info(err.Error())
 			o.Rollback()
 			return
 		} else {
@@ -130,16 +135,19 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 						Concepto: concepto}
 					_, err = o.Insert(ingreso_concepto)
 					if err != nil {
+						beego.Info(err.Error())
 						o.Rollback()
 						return
 					}
 
 				} else {
+					beego.Info(err.Error())
 					o.Rollback()
 					return
 				}
 
 			} else {
+				beego.Info(err.Error())
 				o.Rollback()
 				return
 			}
