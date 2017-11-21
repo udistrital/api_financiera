@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -30,16 +32,19 @@ func (c *TrCuentasContablesController) Post() {
 
 	var v models.TrCuentaContable
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if alerta, err := models.AddTransaccionCuentaContable(&v); err == nil {
+		if err = models.AddTransaccionCuentaContable(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = alerta
-
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v.Cuenta.Codigo}
 		} else {
-			c.Data["json"] = alerta
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
 		fmt.Println(err)
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 	}
 	c.ServeJSON()
 }
