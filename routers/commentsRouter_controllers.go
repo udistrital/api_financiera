@@ -3863,6 +3863,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrCuentasContablesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TrCuentasContablesController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:UnidadEjecutoraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:UnidadEjecutoraController"],
 		beego.ControllerComments{
 			Method: "Post",

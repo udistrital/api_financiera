@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -141,13 +144,18 @@ func (c *CuentaContableController) Put() {
 	id, _ := strconv.Atoi(idStr)
 	v := models.CuentaContable{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateCuentaContableById(&v); err == nil {
-			c.Data["json"] = "OK"
+		if err = models.UpdateCuentaContableById(&v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v.Codigo}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 	}
 	c.ServeJSON()
 }
