@@ -552,6 +552,12 @@ func init() {
 				&controllers.ConceptoTesoralFacultadProyectoController{},
 			),
 		),
+
+		beego.NSNamespace("/saldo_cuenta_contable",
+			beego.NSInclude(
+				&controllers.SaldoCuentaContableController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
