@@ -20,6 +20,7 @@ type MovimientoContable struct {
 	TipoDocumentoAfectante   *TipoDocumentoAfectante   `orm:"column(tipo_documento_afectante);rel(fk)"`
 	CodigoDocumentoAfectante int                       `orm:"column(codigo_documento_afectante)"`
 	EstadoMovimientoContable *EstadoMovimientoContable `orm:"column(estado_movimiento_contable);rel(fk);null"`
+	CuentaEspecial           *CuentaEspecial           `orm:"column(cuenta_especial);rel(fk);null"`
 }
 
 func (t *MovimientoContable) TableName() string {

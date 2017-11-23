@@ -62,7 +62,7 @@ func GetHomologacionConceptoById(id int) (v *HomologacionConcepto, err error) {
 func GetAllHomologacionConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(HomologacionConcepto)).RelatedSel()
+	qs := o.QueryTable(new(HomologacionConcepto)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -113,6 +113,8 @@ func GetAllHomologacionConcepto(query map[string]string, fields []string, sortby
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(v.ConceptoKronos, "ConceptoCuentaContable", 5)
+				o.LoadRelated(v.ConceptoKronos, "ConceptoTesoralFacultadProyecto", 5)
 				ml = append(ml, v)
 			}
 		} else {
