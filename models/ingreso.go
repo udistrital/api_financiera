@@ -17,7 +17,9 @@ type Ingreso struct {
 	Consecutivo          float64               `orm:"column(consecutivo)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaConsignacion    time.Time             `orm:"column(fecha_consignacion);type(date)"`
+	FechaInicio    		 time.Time             `orm:"column(fecha_inicio);type(date)"`
+	FechaFin    		 time.Time             `orm:"column(fecha_fin);type(date)"`
+	Facultad    		 int             	   `orm:"column(facultad);null"`
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
