@@ -167,6 +167,31 @@ func DeleteOrdenPago(id int) (err error) {
 	return
 }
 
+func ConsecutivoOrdnePago(tipoCodigo, subTipoCodigo string) (StringConsecutivo string, outputError map[string]interface{}) {
+	if subTipoCodigo == "" && tipoCodigo != "" { //proveedor y aplica para hora catedra s y h
+		fmt.Print("OP proveedor -----------------------")
+		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+				FROM financiera.orden_pago as op
+				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
+				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
+				and tipo.codigo_abreviacion = '` + tipoCodigo + `'`
+		return StringConsecutivo, nil
+	} else if subTipoCodigo != "" && tipoCodigo != "" { // planta admi, plant docen, ss admin, ss doce
+		fmt.Println("OP planta o ss -------------------")
+		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
+				FROM financiera.orden_pago as op
+				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
+				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
+				and tipo.codigo_abreviacion = '` + tipoCodigo + `'` + `
+				and sub.codigo_abreviacion = '` + subTipoCodigo + `'`
+		return StringConsecutivo, nil
+	} else {
+		fmt.Println("No se encontro asociacion para realizar secuencia")
+		outputError = map[string]interface{}{"Code": "E_0458", "Body": "No se encontro asociacion para realizar secuencia in ConsecutivoOrdnePago", "Type": "error"}
+		return "", outputError
+	}
+}
+
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
 func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
 	var idOrdenPago int64
