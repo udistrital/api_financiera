@@ -553,6 +553,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/saldo_cuenta_contable",
+			beego.NSInclude(
+				&controllers.SaldoCuentaContableController{},
+        ),
+		  ),
+
 		beego.NSNamespace("/homologacion_descuento",
 			beego.NSInclude(
 				&controllers.HomologacionDescuentoController{},

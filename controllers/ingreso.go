@@ -103,6 +103,7 @@ func (c *IngresoController) CreateIngresos() {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
 			c.Data["json"] = alert
 		} else {
+			beego.Info(err.Error())
 			alertdb := structs.Map(err)
 			var code string
 			utilidades.FillStruct(alertdb["Code"], &code)
@@ -110,6 +111,7 @@ func (c *IngresoController) CreateIngresos() {
 			c.Data["json"] = alert
 		}
 	} else {
+		beego.Info(err.Error())
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()

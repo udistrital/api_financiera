@@ -5,55 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaContable struct {
-	Id                 int                 `orm:"column(id);pk;auto"`
-	Saldo              int64               `orm:"column(saldo)"`
-	Nombre             string              `orm:"column(nombre)"`
-	Naturaleza         string              `orm:"column(naturaleza)"`
-	Descripcion        string              `orm:"column(descripcion);null"`
-	Codigo             string              `orm:"column(codigo)"`
-	NivelClasificacion *NivelClasificacion `orm:"column(nivel_clasificacion_cuenta_contable);rel(fk)"`
-	CuentaBancaria     *CuentaBancaria     `orm:"column(cuenta_bancaria);rel(fk);null"`
+type SaldoCuentaContable struct {
+	Id             int             `orm:"column(id);pk;auto"`
+	Saldo          float64         `orm:"column(saldo)"`
+	Anio           float64         `orm:"column(anio)"`
+	Mes            float64         `orm:"column(mes)"`
+	CuentaContable *CuentaContable `orm:"column(cuenta_contable);rel(fk)"`
 }
 
-func (t *CuentaContable) TableName() string {
-	return "cuenta_contable"
+func (t *SaldoCuentaContable) TableName() string {
+	return "saldo_cuenta_contable"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaContable))
+	orm.RegisterModel(new(SaldoCuentaContable))
 }
 
-// AddCuentaContable insert a new CuentaContable into database and returns
+// AddSaldoCuentaContable insert a new SaldoCuentaContable into database and returns
 // last inserted Id on success.
-func AddCuentaContable(m *CuentaContable) (id int64, err error) {
+func AddSaldoCuentaContable(m *SaldoCuentaContable) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaContableById retrieves CuentaContable by Id. Returns error if
+// GetSaldoCuentaContableById retrieves SaldoCuentaContable by Id. Returns error if
 // Id doesn't exist
-func GetCuentaContableById(id int) (v *CuentaContable, err error) {
+func GetSaldoCuentaContableById(id int) (v *SaldoCuentaContable, err error) {
 	o := orm.NewOrm()
-	v = &CuentaContable{Id: id}
+	v = &SaldoCuentaContable{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaContable retrieves all CuentaContable matches certain condition. Returns empty list if
+// GetAllSaldoCuentaContable retrieves all SaldoCuentaContable matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllSaldoCuentaContable(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaContable)).RelatedSel()
+	qs := o.QueryTable(new(SaldoCuentaContable))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -103,32 +99,11 @@ func GetAllCuentaContable(query map[string]string, fields []string, sortby []str
 		}
 	}
 
-	var l []CuentaContable
+	var l []SaldoCuentaContable
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				today := time.Now()
-				var year, month int
-				if int(today.Month()) == 1 {
-					year = today.Year() - 1
-					month = 12
-				} else {
-					year = today.Year()
-					month = int(today.Month()) - 1
-				}
-				firstdate := time.Date(today.Year(), today.Month(), 1, 23, 0, 0, 0, time.UTC)
-				var rul string
-				if v.Naturaleza == "debito" {
-					rul = "sum(debito) - sum(credito)"
-				} else {
-					rul = "sum(credito) - sum(debito)"
-				}
-				o.Raw(`select sum(saldo) from (
-							select saldo from financiera.saldo_cuenta_contable where cuenta_contable=? and anio = ? and mes = ?
-							union
-							select `+rul+` saldo from financiera.movimiento_contable
-							 where cuenta_contable=? and fecha >= ?::DATE group by cuenta_contable ) a`, v.Id, year, month, v.Id, firstdate).QueryRow(&v.Saldo)
 				ml = append(ml, v)
 			}
 		} else {
@@ -147,11 +122,11 @@ func GetAllCuentaContable(query map[string]string, fields []string, sortby []str
 	return nil, err
 }
 
-// UpdateCuentaContable updates CuentaContable by Id and returns error if
+// UpdateSaldoCuentaContable updates SaldoCuentaContable by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaContableById(m *CuentaContable) (err error) {
+func UpdateSaldoCuentaContableById(m *SaldoCuentaContable) (err error) {
 	o := orm.NewOrm()
-	v := CuentaContable{Id: m.Id}
+	v := SaldoCuentaContable{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -162,15 +137,15 @@ func UpdateCuentaContableById(m *CuentaContable) (err error) {
 	return
 }
 
-// DeleteCuentaContable deletes CuentaContable by Id and returns error if
+// DeleteSaldoCuentaContable deletes SaldoCuentaContable by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaContable(id int) (err error) {
+func DeleteSaldoCuentaContable(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaContable{Id: id}
+	v := SaldoCuentaContable{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaContable{Id: id}); err == nil {
+		if num, err = o.Delete(&SaldoCuentaContable{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
