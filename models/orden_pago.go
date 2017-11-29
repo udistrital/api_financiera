@@ -167,61 +167,73 @@ func DeleteOrdenPago(id int) (err error) {
 	return
 }
 
-func ConsecutivoOrdnePago(tipoCodigo, subTipoCodigo string) (StringConsecutivo string, outputError map[string]interface{}) {
-	if subTipoCodigo == "" && tipoCodigo != "" { //proveedor y aplica para hora catedra s y h
-		fmt.Print("OP proveedor -----------------------")
+func ConsecutivoOrdnePago(tipoCodigo string) (StringConsecutivo string, outputError map[string]interface{}) {
+	if tipoCodigo != "" {
 		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 				FROM financiera.orden_pago as op
 				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
 				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
 				and tipo.codigo_abreviacion = '` + tipoCodigo + `'`
 		return StringConsecutivo, nil
-	} else if subTipoCodigo != "" && tipoCodigo != "" { // planta admi, plant docen, ss admin, ss doce
-		fmt.Println("OP planta o ss -------------------")
-		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
-				FROM financiera.orden_pago as op
-				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
-				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
-				and tipo.codigo_abreviacion = '` + tipoCodigo + `'` + `
-				and sub.codigo_abreviacion = '` + subTipoCodigo + `'`
-		return StringConsecutivo, nil
-	} else {
-		fmt.Println("No se encontro asociacion para realizar secuencia")
-		outputError = map[string]interface{}{"Code": "E_0458", "Body": "No se encontro asociacion para realizar secuencia in ConsecutivoOrdnePago", "Type": "error"}
-		return "", outputError
 	}
+	outputError = map[string]interface{}{"Code": "E_0458", "Body": "Not enough parameter in ConsecutivoOrdnePago", "Type": "error"}
+	return "", outputError
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
-func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert, err error, consecutivoOp int) {
+func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert) {
 	var idOrdenPago int64
+	var sqlSecuencia string
+	var controlErro map[string]interface{}
+	var consecutivoOp int
+	var err error
 	o := orm.NewOrm()
 	o.Begin()
-	// == GetData
+	// GetData
 	ordenPago := OrdenPago{}
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
-	err = utilidades.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
-	err = utilidades.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err = utilidades.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
-	err = utilidades.FillStruct(DataOpProveedor["Usuario"], &usuario)
-	if err != nil {
+	err1 := utilidades.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
+	err2 := utilidades.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err3 := utilidades.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
+	err4 := utilidades.FillStruct(DataOpProveedor["Usuario"], &usuario)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
-		alerta.Body = err.Error()
+		alerta.Body = "Erro en la estructura de parametro de entrada en RegistrarOpProveedor"
 		o.Rollback()
 		return
 	}
 
-	// == Datos Orden de pago
 	// Consecutivo
-	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
-				FROM financiera.orden_pago as op
-				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
-				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
-				and tipo.codigo_abreviacion = 'OP-PROV'
-	`).QueryRow(&consecutivoOp)
+	if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PROV" {
+		//secuencia proveedor y las dos de planta
+		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = controlErro["Body"]
+			o.Rollback()
+			return
+		}
+	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PLAN" {
+		// secuencia de las dos de planta y las dos de ss
+		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PLAN"); controlErro != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = controlErro["Body"]
+			o.Rollback()
+			return
+		}
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = "No se ha definido control para generar secuencia a este tipo de Orden de pago"
+		o.Rollback()
+		return
+	}
+
+	o.Raw(sqlSecuencia).QueryRow(&consecutivoOp)
 	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
 	estadoOpObj := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
@@ -316,6 +328,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert,
 			return
 		}
 	}
+	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 	o.Commit()
 	return
 }

@@ -189,13 +189,13 @@ func (c *OrdenPagoController) RegistrarOpProveedor() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, consecutivoOp := models.RegistrarOpProveedor(m)
-		if err != nil {
+		mensaje := models.RegistrarOpProveedor(m)
+		if mensaje.Type != "success" {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
-			c.Data["json"] = alert
+			//alert := models.Alert{Type: mensaje.Type, Code: mensaje.Code, Body: consecutivoOp}
+			c.Data["json"] = mensaje
 		}
 	} else {
 		c.Data["json"] = err
