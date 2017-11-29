@@ -8,8 +8,6 @@ import (
 
 	"github.com/udistrital/api_financiera/models"
 
-	"fmt"
-
 	"github.com/astaxie/beego"
 )
 
@@ -27,7 +25,6 @@ func (c *OrdenPagoController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("RegistrarOpProveedor", c.RegistrarOpProveedor)
 	c.Mapping("ActualizarOpProveedor", c.ActualizarOpProveedor)
-	c.Mapping("RegistrarOpNomina", c.RegistrarOpNomina)
 	c.Mapping("FechaActual", c.FechaActual)
 	c.Mapping("ValorTotal", c.ValorTotal)
 }
@@ -219,58 +216,6 @@ func (c *OrdenPagoController) ActualizarOpProveedor() {
 			c.Data["json"] = alerta
 		} else {
 			alert := models.Alert{Type: "success", Code: "S_OPP_02", Body: consecutivoOp}
-			c.Data["json"] = alert
-		}
-	} else {
-		c.Data["json"] = err
-	}
-	c.ServeJSON()
-}
-
-// RegistrarOpNomina ...
-// @Title RegistrarOpNomina
-// @Description Registrar orden_pago nomina planta, concepto_ordenpago, transacciones y homologa conceptos titan-kronos
-// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
-// @Success 201 {int} models.OrdenPago
-// @Failure 403 body is empty
-// @router RegistrarOpNomina [post]
-func (c *OrdenPagoController) RegistrarOpNomina() {
-	fmt.Println("controller kronos")
-	var v interface{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		m := v.(map[string]interface{})
-		mensaje, err, consecutivoOp := models.RegistrarOpNomina(m)
-		if err != nil {
-			c.Data["json"] = mensaje
-		} else {
-			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
-			c.Data["json"] = alert
-		}
-	} else {
-		c.Data["json"] = err
-	}
-	c.ServeJSON()
-}
-
-// RegistrarOpSeguridadSocial ...
-// @Title RegistrarOpSeguridadSocial
-// @Description Registrar orden_pago nomina planta, concepto_ordenpago, transacciones y homologa conceptos titan-kronos
-// @Param	body		body 	models.OrdenPago	true		"body for OrdenPago content"
-// @Success 201 {int} models.OrdenPago
-// @Failure 403 body is empty
-// @router RegistrarOpSeguridadSocial [post]
-func (c *OrdenPagoController) RegistrarOpSeguridadSocial() {
-	fmt.Println("*** controller RegistrarOpSeguridadSocial ***")
-	var v interface{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		m := v.(map[string]interface{})
-		mensaje, err, consecutivoOp := models.RegistrarOpSeguridadSocial(m)
-		if err != nil {
-			c.Data["json"] = mensaje
-		} else {
-			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 			c.Data["json"] = alert
 		}
 	} else {
