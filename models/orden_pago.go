@@ -451,16 +451,6 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	return
 }
 
-//
-func estaConcepto(idConcepto int, lista []ConceptoOrdenPago) (esta bool, idlista int) {
-	for or := 0; or < len(lista); or++ {
-		if lista[or].Concepto.Id == idConcepto {
-			return true, or
-		}
-	}
-	return false, 0
-}
-
 // personalizado Retrona la fecha actual del servidor
 func FechaActual(formato string) (fechaActual string, err error) {
 	hoy := time.Now()
