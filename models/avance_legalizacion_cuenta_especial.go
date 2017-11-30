@@ -10,7 +10,7 @@ import (
 )
 
 type AvanceLegalizacionCuentaEspecial struct {
-	Id                 int                 `orm:"column(id);pk"`
+	Id                 int                 `orm:"column(id);pk;auto"`
 	AvanceLegalizacion *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
 	CuentaEspecial     *CuentaEspecial     `orm:"column(cuenta_especial);rel(fk)"`
 }

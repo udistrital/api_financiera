@@ -11,12 +11,11 @@ import (
 )
 
 type AvanceLegalizacion struct {
-	Id                     int                     `orm:"column(id);pk"`
+	Id                     int                     `orm:"column(id);pk;auto"`
 	TipoAvanceLegalizacion *TipoAvanceLegalizacion `orm:"column(tipo_avance_legalizacion);rel(fk)"`
 	Avance                 *SolicitudAvance        `orm:"column(avance);rel(fk)"`
 	Tercero                string                  `orm:"column(tercero)"`
 	Valor                  float64                 `orm:"column(valor)"`
-	FechaRegistro          time.Time               `orm:"column(fecha_registro);type(timestamp with time zone)"`
 	FechaCompra            time.Time               `orm:"column(fecha_compra);type(date);null"`
 	FechaCambioDivisa      time.Time               `orm:"column(fecha_cambio_divisa);type(date);null"`
 	Dias                   int                     `orm:"column(dias);null"`
