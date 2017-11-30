@@ -215,6 +215,15 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			o.Rollback()
 			return
 		}
+	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-SS" {
+		// secuencia de las dos de planta y las dos de ss
+		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = controlErro["Body"]
+			o.Rollback()
+			return
+		}
 	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PLAN" {
 		// secuencia de las dos de planta y las dos de ss
 		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PLAN"); controlErro != nil {
