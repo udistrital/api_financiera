@@ -83,6 +83,9 @@ func (c *TrConceptoController) Put() {
 				if err.Error() == "04566" {
 					alert = models.Alert{Type: "error", Code: "E_" + err.Error(), Body: nil}
 				}
+				if err.Error() == "C92011" {
+					alert = models.Alert{Type: "error", Code: "E_" + err.Error(), Body: nil}
+				}
 				c.Data["json"] = alert
 			}
 		} else {
