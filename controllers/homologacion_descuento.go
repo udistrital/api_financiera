@@ -3,23 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
 
-// CuentaEspecialController operations for CuentaEspecial
-type CuentaEspecialController struct {
+// HomologacionDescuentoController operations for HomologacionDescuento
+type HomologacionDescuentoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *CuentaEspecialController) URLMapping() {
+func (c *HomologacionDescuentoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -29,43 +26,37 @@ func (c *CuentaEspecialController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create CuentaEspecial
-// @Param	body		body 	models.CuentaEspecial	true		"body for CuentaEspecial content"
-// @Success 201 {int} models.CuentaEspecial
+// @Description create HomologacionDescuento
+// @Param	body		body 	models.HomologacionDescuento	true		"body for HomologacionDescuento content"
+// @Success 201 {int} models.HomologacionDescuento
 // @Failure 403 body is empty
 // @router / [post]
-func (c *CuentaEspecialController) Post() {
-	var v models.CuentaEspecial
+func (c *HomologacionDescuentoController) Post() {
+	var v models.HomologacionDescuento
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddCuentaEspecial(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_542", Body: v.Id} //codigo de registro exitoso
+		if _, err := models.AddHomologacionDescuento(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = alert
+			c.Data["json"] = v
 		} else {
-			alertdb := structs.Map(err)
-			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
-			c.Data["json"] = alert
+			c.Data["json"] = err.Error()
 		}
 	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
-		c.Data["json"] = alert
+		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
 
 // GetOne ...
 // @Title Get One
-// @Description get CuentaEspecial by id
+// @Description get HomologacionDescuento by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.CuentaEspecial
+// @Success 200 {object} models.HomologacionDescuento
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *CuentaEspecialController) GetOne() {
+func (c *HomologacionDescuentoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetCuentaEspecialById(id)
+	v, err := models.GetHomologacionDescuentoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -76,17 +67,17 @@ func (c *CuentaEspecialController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get CuentaEspecial
+// @Description get HomologacionDescuento
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.CuentaEspecial
+// @Success 200 {object} models.HomologacionDescuento
 // @Failure 403
 // @router / [get]
-func (c *CuentaEspecialController) GetAll() {
+func (c *HomologacionDescuentoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -128,7 +119,7 @@ func (c *CuentaEspecialController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllCuentaEspecial(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllHomologacionDescuento(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -139,46 +130,39 @@ func (c *CuentaEspecialController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the CuentaEspecial
+// @Description update the HomologacionDescuento
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.CuentaEspecial	true		"body for CuentaEspecial content"
-// @Success 200 {object} models.CuentaEspecial
+// @Param	body		body 	models.HomologacionDescuento	true		"body for HomologacionDescuento content"
+// @Success 200 {object} models.HomologacionDescuento
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *CuentaEspecialController) Put() {
+func (c *HomologacionDescuentoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.CuentaEspecial{Id: id}
+	v := models.HomologacionDescuento{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateCuentaEspecialById(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_542", Body: v.Id} //codigo de registro exitoso
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = alert
+		if err := models.UpdateHomologacionDescuentoById(&v); err == nil {
+			c.Data["json"] = "OK"
 		} else {
-			alertdb := structs.Map(err)
-			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
-			c.Data["json"] = alert
+			c.Data["json"] = err.Error()
 		}
 	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
-		c.Data["json"] = alert
+		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
 
 // Delete ...
 // @Title Delete
-// @Description delete the CuentaEspecial
+// @Description delete the HomologacionDescuento
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *CuentaEspecialController) Delete() {
+func (c *HomologacionDescuentoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteCuentaEspecial(id); err == nil {
+	if err := models.DeleteHomologacionDescuento(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

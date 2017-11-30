@@ -5,50 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type ConceptoTesoralFacultadProyecto struct {
-	Id                 int       `orm:"column(id);pk;auto"`
-	ConceptoTesoral    *Concepto `orm:"column(concepto_tesoral);rel(fk)"`
-	Facultad           int       `orm:"column(facultad)"`
-	ProyectoCurricular int       `orm:"column(proyecto_curricular);null"`
+type HomologacionDescuento struct {
+	Id                   int             `orm:"column(id);pk;auto"`
+	Vigencia             float64         `orm:"column(vigencia)"`
+	FechaCreacion        time.Time       `orm:"column(fecha_creacion);type(date)"`
+	CuentaEspecialKronos *CuentaEspecial `orm:"column(cuenta_especial_kronos);rel(fk)"`
+	ConceptoTitan        int             `orm:"column(concepto_titan)"`
 }
 
-func (t *ConceptoTesoralFacultadProyecto) TableName() string {
-	return "concepto_tesoral_facultad_proyecto"
+func (t *HomologacionDescuento) TableName() string {
+	return "homologacion_descuento"
 }
 
 func init() {
-	orm.RegisterModel(new(ConceptoTesoralFacultadProyecto))
+	orm.RegisterModel(new(HomologacionDescuento))
 }
 
-// AddConceptoTesoralFacultadProyecto insert a new ConceptoTesoralFacultadProyecto into database and returns
+// AddHomologacionDescuento insert a new HomologacionDescuento into database and returns
 // last inserted Id on success.
-func AddConceptoTesoralFacultadProyecto(m *ConceptoTesoralFacultadProyecto) (id int64, err error) {
+func AddHomologacionDescuento(m *HomologacionDescuento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetConceptoTesoralFacultadProyectoById retrieves ConceptoTesoralFacultadProyecto by Id. Returns error if
+// GetHomologacionDescuentoById retrieves HomologacionDescuento by Id. Returns error if
 // Id doesn't exist
-func GetConceptoTesoralFacultadProyectoById(id int) (v *ConceptoTesoralFacultadProyecto, err error) {
+func GetHomologacionDescuentoById(id int) (v *HomologacionDescuento, err error) {
 	o := orm.NewOrm()
-	v = &ConceptoTesoralFacultadProyecto{Id: id}
+	v = &HomologacionDescuento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllConceptoTesoralFacultadProyecto retrieves all ConceptoTesoralFacultadProyecto matches certain condition. Returns empty list if
+// GetAllHomologacionDescuento retrieves all HomologacionDescuento matches certain condition. Returns empty list if
 // no records exist
-func GetAllConceptoTesoralFacultadProyecto(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllHomologacionDescuento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ConceptoTesoralFacultadProyecto)).RelatedSel()
+	qs := o.QueryTable(new(HomologacionDescuento)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,7 +100,7 @@ func GetAllConceptoTesoralFacultadProyecto(query map[string]string, fields []str
 		}
 	}
 
-	var l []ConceptoTesoralFacultadProyecto
+	var l []HomologacionDescuento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -121,11 +123,11 @@ func GetAllConceptoTesoralFacultadProyecto(query map[string]string, fields []str
 	return nil, err
 }
 
-// UpdateConceptoTesoralFacultadProyecto updates ConceptoTesoralFacultadProyecto by Id and returns error if
+// UpdateHomologacionDescuento updates HomologacionDescuento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateConceptoTesoralFacultadProyectoById(m *ConceptoTesoralFacultadProyecto) (err error) {
+func UpdateHomologacionDescuentoById(m *HomologacionDescuento) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoTesoralFacultadProyecto{Id: m.Id}
+	v := HomologacionDescuento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,15 +138,15 @@ func UpdateConceptoTesoralFacultadProyectoById(m *ConceptoTesoralFacultadProyect
 	return
 }
 
-// DeleteConceptoTesoralFacultadProyecto deletes ConceptoTesoralFacultadProyecto by Id and returns error if
+// DeleteHomologacionDescuento deletes HomologacionDescuento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteConceptoTesoralFacultadProyecto(id int) (err error) {
+func DeleteHomologacionDescuento(id int) (err error) {
 	o := orm.NewOrm()
-	v := ConceptoTesoralFacultadProyecto{Id: id}
+	v := HomologacionDescuento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ConceptoTesoralFacultadProyecto{Id: id}); err == nil {
+		if num, err = o.Delete(&HomologacionDescuento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
