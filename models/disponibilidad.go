@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/utilidades"
@@ -19,14 +20,15 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                        int                          `orm:"auto;column(id);pk"`
-	Vigencia                  float64                      `orm:"column(vigencia)"`
-	NumeroDisponibilidad      float64                      `orm:"column(numero_disponibilidad);null"`
-	Responsable               int                          `orm:"column(responsable);null"`
-	FechaRegistro             time.Time                    `orm:"column(fecha_registro);type(date);null"`
-	Estado                    *EstadoDisponibilidad        `orm:"column(estado);rel(fk)"`
-	Solicitud                 int                          `orm:"column(solicitud)"`
-	DisponibilidadApropiacion []*DisponibilidadApropiacion `orm:"reverse(many)"`
+	Id                           int                             `orm:"auto;column(id);pk"`
+	Vigencia                     float64                         `orm:"column(vigencia)"`
+	NumeroDisponibilidad         float64                         `orm:"column(numero_disponibilidad);null"`
+	Responsable                  int                             `orm:"column(responsable);null"`
+	FechaRegistro                time.Time                       `orm:"column(fecha_registro);type(date);null"`
+	Estado                       *EstadoDisponibilidad           `orm:"column(estado);rel(fk)"`
+	Solicitud                    int                             `orm:"column(solicitud)"`
+	DisponibilidadApropiacion    []*DisponibilidadApropiacion    `orm:"reverse(many)"`
+	DisponibilidadProcesoExterno []*DisponibilidadProcesoExterno `orm:"reverse(many)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -79,6 +81,7 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o.Begin()
 	var consecutivo float64
 	var afectacion []DisponibilidadApropiacion
+	var procesoExterno DisponibilidadProcesoExterno
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("COALESCE(MAX(numero_disponibilidad), 0)+1 as consecutivo").
 		From("financiera.disponibilidad").
@@ -105,17 +108,32 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	}
 	_, err = o.Insert(&v)
 	if err == nil {
-		err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+		err = utilidades.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
 		if err == nil {
-			for _, row := range afectacion {
-				row.Disponibilidad = &v
-				_, err = o.Insert(&row)
-				if err != nil {
+			procesoExterno.Disponibilidad = &v
+			_, err = o.Insert(&procesoExterno)
+			if err == nil {
+				err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+				if err == nil {
+					for _, row := range afectacion {
+						row.Disponibilidad = &v
+						_, err = o.Insert(&row)
+						if err != nil {
+							o.Rollback()
+							return
+						}
+					}
+				} else {
 					o.Rollback()
 					return
 				}
+			} else {
+				beego.Info(err)
+				o.Rollback()
+				return
 			}
 		} else {
+			beego.Info("err dprosext")
 			o.Rollback()
 			return
 		}
@@ -203,6 +221,7 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "DisponibilidadApropiacion", 5)
+				o.LoadRelated(&v, "DisponibilidadProcesoExterno", 5)
 				ml = append(ml, v)
 			}
 		} else {

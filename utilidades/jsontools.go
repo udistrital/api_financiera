@@ -38,7 +38,7 @@ func digester(done <-chan interface{}, f func(interface{}, ...interface{}) inter
 func Digest(done <-chan interface{}, f func(interface{}, ...interface{}) interface{}, in <-chan interface{}, params []interface{}) (outchan <-chan interface{}) {
 	out := make(chan interface{})
 	var wg sync.WaitGroup
-	const numDigesters = 20
+	const numDigesters = 1
 	wg.Add(numDigesters)
 	for i := 0; i < numDigesters; i++ {
 		go func() {
