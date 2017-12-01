@@ -6,8 +6,10 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
+	"github.com/fatih/structs"	
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/utilidades"
+	
 )
 
 // AvanceLegalizacionController operations for AvanceLegalizacion
@@ -23,6 +25,7 @@ func (c *AvanceLegalizacionController) URLMapping() {
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
 }
+
 
 // Post ...
 // @Title Post
@@ -42,6 +45,34 @@ func (c *AvanceLegalizacionController) Post() {
 		}
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// AddAvanceLegalizacionCompra ...
+// @Title AddAvanceLegalizacionCompra
+// @Description create AvanceLegalizacion
+// @Param	body		body 	models.AvanceLegalizacion	true		"body for AvanceLegalizacion content"
+// @Success 201 {int} models.AvanceLegalizacion
+// @Failure 403 body is empty
+// @router /AddAvanceLegalizacionCompra [post]
+func (c *AvanceLegalizacionController) AddAvanceLegalizacionCompra() {
+	var v models.AvanceLegalizacion
+	var alerta interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if alerta, err = models.AddAvanceLegalizacionCompra(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = alerta
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }

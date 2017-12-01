@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
 	"github.com/astaxie/beego/orm"
 )
 
@@ -19,6 +18,7 @@ type AvanceLegalizacion struct {
 	FechaCompra            time.Time               `orm:"column(fecha_compra);type(date);null"`
 	FechaCambioDivisa      time.Time               `orm:"column(fecha_cambio_divisa);type(date);null"`
 	Dias                   int                     `orm:"column(dias);null"`
+	AvanceLegalizacionCuentaEspecial          []*AvanceLegalizacionCuentaEspecial          `orm:"reverse(many)"`
 }
 
 func (t *AvanceLegalizacion) TableName() string {
@@ -29,6 +29,28 @@ func init() {
 	orm.RegisterModel(new(AvanceLegalizacion))
 }
 
+func AddAvanceLegalizacionCompra(legalizacionAvance AvanceLegalizacion) (alert Alert, err error) {
+		o := orm.NewOrm()
+		o.Begin()
+		_, err = o.InsertOrUpdate(&legalizacionAvance)
+		if err == nil{
+			for _,AvanceLegalizacionCuenta := range legalizacionAvance.AvanceLegalizacionCuentaEspecial{
+				AvanceLegalizacionCuenta.AvanceLegalizacion = &legalizacionAvance
+				_, err = o.InsertOrUpdate(AvanceLegalizacionCuenta)
+				if err != nil{
+					o.Rollback()
+					return
+				}
+			}
+		}else{
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		alert = Alert{Type: "success", Code: "S_991", Body: legalizacionAvance}
+	return
+}
+	
 // AddAvanceLegalizacion insert a new AvanceLegalizacion into database and returns
 // last inserted Id on success.
 func AddAvanceLegalizacion(m *AvanceLegalizacion) (id int64, err error) {
@@ -47,6 +69,7 @@ func GetAvanceLegalizacionById(id int) (v *AvanceLegalizacion, err error) {
 	}
 	return nil, err
 }
+
 
 // GetAllAvanceLegalizacion retrieves all AvanceLegalizacion matches certain condition. Returns empty list if
 // no records exist
@@ -108,6 +131,7 @@ func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby [
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "AvanceLegalizacionCuentaEspecial", 5)
 				ml = append(ml, v)
 			}
 		} else {
