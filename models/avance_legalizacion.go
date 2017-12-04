@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/astaxie/beego"
 	"errors"
 	"fmt"
 	"reflect"
@@ -17,6 +18,8 @@ type AvanceLegalizacion struct {
 	Valor                  float64                 `orm:"column(valor)"`
 	FechaCompra            time.Time               `orm:"column(fecha_compra);type(date);null"`
 	FechaCambioDivisa      time.Time               `orm:"column(fecha_cambio_divisa);type(date);null"`
+	TrmFechaCompra		   float64				   `orm:"column(trm_fecha_compra)"`
+	NumeroFactura          string 				   `orm:"column(numero_factura)"`
 	Dias                   int                     `orm:"column(dias);null"`
 	AvanceLegalizacionCuentaEspecial          []*AvanceLegalizacionCuentaEspecial          `orm:"reverse(many)"`
 }
@@ -32,17 +35,21 @@ func init() {
 func AddAvanceLegalizacionCompra(legalizacionAvance AvanceLegalizacion) (alert Alert, err error) {
 		o := orm.NewOrm()
 		o.Begin()
-		_, err = o.InsertOrUpdate(&legalizacionAvance)
+		beego.Info("0",legalizacionAvance)
+		_, err = o.Insert(&legalizacionAvance)
 		if err == nil{
 			for _,AvanceLegalizacionCuenta := range legalizacionAvance.AvanceLegalizacionCuentaEspecial{
 				AvanceLegalizacionCuenta.AvanceLegalizacion = &legalizacionAvance
-				_, err = o.InsertOrUpdate(AvanceLegalizacionCuenta)
+				beego.Info(AvanceLegalizacionCuenta)
+				_, err = o.Insert(AvanceLegalizacionCuenta)
 				if err != nil{
+					beego.Info("1", err.Error())
 					o.Rollback()
 					return
 				}
 			}
 		}else{
+			beego.Info("2", err.Error())
 			o.Rollback()
 			return
 		}
