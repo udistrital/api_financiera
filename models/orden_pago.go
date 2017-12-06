@@ -166,13 +166,12 @@ func DeleteOrdenPago(id int) (err error) {
 	return
 }
 
-func ConsecutivoOrdnePago(tipoCodigo string) (StringConsecutivo string, outputError map[string]interface{}) {
-	if tipoCodigo != "" {
+func ConsecutivoOrdnePago(grupoSecuencia string) (StringConsecutivo string, outputError map[string]interface{}) {
+	if grupoSecuencia != "" {
 		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 				FROM financiera.orden_pago as op
 				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
-				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
-				and tipo.codigo_abreviacion = '` + tipoCodigo + `'`
+				and sub.grupo_secuencia = '` + grupoSecuencia + `';`
 		return StringConsecutivo, nil
 	}
 	outputError = map[string]interface{}{"Code": "E_0458", "Body": "Not enough parameter in ConsecutivoOrdnePago", "Type": "error"}
@@ -206,41 +205,13 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 
 	// Consecutivo
-	if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PROV" {
-		//secuencia proveedor y las dos de planta
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-SS" {
-		// secuencia de las dos de planta y las dos de ss
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PLAN" {
-		// secuencia de las dos de planta y las dos de ss
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PLAN"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else {
+	if sqlSecuencia, controlErro = ConsecutivoOrdnePago(ordenPago.SubTipoOrdenPago.GrupoSecuencia); controlErro != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
-		alerta.Body = "No se ha definido control para generar secuencia a este tipo de Orden de pago"
+		alerta.Body = controlErro["Body"]
 		o.Rollback()
 		return
 	}
-
 	o.Raw(sqlSecuencia).QueryRow(&consecutivoOp)
 	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
