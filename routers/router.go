@@ -573,6 +573,29 @@ func init() {
 				&controllers.DisponibilidadProcesoExternoController{},
 			),
 		),
+		beego.NSNamespace("/estado_movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.EstadoMovimientoApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.MovimientoApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/movimiento_apropiacion_disponibilidad_apropiacion",
+			beego.NSInclude(
+				&controllers.MovimientoApropiacionDisponibilidadApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/tipo_movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.TipoMovimientoApropiacionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
