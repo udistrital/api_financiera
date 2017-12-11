@@ -10,13 +10,13 @@ import (
 )
 
 type TipoMovimientoApropiacion struct {
-	Id             int     `orm:"column(id);pk"`
-	Nombre         string  `orm:"column(nombre)"`
-	Descripcion    string  `orm:"column(descripcion);null"`
-	Activo         bool    `orm:"column(activo)"`
-	NumeroOrden    float64 `orm:"column(numero_orden);null"`
-	Disponibilidad bool    `orm:"column(disponibilidad);null"`
-	CuentaCredito  bool    `orm:"column(cuenta_credito);null"`
+	Id                  int     `orm:"column(id);pk"`
+	Nombre              string  `orm:"column(nombre)"`
+	Descripcion         string  `orm:"column(descripcion);null"`
+	Activo              bool    `orm:"column(activo)"`
+	NumeroOrden         float64 `orm:"column(numero_orden);null"`
+	Disponibilidad      bool    `orm:"column(disponibilidad);null"`
+	CuentaContraCredito bool    `orm:"column(cuenta_contra_credito);null"`
 }
 
 func (t *TipoMovimientoApropiacion) TableName() string {

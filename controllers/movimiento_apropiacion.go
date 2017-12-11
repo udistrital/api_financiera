@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 	"strconv"
 	"strings"
-
-	"github.com/astaxie/beego"
 )
 
 // MovimientoApropiacionController operations for MovimientoApropiacion
@@ -22,6 +23,36 @@ func (c *MovimientoApropiacionController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+}
+
+// RegistroSolicitudMovimientoApropiacion ...
+// @Title RegistroSolicitudMovimientoApropiacion
+// @Description create MovimientoApropiacion
+// @Param	body		body 	models.MovimientoApropiacion	true		"body for MovimientoApropiacion content"
+// @Success 201 {int} models.MovimientoApropiacion
+// @Failure 403 body is empty
+// @router /RegistroSolicitudMovimientoApropiacion [post]
+func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion() {
+	var v map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if res, err := models.RegistrarMovimietnoApropiaciontr(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = res
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{}
+		alert.Code = "E_0458"
+		alert.Body = err
+		alert.Type = "error"
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
 }
 
 // Post ...

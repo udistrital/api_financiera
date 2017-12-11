@@ -3,11 +3,11 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/astaxie/beego/orm"
 )
 
 type MovimientoApropiacion struct {
@@ -29,6 +29,53 @@ func init() {
 func AddMovimientoApropiacion(m *MovimientoApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
+	return
+}
+
+// Registra un MovimientoApropiacion
+// retorna structura de alerta
+func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert Alert, err error) {
+	var movimientoapr MovimientoApropiacion
+	var desgrMovimientoApr []MovimientoApropiacionDisponibilidadApropiacion
+	if err = utilidades.FillStruct(movimiento["MovimientoApropiacion"], &movimientoapr); err == nil {
+		if err = utilidades.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
+			o := orm.NewOrm()
+			o.Begin()
+			movimientoapr.FechaMovimiento = time.Now().Local() //asignacion de la fecha de la solicitud del movimiento
+			_, err = o.Insert(&movimientoapr)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+
+			for _, datDesgrMov := range desgrMovimientoApr {
+				datDesgrMov.MovimientoApropiacion = &movimientoapr
+				datDesgrMov.EstadoMovimientoApropiacion = &EstadoMovimientoApropiacion{Id: 1}
+				_, err = o.Insert(&datDesgrMov)
+				if err != nil {
+					o.Rollback()
+					return
+				}
+
+			}
+
+			o.Commit()
+
+		} else {
+			alert.Code = "E_0458"
+			alert.Body = err
+			alert.Type = "error"
+			return
+		}
+	} else {
+		alert.Code = "E_0458"
+		alert.Body = err
+		alert.Type = "error"
+		return
+	}
+	alert.Code = "S_MODP001"
+	alert.Body = map[string]interface{}{"MovimientoApropiacion": movimientoapr, "MovimientoApropiacionDisponibilidadApropiacion": desgrMovimientoApr}
+	alert.Type = "success"
 	return
 }
 
