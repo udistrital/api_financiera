@@ -13,6 +13,8 @@ import (
 type MovimientoApropiacion struct {
 	Id              int       `orm:"auto;column(id);pk"`
 	FechaMovimiento time.Time `orm:"column(fecha_movimiento);type(date)"`
+	Noficio         int       `orm:"column(n_oficio)"`
+	Foficio         time.Time `orm:"column(f_oficio);type(date)"`
 	Descripcion     string    `orm:"column(descripcion);null"`
 }
 
