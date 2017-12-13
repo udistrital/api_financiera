@@ -11,11 +11,14 @@ import (
 )
 
 type MovimientoApropiacion struct {
-	Id              int       `orm:"auto;column(id);pk"`
-	FechaMovimiento time.Time `orm:"column(fecha_movimiento);type(date)"`
-	Noficio         int       `orm:"column(n_oficio)"`
-	Foficio         time.Time `orm:"column(f_oficio);type(date)"`
-	Descripcion     string    `orm:"column(descripcion);null"`
+	Id                                             int                                               `orm:"auto;column(id);pk"`
+	Vigencia                                       int                                               `orm:"column(vigencia)"`
+	FechaMovimiento                                time.Time                                         `orm:"column(fecha_movimiento);type(date)"`
+	Noficio                                        int                                               `orm:"column(n_oficio)"`
+	Foficio                                        time.Time                                         `orm:"column(f_oficio);type(date)"`
+	Descripcion                                    string                                            `orm:"column(descripcion);null"`
+	MovimientoApropiacionDisponibilidadApropiacion []*MovimientoApropiacionDisponibilidadApropiacion `orm:"reverse(many)"`
+	EstadoMovimientoApropiacion                    *EstadoMovimientoApropiacion                      `orm:"column(estado_movimiento_apropiacion);rel(fk)"`
 }
 
 func (t *MovimientoApropiacion) TableName() string {
@@ -43,7 +46,10 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 		if err = utilidades.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
 			o := orm.NewOrm()
 			o.Begin()
+			vigencia := time.Now().Year()
 			movimientoapr.FechaMovimiento = time.Now().Local() //asignacion de la fecha de la solicitud del movimiento
+			movimientoapr.Vigencia = vigencia
+			movimientoapr.EstadoMovimientoApropiacion = &EstadoMovimientoApropiacion{Id: 1}
 			_, err = o.Insert(&movimientoapr)
 			if err != nil {
 				o.Rollback()
@@ -52,7 +58,6 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 
 			for _, datDesgrMov := range desgrMovimientoApr {
 				datDesgrMov.MovimientoApropiacion = &movimientoapr
-				datDesgrMov.EstadoMovimientoApropiacion = &EstadoMovimientoApropiacion{Id: 1}
 				_, err = o.Insert(&datDesgrMov)
 				if err != nil {
 					o.Rollback()
@@ -78,6 +83,110 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 	alert.Code = "S_MODP001"
 	alert.Body = map[string]interface{}{"MovimientoApropiacion": movimientoapr, "MovimientoApropiacionDisponibilidadApropiacion": desgrMovimientoApr}
 	alert.Type = "success"
+	return
+}
+func aprobacionMovimientoPresupuestalDispatcher(tipo int) (f func(data *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error)) {
+	switch os := tipo; os {
+	case 1:
+		return registroModificacionPresupuestalCDP
+	case 2:
+		return registroModificacionPresupuestalCDP
+	default:
+		return nil
+	}
+}
+
+func registroModificacionPresupuestalCDP(movimiento *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error) {
+	valorCDP := movimiento.Valor
+	saldoApr, err := SaldoApropiacion(movimiento.CuentaContraCredito.Id)
+	if err == nil {
+		if valorCDP <= saldoApr["saldo"] {
+			disponibilidad := make(map[string]interface{})
+			disponibilidad["Vigencia"] = float64(movimiento.MovimientoApropiacion.Vigencia)
+			disponibilidad["FechaRegistro"] = time.Now().Local()
+			disponibilidad["Estado"] = map[string]interface{}{"Id": 1}
+			//disponibilidad["Solicitud"] = int(solicitud["SolicitudDisponibilidad"].(map[string]interface{})["Id"].(float64))
+			disponibilidad["Responsable"] = 876543216
+			disponibilidad["UnidadEjecutora"] = float64(1)
+			DisponibilidadProcesoExterno := map[string]interface{}{"ProcesoExterno": movimiento.MovimientoApropiacion.Id}
+			TipoDisponibilidad := map[string]interface{}{"Id": 2}
+			DisponibilidadProcesoExterno["TipoDisponibilidad"] = TipoDisponibilidad
+
+			var afectacion []interface{}
+
+			disponibilidadApropiacion := make(map[string]interface{})
+			disponibilidadApropiacion["Apropiacion"] = movimiento.CuentaContraCredito
+			disponibilidadApropiacion["Valor"] = movimiento.Valor
+			disponibilidadApropiacion["FuenteFinanciamiento"] = map[string]interface{}{"Id": 0}
+			afectacion = append(afectacion, disponibilidadApropiacion)
+
+			infoDisponibilidad := make(map[string]interface{})
+			infoDisponibilidad["Disponibilidad"] = disponibilidad
+			infoDisponibilidad["DisponibilidadApropiacion"] = afectacion
+			infoDisponibilidad["DisponibilidadProcesoExterno"] = DisponibilidadProcesoExterno
+
+			dispexp, err1 := AddDisponibilidad(infoDisponibilidad)
+			if err1 == nil {
+				alert.Type = "success"
+				alert.Code = "S_MODP003"
+				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": dispexp.NumeroDisponibilidad, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+				return
+			} else {
+				alert.Type = "error"
+				alert.Code = "E_MODP006"
+				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+				return alert, err1
+			}
+
+		} else {
+			alert.Type = "error"
+			alert.Code = "E_MODP004"
+			alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+			err = errors.New("E_MODP004")
+			return
+		}
+
+	} else {
+		alert.Type = "error"
+		alert.Code = "E_MODP005"
+		alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+		return
+	}
+	return
+}
+
+// Aprueba un MovimientoApropiacion
+// retorna structura de alerta
+func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []Alert, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	for _, desgrMov := range movimiento.MovimientoApropiacionDisponibilidadApropiacion {
+		f := aprobacionMovimientoPresupuestalDispatcher(desgrMov.TipoMovimientoApropiacion.Id)
+		if f != nil {
+			alt, err1 := f(desgrMov, &o)
+			fmt.Println("err ", err1)
+			if err1 != nil {
+				o.Rollback()
+				alert = append(alert, alt)
+				return alert, err
+			}
+			alert = append(alert, alt)
+		} else {
+
+		}
+	}
+	movimiento.EstadoMovimientoApropiacion.Id = 2
+	_, err = o.Update(movimiento, "EstadoMovimientoApropiacion")
+	if err != nil {
+		o.Rollback()
+	} else {
+		alt := Alert{}
+		alt.Type = "success"
+		alt.Code = "S_MODP002"
+		alt.Body = map[string]interface{}{"Movimiento": movimiento, "Disponibilidad": 0, "Apropiacion": 0}
+		o.Commit()
+	}
+
 	return
 }
 
@@ -152,6 +261,7 @@ func GetAllMovimientoApropiacion(query map[string]string, fields []string, sortb
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "MovimientoApropiacionDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {

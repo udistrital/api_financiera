@@ -55,6 +55,40 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 	c.ServeJSON()
 }
 
+// AprobarMovimietnoApropiacion ...
+// @Title AprobarMovimietnoApropiacion
+// @Description create MovimientoApropiacion
+// @Param	body		body 	models.MovimientoApropiacion	true		"body for MovimientoApropiacion content"
+// @Success 201 {int} models.MovimientoApropiacion
+// @Failure 403 body is empty
+// @router /AprobarMovimietnoApropiacion [post]
+func (c *MovimientoApropiacionController) AprobarMovimietnoApropiacion() {
+	var v models.MovimientoApropiacion
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if res, err := models.AprobarMovimietnoApropiaciontr(&v); err == nil && res != nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = res
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			var alert []models.Alert
+			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			alert = append(alert, alt)
+			c.Data["json"] = alert
+		}
+	} else {
+		var alert []models.Alert
+		alt := models.Alert{}
+		alt.Code = "E_0458"
+		alt.Body = err
+		alt.Type = "error"
+		alert = append(alert, alt)
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}
+
 // Post ...
 // @Title Post
 // @Description create MovimientoApropiacion

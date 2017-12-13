@@ -10,14 +10,13 @@ import (
 )
 
 type MovimientoApropiacionDisponibilidadApropiacion struct {
-	Id                          int                          `orm:"auto;column(id);pk"`
-	MovimientoApropiacion       *MovimientoApropiacion       `orm:"column(movimiento_apropiacion);rel(fk)"`
-	DisponibilidadApropiacion   *DisponibilidadApropiacion   `orm:"column(disponibilidad_apropiacion);rel(fk);null"`
-	TipoMovimientoApropiacion   *TipoMovimientoApropiacion   `orm:"column(tipo_movimiento_apropiacion);rel(fk)"`
-	Valor                       float64                      `orm:"column(valor)"`
-	CuentaCredito               *Apropiacion                 `orm:"column(cuenta_credito);rel(fk)"`
-	CuentaContraCredito         *Apropiacion                 `orm:"column(cuenta_contra_credito);rel(fk)"`
-	EstadoMovimientoApropiacion *EstadoMovimientoApropiacion `orm:"column(estado_movimiento_apropiacion);rel(fk)"`
+	Id                        int                        `orm:"auto;column(id);pk"`
+	MovimientoApropiacion     *MovimientoApropiacion     `orm:"column(movimiento_apropiacion);rel(fk)"`
+	DisponibilidadApropiacion *DisponibilidadApropiacion `orm:"column(disponibilidad_apropiacion);rel(fk);null"`
+	TipoMovimientoApropiacion *TipoMovimientoApropiacion `orm:"column(tipo_movimiento_apropiacion);rel(fk)"`
+	Valor                     float64                    `orm:"column(valor)"`
+	CuentaCredito             *Apropiacion               `orm:"column(cuenta_credito);rel(fk)"`
+	CuentaContraCredito       *Apropiacion               `orm:"column(cuenta_contra_credito);rel(fk)"`
 }
 
 func (t *MovimientoApropiacionDisponibilidadApropiacion) TableName() string {
