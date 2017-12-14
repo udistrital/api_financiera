@@ -175,7 +175,7 @@ func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
 	valor = valorapr - valorcdpapr + valoranuladocdpapr
 	saldo["original"] = valorapr
 	saldo["saldo"] = valor
-	saldo["comprometido"] = valorcdpapr
+	saldo["comprometido"] = valorcdpapr - valoranuladocdpapr
 	saldo["comprometido_anulado"] = valoranuladocdpapr
 	return
 }
