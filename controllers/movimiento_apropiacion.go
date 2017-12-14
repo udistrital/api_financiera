@@ -130,6 +130,30 @@ func (c *MovimientoApropiacionController) GetOne() {
 	c.ServeJSON()
 }
 
+// GetMovimientosApropiacionByApropiacion ...
+// @Title GetMovimientosApropiacionByApropiacion
+// @Description get MovimientoApropiacion by id
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.MovimientoApropiacion
+// @Failure 403 :id is empty
+// @router GetMovimientosApropiacionByApropiacion/:id [get]
+func (c *MovimientoApropiacionController) GetMovimientosApropiacionByApropiacion() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.MovimientosByApropiacion(id)
+	if err != nil {
+		beego.Info(err)
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alt
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
 // GetAll ...
 // @Title Get All
 // @Description get MovimientoApropiacion

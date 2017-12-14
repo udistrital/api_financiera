@@ -21,6 +21,16 @@ type MovimientoApropiacion struct {
 	EstadoMovimientoApropiacion                    *EstadoMovimientoApropiacion                      `orm:"column(estado_movimiento_apropiacion);rel(fk)"`
 }
 
+type MovimientosPorApropiacion struct {
+	NumeroDisponibilidad float64   `orm:"column(numero_disponibilidad)"`
+	CuentaContraCredito  string    `orm:"column(cuenta_contra_credito)"`
+	CuentaCredito        string    `orm:"column(cuenta_credito)"`
+	Valor                float64   `orm:"column(valor)"`
+	Tipo                 string    `orm:"column(tipo)"`
+	Noficio              float64   `orm:"column(n_oficio)"`
+	Foficio              time.Time `orm:"column(f_oficio);type(date)"`
+}
+
 func (t *MovimientoApropiacion) TableName() string {
 	return "movimiento_apropiacion"
 }
@@ -98,7 +108,16 @@ func aprobacionMovimientoPresupuestalDispatcher(tipo int) (f func(data *Movimien
 
 func registroModificacionPresupuestalCDP(movimiento *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error) {
 	valorCDP := movimiento.Valor
-	saldoApr, err := SaldoApropiacion(movimiento.CuentaContraCredito.Id)
+	var saldoApr map[string]float64
+	movDestino := &Apropiacion{}
+	if movimiento.CuentaContraCredito != nil {
+		saldoApr, err = SaldoApropiacion(movimiento.CuentaContraCredito.Id)
+		movDestino = movimiento.CuentaContraCredito
+	} else {
+		saldoApr, err = SaldoApropiacion(movimiento.CuentaCredito.Id)
+		movDestino = movimiento.CuentaCredito
+	}
+	or := orm.NewOrm()
 	if err == nil {
 		if valorCDP <= saldoApr["saldo"] {
 			disponibilidad := make(map[string]interface{})
@@ -115,7 +134,7 @@ func registroModificacionPresupuestalCDP(movimiento *MovimientoApropiacionDispon
 			var afectacion []interface{}
 
 			disponibilidadApropiacion := make(map[string]interface{})
-			disponibilidadApropiacion["Apropiacion"] = movimiento.CuentaContraCredito
+			disponibilidadApropiacion["Apropiacion"] = movDestino
 			disponibilidadApropiacion["Valor"] = movimiento.Valor
 			disponibilidadApropiacion["FuenteFinanciamiento"] = map[string]interface{}{"Id": 0}
 			afectacion = append(afectacion, disponibilidadApropiacion)
@@ -126,22 +145,24 @@ func registroModificacionPresupuestalCDP(movimiento *MovimientoApropiacionDispon
 			infoDisponibilidad["DisponibilidadProcesoExterno"] = DisponibilidadProcesoExterno
 
 			dispexp, err1 := AddDisponibilidad(infoDisponibilidad)
-			if err1 == nil {
+			movimiento.Disponibilidad = &dispexp
+			_, err2 := or.Update(movimiento, "Disponibilidad")
+			if err1 == nil && err2 == nil {
 				alert.Type = "success"
 				alert.Code = "S_MODP003"
-				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": dispexp.NumeroDisponibilidad, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": dispexp.NumeroDisponibilidad, "Apropiacion": movDestino.Rubro.Codigo}
 				return
 			} else {
 				alert.Type = "error"
 				alert.Code = "E_MODP006"
-				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+				alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movDestino.Rubro.Codigo}
 				return alert, err1
 			}
 
 		} else {
 			alert.Type = "error"
 			alert.Code = "E_MODP004"
-			alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+			alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movDestino.Rubro.Codigo}
 			err = errors.New("E_MODP004")
 			return
 		}
@@ -149,7 +170,7 @@ func registroModificacionPresupuestalCDP(movimiento *MovimientoApropiacionDispon
 	} else {
 		alert.Type = "error"
 		alert.Code = "E_MODP005"
-		alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movimiento.CuentaContraCredito.Rubro.Codigo}
+		alert.Body = map[string]interface{}{"Movimiento": movimiento.MovimientoApropiacion, "Disponibilidad": 0, "Apropiacion": movDestino.Rubro.Codigo}
 		return
 	}
 	return
@@ -188,6 +209,37 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 		o.Commit()
 	}
 
+	return
+}
+
+// Consulta los movimientos de una apropiacion segun su id
+// retorna los movimientos de una apropiacion
+func MovimientosByApropiacion(apropiacionId int) (res []MovimientosPorApropiacion, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("numero_disponibilidad,rb_ccr.codigo as cuenta_contra_credito," +
+		"rb_cr.codigo as cuenta_credito," +
+		"movimiento_apropiacion_disponibilidad_apropiacion.valor," +
+		"tipo_movimiento_apropiacion.nombre as tipo," +
+		"n_oficio," +
+		"f_oficio").
+		From("financiera.movimiento_apropiacion").
+		LeftJoin("financiera.movimiento_apropiacion_disponibilidad_apropiacion").
+		On("movimiento_apropiacion = movimiento_apropiacion.id").
+		LeftJoin("financiera.tipo_movimiento_apropiacion").
+		On("tipo_movimiento_apropiacion.id = tipo_movimiento_apropiacion").
+		LeftJoin("financiera.apropiacion as apr_cr").
+		On("cuenta_credito = apr_cr.id").
+		LeftJoin("financiera.rubro as rb_cr").
+		On("rb_cr.id = apr_cr.rubro").
+		LeftJoin("financiera.apropiacion as apr_ccr").
+		On("movimiento_apropiacion_disponibilidad_apropiacion.cuenta_contra_credito = apr_ccr.id").
+		LeftJoin("financiera.rubro as rb_ccr").
+		On("rb_ccr.id = apr_ccr.rubro").
+		LeftJoin("financiera.disponibilidad").
+		On("disponibilidad.id = movimiento_apropiacion_disponibilidad_apropiacion.disponibilidad").
+		Where("movimiento_apropiacion.estado_movimiento_apropiacion = 2 AND (movimiento_apropiacion_disponibilidad_apropiacion.cuenta_contra_credito = ? OR cuenta_credito = ?)")
+	_, err = o.Raw(qb.String(), apropiacionId, apropiacionId).QueryRows(&res)
 	return
 }
 
