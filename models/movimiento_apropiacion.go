@@ -184,6 +184,7 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 		alt.Type = "success"
 		alt.Code = "S_MODP002"
 		alt.Body = map[string]interface{}{"Movimiento": movimiento, "Disponibilidad": 0, "Apropiacion": 0}
+		alert = append(alert, alt)
 		o.Commit()
 	}
 
@@ -282,13 +283,13 @@ func GetAllMovimientoApropiacion(query map[string]string, fields []string, sortb
 
 // UpdateMovimientoApropiacion updates MovimientoApropiacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoApropiacionById(m *MovimientoApropiacion) (err error) {
+func UpdateMovimientoApropiacionById(m *MovimientoApropiacion, fields []string) (err error) {
 	o := orm.NewOrm()
 	v := MovimientoApropiacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m); err == nil {
+		if num, err = o.Update(m, fields...); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}

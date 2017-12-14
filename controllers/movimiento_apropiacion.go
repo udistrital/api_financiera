@@ -197,22 +197,39 @@ func (c *MovimientoApropiacionController) GetAll() {
 // @Title Put
 // @Description update the MovimientoApropiacion
 // @Param	id		path 	string	true		"The id you want to update"
+// @Param	fields		query 	string	true		"The fields you want to update"
 // @Param	body		body 	models.MovimientoApropiacion	true		"body for MovimientoApropiacion content"
 // @Success 200 {object} models.MovimientoApropiacion
 // @Failure 403 :id is not int
 // @router /:id [put]
 func (c *MovimientoApropiacionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
+	var fields []string
+	if f := c.GetString("fields"); f != "" {
+		fields = strings.Split(f, ",")
+	}
 	id, _ := strconv.Atoi(idStr)
 	v := models.MovimientoApropiacion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateMovimientoApropiacionById(&v); err == nil {
-			c.Data["json"] = "OK"
+		if err := models.UpdateMovimientoApropiacionById(&v, fields); err == nil {
+			alt := models.Alert{}
+			alt.Code = "S_MODP004"
+			alt.Body = v
+			alt.Type = "success"
+			c.Data["json"] = alt
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alt
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alt := models.Alert{}
+		alt.Code = "E_0458"
+		alt.Body = err
+		alt.Type = "error"
+		c.Data["json"] = alt
 	}
 	c.ServeJSON()
 }
