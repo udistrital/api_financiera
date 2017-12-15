@@ -199,6 +199,11 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 	movimiento.EstadoMovimientoApropiacion.Id = 2
 	_, err = o.Update(movimiento, "EstadoMovimientoApropiacion")
 	if err != nil {
+		alt := Alert{}
+		alt.Type = "error"
+		alt.Code = "E_MODP007"
+		alt.Body = map[string]interface{}{"Movimiento": movimiento, "Disponibilidad": 0, "Apropiacion": 0}
+		alert = append(alert, alt)
 		o.Rollback()
 	} else {
 		alt := Alert{}
