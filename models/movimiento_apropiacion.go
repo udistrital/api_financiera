@@ -12,6 +12,7 @@ import (
 
 type MovimientoApropiacion struct {
 	Id                                             int                                               `orm:"auto;column(id);pk"`
+	NumeroMovimiento                               int                                               `orm:"column(numero_movimiento)"`
 	Vigencia                                       int                                               `orm:"column(vigencia)"`
 	FechaMovimiento                                time.Time                                         `orm:"column(fecha_movimiento);type(date)"`
 	Noficio                                        int                                               `orm:"column(n_oficio)"`
@@ -23,6 +24,7 @@ type MovimientoApropiacion struct {
 
 type MovimientosPorApropiacion struct {
 	NumeroDisponibilidad float64   `orm:"column(numero_disponibilidad)"`
+	NumeroMovimiento     float64   `orm:"column(numero_movimiento)"`
 	CuentaContraCredito  string    `orm:"column(cuenta_contra_credito)"`
 	CuentaCredito        string    `orm:"column(cuenta_credito)"`
 	Valor                float64   `orm:"column(valor)"`
@@ -56,10 +58,16 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 		if err = utilidades.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
 			o := orm.NewOrm()
 			o.Begin()
+			var consecutivo int
 			vigencia := time.Now().Year()
+			o.Raw(`SELECT COALESCE(MAX(numero_movimiento), 0)+1  as consecutivo
+						FROM financiera.movimiento_apropiacion 
+						WHERE vigencia = ?`, vigencia).QueryRow(&consecutivo)
+
 			movimientoapr.FechaMovimiento = time.Now().Local() //asignacion de la fecha de la solicitud del movimiento
 			movimientoapr.Vigencia = vigencia
 			movimientoapr.EstadoMovimientoApropiacion = &EstadoMovimientoApropiacion{Id: 1}
+			movimientoapr.NumeroMovimiento = consecutivo
 			_, err = o.Insert(&movimientoapr)
 			if err != nil {
 				o.Rollback()
@@ -222,7 +230,7 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 func MovimientosByApropiacion(apropiacionId int) (res []MovimientosPorApropiacion, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("numero_disponibilidad,rb_ccr.codigo as cuenta_contra_credito," +
+	qb.Select("numero_movimiento,numero_disponibilidad,rb_ccr.codigo as cuenta_contra_credito," +
 		"rb_cr.codigo as cuenta_credito," +
 		"movimiento_apropiacion_disponibilidad_apropiacion.valor," +
 		"tipo_movimiento_apropiacion.nombre as tipo," +
