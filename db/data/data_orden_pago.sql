@@ -29,7 +29,7 @@ INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_ab
 INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Aprobacion Presupuestal', true, 'Funcionario de Presupuesto Aproeba la Elaboracion de la OP', 'EOP_04', 4.00);
 INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Desaprobacion Presupuestal', true, 'Funcionario de Presupuesto Desaprueba la Elaboracion de la OP', 'EOP_05', 5.00);
 INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Enviada', true, 'Funcionario de Presupuesto Envia la OP a Tesoreria', 'EOP_06', 6.00);
-INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Radicaca', true, 'Funcionario de Tesoreria Radica la OP', 'EOP_07', 7.00);
+INSERT INTO financiera.estado_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Radicada', true, 'Funcionario de Tesoreria Radica la OP', 'EOP_07', 7.00);
 
 -- Tipo orden pago -- Sub tipo orden pago
 delete from financiera.sub_tipo_orden_pago;
