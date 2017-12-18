@@ -42,12 +42,8 @@ INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abre
 INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Hora Catedra', true, 'Orden de pago para nominas de Hora Catedra', 'OP-HC', 3);
 INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Seguridad Social', true, 'Orden de pago para nominas de Seguridad Social', 'OP-SS', 4);
 -- Sub Tipo
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Cuenta de Cobro', true, 'Orden de pago para Cuenta de Cobro', 'OP-PROV-CC', 1.2, 1, '1');
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Factura', true, 'Orden de pago tipo Factura', 'OP-PROV-FACT', 1.1, 1, '1');
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Sentencia Juridica', true, 'Orden de pago para Sentencia Juridica', 'OP-PROV-SJ', 1.3, 1, '1');
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Pago Invitación', true, 'Orden de pago para Pago Invitación', 'OP-PROV-PI', 1.4, 1, '1');
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Poliza', true, 'Orden de pago para Poliza', 'OP-PROV-POLI', 1.5, 1, '1');
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Seguridad Social', true, 'Orden de pago para Seguridad Social', 'OP-PROV-SS', 1.6, 1, '1');
+-- proveedor
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Proveedor', true, 'Orden de pago para Proveedor', 'OP-PROV-PROV', 1.1, 1, '1');
 -- Planta
 INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Planta Administrativa', true, 'Orden de pago para nominas de planta administrativa', 'OP-PLAN-ADMI', 2.1, 2, '2');
 INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Planta Docente', true, 'Orden de pago para nominas de nomina de Docentes', 'OP-PLAN-DOCE', 2.2, 2, '2');
