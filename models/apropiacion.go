@@ -172,10 +172,29 @@ func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
 	if err != nil {
 		return
 	}
-	valor = valorapr - valorcdpapr + valoranuladocdpapr
+	valorAdiciones, err := ValorMovimientosPorApropiacion(Id, 3, "cuenta_credito")
+	if err != nil {
+		return
+	}
+	valorAdicionesTraslados, err := ValorMovimientosPorApropiacion(Id, 1, "cuenta_credito")
+	if err != nil {
+		return
+	}
+	valorReducciones, err := ValorMovimientosPorApropiacion(Id, 2, "cuenta_credito")
+	if err != nil {
+		return
+	}
+	valorReduccionesTraslados, err := ValorMovimientosPorApropiacion(Id, 1, "cuenta_contra_credito")
+	if err != nil {
+		return
+	}
+	valor = valorapr - valorcdpapr + valoranuladocdpapr + valorAdiciones + valorAdicionesTraslados
 	saldo["original"] = valorapr
 	saldo["saldo"] = valor
-	saldo["comprometido"] = valorcdpapr
+	saldo["comprometido"] = valorcdpapr - valoranuladocdpapr
+	saldo["adiciones"] = valorAdiciones
+	saldo["traslados"] = valorAdicionesTraslados
+	saldo["reducciones"] = valorReducciones + valorReduccionesTraslados
 	saldo["comprometido_anulado"] = valoranuladocdpapr
 	return
 }
@@ -194,6 +213,21 @@ func ValorApropiacion(Id int) (valor float64, err error) {
 		valor = 0
 	}
 
+	return
+}
+
+//funcion para determinar el total del valor de los cdp hechos a una apropiacion
+func ValorMovimientosPorApropiacion(Id int, tipoMov int, cuenta string) (valor float64, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COALESCE(sum(valor),0) as valor").
+		From("financiera.movimiento_apropiacion_disponibilidad_apropiacion").
+		InnerJoin("financiera.movimiento_apropiacion").
+		On("movimiento_apropiacion.id = movimiento_apropiacion_disponibilidad_apropiacion.movimiento_apropiacion").
+		Where(cuenta + " = ?").
+		And("tipo_movimiento_apropiacion = ?").
+		And("estado_movimiento_apropiacion = 2")
+	err = o.Raw(qb.String(), Id, tipoMov).QueryRow(&valor)
 	return
 }
 
