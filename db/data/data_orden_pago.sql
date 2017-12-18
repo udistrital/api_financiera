@@ -36,18 +36,25 @@ delete from financiera.sub_tipo_orden_pago;
 alter sequence financiera.sub_tipo_orden_pago_id_seq restart 1;
 delete from financiera.tipo_orden_pago;
 alter sequence financiera.tipo_orden_pago_id_seq restart 1;
--- Data orden pago -- Sub tipo orden pago
+-- Data orden pago -- tipo orden pago
 INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Proveedor', true, 'Orden de pago para proveedores o contratistas', 'OP-PROV', 1);
 INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Planta', true, 'Orden de pago para nominas de planta', 'OP-PLAN', 2);
-
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Cuenta de Cobro', true, 'Orden de pago para Cuenta de Cobro', 'OP-PROV-CC', 1.2, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Factura', true, 'Orden de pago tipo Factura', 'OP-PROV-FACT', 1.1, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Sentencia Juridica', true, 'Orden de pago para Sentencia Juridica', 'OP-PROV-SJ', 1.3, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Pago Invitación', true, 'Orden de pago para Pago Invitación', 'OP-PROV-PI', 1.4, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Poliza', true, 'Orden de pago para Poliza', 'OP-PROV-POLI', 1.5, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Seguridad Social', true, 'Orden de pago para Seguridad Social', 'OP-PROV-SS', 1.6, 1);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Administrativa', true, 'Orden de pago para nominas de planta administrativa', 'OP-PLAN-ADMI', 2.1, 2);
-INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago) VALUES ('Docente', true, 'Orden de pago para nominas de nomina de Docentes', 'OP-PLAN-ADMI', 2.2, 2);
+INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Hora Catedra', true, 'Orden de pago para nominas de Hora Catedra', 'OP-HC', 3);
+INSERT INTO financiera.tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Seguridad Social', true, 'Orden de pago para nominas de Seguridad Social', 'OP-SS', 4);
+-- Sub Tipo
+-- proveedor
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Proveedor', true, 'Orden de pago para Proveedor', 'OP-PROV-PROV', 1.1, 1, '1');
+-- Planta
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Planta Administrativa', true, 'Orden de pago para nominas de planta administrativa', 'OP-PLAN-ADMI', 2.1, 2, '2');
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Planta Docente', true, 'Orden de pago para nominas de nomina de Docentes', 'OP-PLAN-DOCE', 2.2, 2, '2');
+-- HC
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Hora Catedra Salarios', true, 'Orden de pago para nominas de Hora Catedra Salarios', 'OP-HC-SALA', 3.1, 3, '1');
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Hora Catedra Honorarios', true, 'Orden de pago para nominas de Hora Catedra Honorarios', 'OP-HC-HONO', 3.2, 3, '1');
+--SS
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Seguridad Social Planta Administrativa', true, 'Orden de pago para nominas de Seguridad Social planta administrativa', 'OP-SS-PLAN-ADMI', 4.1, 4, '2');
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Seguridad Social Planta Docente', true, 'Orden de pago para nominas de nomina de Seguridad Social Docentes', 'OP-SS-PLAN-DOCE', 4.2, 4, '2');
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Seguridad Social Hora Catedra Salarios', true, 'Orden de pago para nominas de Seguridad Social Hora Catedra Salarios', 'OP-SS-HC-SALA', 4.3, 4, '2');
+INSERT INTO financiera.sub_tipo_orden_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden, tipo_orden_pago, grupo_secuencia) VALUES ('Seguridad Social Hora Catedra Honorarios', true, 'Orden de pago para nominas de Seguridad Social Hora Catedra Honorarios', 'OP-SS-HC-HONO', 4.4, 4, '2');
 
 -- forma pago para ordenes de pago
 delete from financiera.forma_pago;
@@ -57,21 +64,8 @@ INSERT INTO financiera.forma_pago (nombre, activo, descripcion, codigo_abreviaci
 INSERT INTO financiera.forma_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Efectivo', true, 'Forma de pago Efectivo', 'EF', 3);
 INSERT INTO financiera.forma_pago (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Nota Débito', true, 'Forma de pago Nota Débito', 'ND', 4);
 
-
 -- Tipo documento afectante
 delete from financiera.tipo_documento_afectante;
 alter sequence financiera.tipo_documento_afectante_id_seq restart 1;
 INSERT INTO financiera.tipo_documento_afectante (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Orden de Pago', true, 'Documento Afectante Orden de Pago', 'DA-OP', 1);
 INSERT INTO financiera.tipo_documento_afectante (nombre, activo, descripcion, codigo_abreviacion, numero_orden) VALUES ('Ingrego', true, 'Documento Afectante Ingreso', 'DA-IG', 2);
-
-
--- Data Homologacion
-delete from financiera.homologacion_concepto;
-alter sequence financiera.homologacion_concepto_id_seq restart 1;
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 73, 239);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 74, 11);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 212);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 75, 231);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 291);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 77, 1213);
-INSERT INTO financiera.homologacion_concepto (vigencia, fecha_creacion, concepto_kronos, concepto_titan) VALUES (2017, '2017-08-29', 76, 269);

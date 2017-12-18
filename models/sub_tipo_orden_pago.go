@@ -17,6 +17,7 @@ type SubTipoOrdenPago struct {
 	Activo            bool           `orm:"column(activo)"`
 	NumeroOrden       float64        `orm:"column(numero_orden);null"`
 	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
+	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
 }
 
 func (t *SubTipoOrdenPago) TableName() string {
