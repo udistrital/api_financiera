@@ -26,6 +26,7 @@ type OrdenPago struct {
 	Liquidacion              int                         `orm:"column(liquidacion);null"`
 	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
 	Consecutivo              int                         `orm:"column(consecutivo)"`
+	Documento                int                         `orm:"column(documento)"`
 	FormaPago                *FormaPago                  `orm:"column(forma_pago);rel(fk);null"`
 	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
 }
