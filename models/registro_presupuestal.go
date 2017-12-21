@@ -86,7 +86,13 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 	id, err = o.Insert(m.Rp)
 	if err == nil {
 		m.Rp.Id = int(id)
+		var totalcdp float64
 		for _, data := range m.Rubros {
+			saldocdpapr, _, _, errcdp := SaldoCdp(data.Disponibilidad.Id, data.Apropiacion.Id, data.FuenteFinanciacion.Id)
+			if errcdp != nil {
+				o.Rollback()
+				return 0, errcdp
+			}
 			registro := RegistroPresupuestalDisponibilidadApropiacion{
 				RegistroPresupuestal:      m.Rp,
 				DisponibilidadApropiacion: &DisponibilidadApropiacion{Id: data.Id},
@@ -95,8 +101,28 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 			_, err2 := o.Insert(&registro)
 			if err2 != nil {
 				o.Rollback()
+				return 0, err2
+			}
+			totalcdp = totalcdp + saldocdpapr - data.ValorAsignado
+		}
+		if totalcdp > 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 2
+			o.Update(m.Rubros[0].Disponibilidad)
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
 				return
 			}
+		} else if totalcdp == 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 3
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		} else {
+			o.Rollback()
+			return
 		}
 	} else {
 		fmt.Println("error registro rp: ", err.Error())
