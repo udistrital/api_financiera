@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -24,7 +23,6 @@ func (c *HomologacionConceptoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
-	c.Mapping("HomolgacionConceptosTitan", c.HomolgacionConceptosTitan)
 }
 
 // Post ...
@@ -173,25 +171,23 @@ func (c *HomologacionConceptoController) Delete() {
 	c.ServeJSON()
 }
 
-// HomolgacionConceptosTitan ...
-// @Title HomolgacionConceptosTitan
-// @Description Homologa los conceptos de titan con los del kronos
-// @Param	body		body 	models.DetallePreliquidacion sistema titan
+// RegistrarHomologacionConcepto ...
+// @Title RegistrarHomologacionConcepto
+// @Description Registrar homologacion_concepto y  de concepto_tesoral_facultad_proyecto
+// @Param	body		body 	models.homologacion_concepto	true		"body for homologacion_concepto content"
 // @Success 201 {int} models.OrdenPago
 // @Failure 403 body is empty
-// @router /HomolgacionConceptosTitan [post]
-func (c *HomologacionConceptoController) HomolgacionConceptosTitan() {
-	fmt.Println("controller HomolgacionConceptosTitan")
+// @router RegistrarHomologacionConcepto [post]
+func (c *OrdenPagoController) RegistrarHomologacionConcepto() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		mensaje, err, dataConceptoValor := models.HomolgacionConceptosTitan(m)
-		if err != nil {
+		mensaje := models.RegistrarHomologacionConcepto(m)
+		if mensaje.Type != "success" {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "MSN_OPP_S_HO_CONC", Body: dataConceptoValor}
-			c.Data["json"] = alert
+			c.Data["json"] = mensaje
 		}
 	} else {
 		c.Data["json"] = err

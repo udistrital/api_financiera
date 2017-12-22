@@ -4,12 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type ConceptoValor struct {
@@ -164,151 +162,7 @@ func DeleteHomologacionConcepto(id int) (err error) {
 	return
 }
 
-// Homologacion conceptos de titan
-func HomolgacionConceptosTitan(DataOpProveedor map[string]interface{}) (alerta Alert, err error, allRpCdpRubroConceptoValor []RpCdpRubroConceptoValor) {
-	o := orm.NewOrm()
-	var allConceptoValor []ConceptoValor
-	var detalleLiquidacion []interface{}
-	var registroPresupuestal RegistroPresupuestal
-
-	err = utilidades.FillStruct(DataOpProveedor["DetalleLiquidacion"], &detalleLiquidacion)
-	err = utilidades.FillStruct(DataOpProveedor["RegistroPresupuestal"], &registroPresupuestal)
-	if err != nil {
-		alerta.Type = "error"
-		alerta.Code = "E_TRANS_01" //error en parametros de entrada
-		alerta.Body = err.Error()
-		return
-	}
-
-	for i, row := range detalleLiquidacion {
-		m := row.(map[string]interface{})
-		// data valorCalculado
-		valorCalculadoFloat := m["ValorCalculado"].(float64)
-		valorCalculado := int64(valorCalculadoFloat)
-		// data concepto
-		concepto, e := m["Concepto"].(map[string]interface{})
-		if e != true {
-			alerta.Type = "error"
-			alerta.Code = "E_HO_CONC_TITAN"
-			alerta.Body = err.Error()
-			return
-		}
-		idConceptoTitanFloat := concepto["Id"].(float64)
-		idConceptoTitan := int(idConceptoTitanFloat)
-		fmt.Println("****************************** ", strconv.Itoa(i), " ******************************")
-		if i == 0 {
-			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: registroPresupuestal.Vigencia}
-			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err != nil {
-				alerta.Type = "error"
-				alerta.Code = "E_OPN_02_3"
-				alerta.Body = strconv.Itoa(idConceptoTitan)
-				return
-			}
-			fmt.Println("***Priner append ***")
-			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
-			fmt.Println(valorCalculado)
-			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
-			newConceptoValor := ConceptoValor{
-				Valor:    valorCalculado,
-				Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
-			}
-			allConceptoValor = append(allConceptoValor, newConceptoValor)
-		} else {
-			fmt.Println("***Sumar o Append***")
-			// Buscamos concepto kronos homologado
-			conceptoKronosHomologado := HomologacionConcepto{ConceptoTitan: idConceptoTitan, Vigencia: registroPresupuestal.Vigencia}
-			err = o.Read(&conceptoKronosHomologado, "ConceptoTitan", "Vigencia")
-			if err != nil {
-				alerta.Type = "error"
-				alerta.Code = "E_OPN_02_3"
-				alerta.Body = strconv.Itoa(idConceptoTitan)
-				return
-			}
-			fmt.Println("Concepto Titan: ", strconv.Itoa(idConceptoTitan))
-			fmt.Println(valorCalculado)
-			fmt.Println("Concepto Kronos:", strconv.Itoa(conceptoKronosHomologado.ConceptoKronos.Id))
-
-			if esta, idlista := estaConceptoValor(conceptoKronosHomologado.ConceptoKronos.Id, allConceptoValor); esta == true {
-				fmt.Println("---Sumar")
-				sumaValor := allConceptoValor[idlista].Valor + valorCalculado
-				allConceptoValor[idlista].Valor = sumaValor
-			} else {
-				fmt.Println("---Append")
-				newConceptoValor2 := ConceptoValor{
-					Valor:    valorCalculado,
-					Concepto: &Concepto{Id: conceptoKronosHomologado.ConceptoKronos.Id},
-				}
-				allConceptoValor = append(allConceptoValor, newConceptoValor2)
-			}
-		}
-	}
-	//**
-	//trabajar con toda la estructura de RegistroPresupuestalDisponibilidadApropiacion
-	// **
-
-	// buscamos los registroPresupuestalDisponibilidadApropiacion asociados al RP
-	qs := o.QueryTable(new(RegistroPresupuestalDisponibilidadApropiacion)).RelatedSel(5)
-	qs = qs.Filter("RegistroPresupuestal", registroPresupuestal.Id)
-	qs = qs.RelatedSel(5)
-	var l []RegistroPresupuestalDisponibilidadApropiacion
-	if _, err = qs.Limit(-1, 0).All(&l); err == nil {
-		for _, v := range l {
-			fmt.Println("*********** Id que necesita miguel ", v.Id)
-			registroPresupuestalDisponibilidadApropiacion := RegistroPresupuestalDisponibilidadApropiacion{}
-			disponibilidadApropiacion := DisponibilidadApropiacion{}
-			apropiacion := Apropiacion{}
-			rubro := Rubro{}
-			err = utilidades.FillStruct(v, &registroPresupuestalDisponibilidadApropiacion)
-			err = utilidades.FillStruct(v.DisponibilidadApropiacion, &disponibilidadApropiacion)
-			err = utilidades.FillStruct(disponibilidadApropiacion.Apropiacion, &apropiacion)
-			err = utilidades.FillStruct(apropiacion.Rubro, &rubro)
-			if err != nil {
-				alerta.Type = "error"
-				alerta.Code = "E_OPN_02_3"
-				alerta.Body = err.Error()
-				return
-			}
-			fmt.Println(rubro)
-			//conceptos
-			qsc := o.QueryTable(new(Concepto)).RelatedSel(5)
-			qsc = qsc.Filter("Rubro", rubro.Id)
-			qsc = qsc.RelatedSel(5)
-			var lc []Concepto
-			var allConceptoPorRubro []ConceptoValor
-			var add_concepto bool
-			if _, err = qsc.Limit(-1, 0).All(&lc); err == nil {
-				for _, vc := range lc {
-					fmt.Println(vc.Codigo)
-					// comparar
-					if esta, idlista := estaConceptoValor(vc.Id, allConceptoValor); esta == true {
-						fmt.Println("Esta")
-						add_concepto = true
-						allConceptoPorRubro = append(allConceptoPorRubro, allConceptoValor[idlista])
-					}
-				}
-				fmt.Println("resultado: ", add_concepto)
-				if add_concepto {
-					newRpCdpRubroConceptoValor := RpCdpRubroConceptoValor{
-						RegistroPresupuestalDisponibilidadApropiacion: registroPresupuestalDisponibilidadApropiacion,
-						ConceptoValor:                                 allConceptoPorRubro,
-					}
-					//
-					allRpCdpRubroConceptoValor = append(allRpCdpRubroConceptoValor, newRpCdpRubroConceptoValor)
-				}
-			}
-		}
-	}
-	//
-	return
-}
-
-func estaConceptoValor(idConcepto int, lista []ConceptoValor) (esta bool, idlista int) {
-	for or := 0; or < len(lista); or++ {
-		if lista[or].Concepto.Id == idConcepto {
-			return true, or
-		}
-	}
-	return false, 0
+// RegistrarHomologacionConcepto
+func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface{}) (alerta Alert) {
+	return alerta
 }
