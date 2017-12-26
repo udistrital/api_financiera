@@ -161,8 +161,140 @@ func DeleteHomologacionConcepto(id int) (err error) {
 	}
 	return
 }
+func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interface{}) (outputRegistrarHomologacion, conFacultad bool) {
+	var proyectoC int
+	//var conFacultad bool
+	var existeHomologacionConcepto bool
+	var existeConceptoTesoralFacultadProyecto bool
+	o := orm.NewOrm()
+	o.Begin()
+
+	homologacion := HomologacionConcepto{
+		Vigencia:       inputHomologacion["Vigencia"].(float64),
+		NominaTitan:    int(inputHomologacion["NominaTitan"].(float64)),
+		ConceptoKronos: &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+		ConceptoTitan:  int(inputHomologacion["ConceptoTitan"].(float64)),
+	}
+	err := o.Read(&homologacion, "Vigencia", "NominaTitan", "ConceptoKronos", "ConceptoTitan")
+	if err == orm.ErrNoRows {
+		existeHomologacionConcepto = false
+	} else {
+		existeHomologacionConcepto = true
+	}
+
+	if inputHomologacion["Facultad"] != nil {
+		conFacultad = true
+		facultad := int(inputHomologacion["Facultad"].(float64))
+		if inputHomologacion["ProyectoCurricular"] == nil {
+			proyectoC = 0
+		} else {
+			proyectoC = int(inputHomologacion["ProyectoCurricular"].(float64))
+		}
+		conceptoFacultad := ConceptoTesoralFacultadProyecto{
+			ConceptoTesoral:    &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+			Facultad:           facultad,
+			ProyectoCurricular: proyectoC,
+		}
+		err := o.Read(&conceptoFacultad, "ConceptoTesoral", "Facultad", "ProyectoCurricular")
+		if err == orm.ErrNoRows {
+			existeConceptoTesoralFacultadProyecto = false
+		} else {
+			existeConceptoTesoralFacultadProyecto = true
+		}
+	} else {
+		conFacultad = false
+	}
+
+	if conFacultad {
+		if existeHomologacionConcepto == false && existeConceptoTesoralFacultadProyecto == false {
+			outputRegistrarHomologacion = true
+		} else {
+			outputRegistrarHomologacion = false
+		}
+	} else {
+		if existeHomologacionConcepto == false {
+			outputRegistrarHomologacion = true
+		} else {
+			outputRegistrarHomologacion = false
+		}
+	}
+	return
+}
 
 // RegistrarHomologacionConcepto
 func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface{}) (alerta Alert) {
-	return alerta
+	// validar existencia
+	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	registrarHomologacion, conFacultad := validarExistenciaHomologacionConcepto(dataHomologacionConcepto)
+	println("------------------")
+	var proyectoC int
+	o := orm.NewOrm()
+	o.Begin()
+	if registrarHomologacion == true {
+		if conFacultad == true {
+			println("dos registro ")
+			// 2 Registros: registra tabla ConceptoTesoralFacultadProyecto y HomologacionConcepto
+			facultad := int(dataHomologacionConcepto["Facultad"].(float64))
+			if dataHomologacionConcepto["ProyectoCurricular"] == nil {
+				proyectoC = 0
+			} else {
+				proyectoC = int(dataHomologacionConcepto["ProyectoCurricular"].(float64))
+			}
+			conceptoFacultad := ConceptoTesoralFacultadProyecto{
+				ConceptoTesoral:    &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				Facultad:           facultad,
+				ProyectoCurricular: proyectoC,
+			}
+			_, err := o.Insert(&conceptoFacultad)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			homologacion := HomologacionConcepto{
+				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+			}
+			idHomologacion, err := o.Insert(&homologacion)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
+			o.Commit()
+			return
+		} else {
+			println("un registro")
+			// 1 Registros: registra tabla HomologacionConcepto
+			homologacion := HomologacionConcepto{
+				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+			}
+			idHomologacion, err := o.Insert(&homologacion)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_OPP_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
+			o.Commit()
+			return
+		}
+	} else {
+		println("error que ya existe homologacion")
+		alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: "Ya existe homologacion"}
+		return
+	}
+
 }

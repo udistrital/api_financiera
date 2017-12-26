@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -23,6 +24,7 @@ func (c *HomologacionConceptoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	c.Mapping("RegistrarHomologacionConcepto", c.RegistrarHomologacionConcepto)
 }
 
 // Post ...
@@ -178,7 +180,8 @@ func (c *HomologacionConceptoController) Delete() {
 // @Success 201 {int} models.OrdenPago
 // @Failure 403 body is empty
 // @router RegistrarHomologacionConcepto [post]
-func (c *OrdenPagoController) RegistrarHomologacionConcepto() {
+func (c *HomologacionConceptoController) RegistrarHomologacionConcepto() {
+	fmt.Println("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})

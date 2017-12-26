@@ -2143,6 +2143,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"],
+		beego.ControllerComments{
+			Method: "RegistrarHomologacionConcepto",
+			Router: `RegistrarHomologacionConcepto`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionDescuentoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionDescuentoController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -2691,14 +2699,6 @@ func init() {
 		beego.ControllerComments{
 			Method: "ActualizarOpProveedor",
 			Router: `ActualizarOpProveedor`,
-			AllowHTTPMethods: []string{"post"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-		beego.ControllerComments{
-			Method: "RegistrarHomologacionConcepto",
-			Router: `RegistrarHomologacionConcepto`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
