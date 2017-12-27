@@ -166,6 +166,8 @@ func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interfac
 	//var conFacultad bool
 	var existeHomologacionConcepto bool
 	var existeConceptoTesoralFacultadProyecto bool
+	var conceptoFacultad ConceptoTesoralFacultadProyecto
+
 	o := orm.NewOrm()
 	o.Begin()
 
@@ -190,10 +192,20 @@ func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interfac
 		} else {
 			proyectoC = int(inputHomologacion["ProyectoCurricular"].(float64))
 		}
-		conceptoFacultad := ConceptoTesoralFacultadProyecto{
-			ConceptoTesoral:    &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
-			Facultad:           facultad,
-			ProyectoCurricular: proyectoC,
+		if existeHomologacionConcepto == true {
+			//println(homologacion.Id)
+			conceptoFacultad = ConceptoTesoralFacultadProyecto{
+				ConceptoTesoral:      &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+				Facultad:             facultad,
+				ProyectoCurricular:   proyectoC,
+				HomologacionConcepto: &HomologacionConcepto{Id: int(homologacion.Id)},
+			}
+		} else {
+			conceptoFacultad = ConceptoTesoralFacultadProyecto{
+				ConceptoTesoral:    &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+				Facultad:           facultad,
+				ProyectoCurricular: proyectoC,
+			}
 		}
 		err := o.Read(&conceptoFacultad, "ConceptoTesoral", "Facultad", "ProyectoCurricular")
 		if err == orm.ErrNoRows {
@@ -258,9 +270,10 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 				proyectoC = int(dataHomologacionConcepto["ProyectoCurricular"].(float64))
 			}
 			conceptoFacultad := ConceptoTesoralFacultadProyecto{
-				ConceptoTesoral:    &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
-				Facultad:           facultad,
-				ProyectoCurricular: proyectoC,
+				ConceptoTesoral:      &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				Facultad:             facultad,
+				ProyectoCurricular:   proyectoC,
+				HomologacionConcepto: &HomologacionConcepto{Id: int(idHomologacion)},
 			}
 			idConceptoFacultad, err := o.Insert(&conceptoFacultad)
 			if err != nil {
@@ -301,5 +314,4 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 		alerta = Alert{Type: "error", Code: "E_HOCO_02", Body: ""}
 		return
 	}
-
 }
