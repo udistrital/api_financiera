@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -181,7 +180,6 @@ func (c *HomologacionConceptoController) Delete() {
 // @Failure 403 body is empty
 // @router RegistrarHomologacionConcepto [post]
 func (c *HomologacionConceptoController) RegistrarHomologacionConcepto() {
-	fmt.Println("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})

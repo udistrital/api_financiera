@@ -208,6 +208,10 @@ func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interfac
 	if conFacultad {
 		if existeHomologacionConcepto == false && existeConceptoTesoralFacultadProyecto == false {
 			outputRegistrarHomologacion = true
+		} else if existeHomologacionConcepto == false && existeConceptoTesoralFacultadProyecto == true {
+			outputRegistrarHomologacion = true
+		} else if existeHomologacionConcepto == true && existeConceptoTesoralFacultadProyecto == false {
+			outputRegistrarHomologacion = true
 		} else {
 			outputRegistrarHomologacion = false
 		}
@@ -224,16 +228,29 @@ func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interfac
 // RegistrarHomologacionConcepto
 func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface{}) (alerta Alert) {
 	// validar existencia
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	registrarHomologacion, conFacultad := validarExistenciaHomologacionConcepto(dataHomologacionConcepto)
-	println("------------------")
 	var proyectoC int
 	o := orm.NewOrm()
 	o.Begin()
 	if registrarHomologacion == true {
 		if conFacultad == true {
-			println("dos registro ")
 			// 2 Registros: registra tabla ConceptoTesoralFacultadProyecto y HomologacionConcepto
+			homologacion := HomologacionConcepto{
+				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:  time.Now(),
+				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+			}
+			idHomologacion, err := o.Insert(&homologacion)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_HOCO_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			//
 			facultad := int(dataHomologacionConcepto["Facultad"].(float64))
 			if dataHomologacionConcepto["ProyectoCurricular"] == nil {
 				proyectoC = 0
@@ -245,28 +262,15 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 				Facultad:           facultad,
 				ProyectoCurricular: proyectoC,
 			}
-			_, err := o.Insert(&conceptoFacultad)
+			idConceptoFacultad, err := o.Insert(&conceptoFacultad)
 			if err != nil {
 				alerta.Type = "error"
-				alerta.Code = "E_OPP_01"
+				alerta.Code = "E_HOCO_01"
 				alerta.Body = err.Error()
 				o.Rollback()
 				return
 			}
-			homologacion := HomologacionConcepto{
-				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
-				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
-				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
-				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
-			}
-			idHomologacion, err := o.Insert(&homologacion)
-			if err != nil {
-				alerta.Type = "error"
-				alerta.Code = "E_OPP_01"
-				alerta.Body = err.Error()
-				o.Rollback()
-				return
-			}
+			println(idConceptoFacultad)
 			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
 			o.Commit()
 			return
@@ -275,6 +279,7 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 			// 1 Registros: registra tabla HomologacionConcepto
 			homologacion := HomologacionConcepto{
 				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:  time.Now(),
 				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
 				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
 				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
@@ -282,18 +287,18 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 			idHomologacion, err := o.Insert(&homologacion)
 			if err != nil {
 				alerta.Type = "error"
-				alerta.Code = "E_OPP_01"
+				alerta.Code = "E_HOCO_01"
 				alerta.Body = err.Error()
 				o.Rollback()
 				return
 			}
-			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
+			alerta = Alert{Type: "success", Code: "S_HOCO_01", Body: idHomologacion}
 			o.Commit()
 			return
 		}
 	} else {
 		println("error que ya existe homologacion")
-		alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: "Ya existe homologacion"}
+		alerta = Alert{Type: "error", Code: "E_HOCO_02", Body: ""}
 		return
 	}
 
