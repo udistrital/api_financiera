@@ -2145,8 +2145,8 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"],
 		beego.ControllerComments{
-			Method: "HomolgacionConceptosTitan",
-			Router: `/HomolgacionConceptosTitan`,
+			Method: "RegistrarHomologacionConcepto",
+			Router: `RegistrarHomologacionConcepto`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
