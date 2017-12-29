@@ -9,50 +9,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type SubTipoOrdenPago struct {
-	Id                int            `orm:"column(id);pk;auto"`
-	Nombre            string         `orm:"column(nombre)"`
-	Descripcion       string         `orm:"column(descripcion);null"`
-	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
-	Activo            bool           `orm:"column(activo)"`
-	NumeroOrden       float64        `orm:"column(numero_orden);null"`
-	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
-	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
+type ConceptoTesoralFacultadProyecto struct {
+	Id                 int       `orm:"column(id);pk;auto"`
+	ConceptoTesoral    *Concepto `orm:"column(concepto_tesoral);rel(fk)"`
+	Facultad           int       `orm:"column(facultad)"`
+	ProyectoCurricular int       `orm:"column(proyecto_curricular);null"`
 }
 
-func (t *SubTipoOrdenPago) TableName() string {
-	return "sub_tipo_orden_pago"
+func (t *ConceptoTesoralFacultadProyecto) TableName() string {
+	return "concepto_tesoral_facultad_proyecto"
 }
 
 func init() {
-	orm.RegisterModel(new(SubTipoOrdenPago))
+	orm.RegisterModel(new(ConceptoTesoralFacultadProyecto))
 }
 
-// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
+// AddConceptoTesoralFacultadProyecto insert a new ConceptoTesoralFacultadProyecto into database and returns
 // last inserted Id on success.
-func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
+func AddConceptoTesoralFacultadProyecto(m *ConceptoTesoralFacultadProyecto) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
+// GetConceptoTesoralFacultadProyectoById retrieves ConceptoTesoralFacultadProyecto by Id. Returns error if
 // Id doesn't exist
-func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
+func GetConceptoTesoralFacultadProyectoById(id int) (v *ConceptoTesoralFacultadProyecto, err error) {
 	o := orm.NewOrm()
-	v = &SubTipoOrdenPago{Id: id}
+	v = &ConceptoTesoralFacultadProyecto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
+// GetAllConceptoTesoralFacultadProyecto retrieves all ConceptoTesoralFacultadProyecto matches certain condition. Returns empty list if
 // no records exist
-func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllConceptoTesoralFacultadProyecto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(ConceptoTesoralFacultadProyecto)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +98,7 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []SubTipoOrdenPago
+	var l []ConceptoTesoralFacultadProyecto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +121,11 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
+// UpdateConceptoTesoralFacultadProyecto updates ConceptoTesoralFacultadProyecto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
+func UpdateConceptoTesoralFacultadProyectoById(m *ConceptoTesoralFacultadProyecto) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: m.Id}
+	v := ConceptoTesoralFacultadProyecto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +136,15 @@ func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	return
 }
 
-// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
+// DeleteConceptoTesoralFacultadProyecto deletes ConceptoTesoralFacultadProyecto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSubTipoOrdenPago(id int) (err error) {
+func DeleteConceptoTesoralFacultadProyecto(id int) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: id}
+	v := ConceptoTesoralFacultadProyecto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&ConceptoTesoralFacultadProyecto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

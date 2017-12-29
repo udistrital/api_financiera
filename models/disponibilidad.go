@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/utilidades"
@@ -19,14 +20,15 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                        int                          `orm:"auto;column(id);pk"`
-	Vigencia                  float64                      `orm:"column(vigencia)"`
-	NumeroDisponibilidad      float64                      `orm:"column(numero_disponibilidad);null"`
-	Responsable               int                          `orm:"column(responsable);null"`
-	FechaRegistro             time.Time                    `orm:"column(fecha_registro);type(date);null"`
-	Estado                    *EstadoDisponibilidad        `orm:"column(estado);rel(fk)"`
-	Solicitud                 int                          `orm:"column(solicitud)"`
-	DisponibilidadApropiacion []*DisponibilidadApropiacion `orm:"reverse(many)"`
+	Id                           int                             `orm:"auto;column(id);pk"`
+	Vigencia                     float64                         `orm:"column(vigencia)"`
+	NumeroDisponibilidad         float64                         `orm:"column(numero_disponibilidad);null"`
+	Responsable                  int                             `orm:"column(responsable);null"`
+	FechaRegistro                time.Time                       `orm:"column(fecha_registro);type(date);null"`
+	Estado                       *EstadoDisponibilidad           `orm:"column(estado);rel(fk)"`
+	Solicitud                    int                             `orm:"column(solicitud)"`
+	DisponibilidadApropiacion    []*DisponibilidadApropiacion    `orm:"reverse(many)"`
+	DisponibilidadProcesoExterno []*DisponibilidadProcesoExterno `orm:"reverse(many)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -37,6 +39,41 @@ func init() {
 	orm.RegisterModel(new(Disponibilidad))
 }
 
+// totalDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalDisponibilidades(vigencia int, unidadEjecutora int, finicio string, ffin string) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	if finicio != "" && ffin != "" {
+		qb.Select("COUNT(DISTINCT(disponibilidad))").
+			From("financiera.disponibilidad").
+			InnerJoin("financiera.disponibilidad_apropiacion").
+			On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+			InnerJoin("financiera.apropiacion").
+			On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+			InnerJoin("financiera.rubro").
+			On("rubro.id = apropiacion.rubro").
+			Where("disponibilidad.vigencia = ?").
+			And("fecha_registro >= ?").
+			And("fecha_registro <= ?").
+			And("unidad_ejecutora = ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin, unidadEjecutora).QueryRow(&total)
+		return
+	}
+	qb.Select("COUNT(DISTINCT(disponibilidad))").
+		From("financiera.disponibilidad").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("rubro.id = apropiacion.rubro").
+		Where("disponibilidad.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
+	return
+
+}
+
 // AddDisponibilidad insert a new Disponibilidad into database and returns
 // last inserted Id on success.
 func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
@@ -44,6 +81,7 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o.Begin()
 	var consecutivo float64
 	var afectacion []DisponibilidadApropiacion
+	var procesoExterno DisponibilidadProcesoExterno
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("COALESCE(MAX(numero_disponibilidad), 0)+1 as consecutivo").
 		From("financiera.disponibilidad").
@@ -70,17 +108,32 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	}
 	_, err = o.Insert(&v)
 	if err == nil {
-		err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+		err = utilidades.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
 		if err == nil {
-			for _, row := range afectacion {
-				row.Disponibilidad = &v
-				_, err = o.Insert(&row)
-				if err != nil {
+			procesoExterno.Disponibilidad = &v
+			_, err = o.Insert(&procesoExterno)
+			if err == nil {
+				err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+				if err == nil {
+					for _, row := range afectacion {
+						row.Disponibilidad = &v
+						_, err = o.Insert(&row)
+						if err != nil {
+							o.Rollback()
+							return
+						}
+					}
+				} else {
 					o.Rollback()
 					return
 				}
+			} else {
+				beego.Info(err)
+				o.Rollback()
+				return
 			}
 		} else {
+			beego.Info("err dprosext")
 			o.Rollback()
 			return
 		}
@@ -114,9 +167,14 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
+		beego.Info(k)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else if strings.Contains(k, "not_in") {
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
+			beego.Info(k)
 			k = strings.Replace(k, "__not_in", "", -1)
 			qs = qs.Exclude(k, v)
 		} else {
@@ -163,11 +221,12 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	}
 
 	var l []Disponibilidad
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "DisponibilidadApropiacion", 5)
+				o.LoadRelated(&v, "DisponibilidadProcesoExterno", 5)
 				ml = append(ml, v)
 			}
 		} else {

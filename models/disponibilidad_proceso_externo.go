@@ -9,50 +9,46 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type SubTipoOrdenPago struct {
-	Id                int            `orm:"column(id);pk;auto"`
-	Nombre            string         `orm:"column(nombre)"`
-	Descripcion       string         `orm:"column(descripcion);null"`
-	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
-	Activo            bool           `orm:"column(activo)"`
-	NumeroOrden       float64        `orm:"column(numero_orden);null"`
-	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
-	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
+type DisponibilidadProcesoExterno struct {
+	Id                 int                 `orm:"auto;column(id);pk"`
+	TipoDisponibilidad *TipoDisponibilidad `orm:"column(tipo_disponibilidad);rel(fk)"`
+	ProcesoExterno     int                 `orm:"column(proceso_externo)"`
+	Disponibilidad     *Disponibilidad     `orm:"column(disponibilidad);rel(fk)"`
 }
 
-func (t *SubTipoOrdenPago) TableName() string {
-	return "sub_tipo_orden_pago"
+func (t *DisponibilidadProcesoExterno) TableName() string {
+	return "disponibilidad_proceso_externo"
 }
 
 func init() {
-	orm.RegisterModel(new(SubTipoOrdenPago))
+	orm.RegisterModel(new(DisponibilidadProcesoExterno))
 }
 
-// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
+// AddDisponibilidadProcesoExterno insert a new DisponibilidadProcesoExterno into database and returns
 // last inserted Id on success.
-func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
+func AddDisponibilidadProcesoExterno(m *DisponibilidadProcesoExterno) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
+// GetDisponibilidadProcesoExternoById retrieves DisponibilidadProcesoExterno by Id. Returns error if
 // Id doesn't exist
-func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
+func GetDisponibilidadProcesoExternoById(id int) (v *DisponibilidadProcesoExterno, err error) {
 	o := orm.NewOrm()
-	v = &SubTipoOrdenPago{Id: id}
+	v = &DisponibilidadProcesoExterno{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
+// GetAllDisponibilidadProcesoExterno retrieves all DisponibilidadProcesoExterno matches certain condition. Returns empty list if
 // no records exist
-func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDisponibilidadProcesoExterno(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(DisponibilidadProcesoExterno))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +98,7 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []SubTipoOrdenPago
+	var l []DisponibilidadProcesoExterno
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +121,11 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
+// UpdateDisponibilidadProcesoExterno updates DisponibilidadProcesoExterno by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
+func UpdateDisponibilidadProcesoExternoById(m *DisponibilidadProcesoExterno) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: m.Id}
+	v := DisponibilidadProcesoExterno{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +136,15 @@ func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	return
 }
 
-// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
+// DeleteDisponibilidadProcesoExterno deletes DisponibilidadProcesoExterno by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSubTipoOrdenPago(id int) (err error) {
+func DeleteDisponibilidadProcesoExterno(id int) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: id}
+	v := DisponibilidadProcesoExterno{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&DisponibilidadProcesoExterno{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

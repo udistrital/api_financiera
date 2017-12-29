@@ -10,12 +10,23 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+type ConceptoValor struct {
+	Concepto *Concepto
+	Valor    int64
+}
+
+type RpCdpRubroConceptoValor struct {
+	RegistroPresupuestalDisponibilidadApropiacion RegistroPresupuestalDisponibilidadApropiacion
+	ConceptoValor                                 []ConceptoValor
+}
+
 type HomologacionConcepto struct {
 	Id             int       `orm:"column(id);pk;auto"`
 	Vigencia       float64   `orm:"column(vigencia)"`
 	FechaCreacion  time.Time `orm:"column(fecha_creacion);type(date)"`
 	ConceptoKronos *Concepto `orm:"column(concepto_kronos);rel(fk)"`
 	ConceptoTitan  int       `orm:"column(concepto_titan)"`
+	NominaTitan    int       `orm:"column(nomina_titan)"`
 }
 
 func (t *HomologacionConcepto) TableName() string {
@@ -50,7 +61,7 @@ func GetHomologacionConceptoById(id int) (v *HomologacionConcepto, err error) {
 func GetAllHomologacionConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(HomologacionConcepto))
+	qs := o.QueryTable(new(HomologacionConcepto)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -101,6 +112,8 @@ func GetAllHomologacionConcepto(query map[string]string, fields []string, sortby
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(v.ConceptoKronos, "ConceptoCuentaContable", 5)
+				o.LoadRelated(v.ConceptoKronos, "ConceptoTesoralFacultadProyecto", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -147,4 +160,146 @@ func DeleteHomologacionConcepto(id int) (err error) {
 		}
 	}
 	return
+}
+func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interface{}) (outputRegistrarHomologacion, conFacultad bool) {
+	var proyectoC int
+	//var conFacultad bool
+	var existeHomologacionConcepto bool
+	var existeConceptoTesoralFacultadProyecto bool
+	o := orm.NewOrm()
+	o.Begin()
+
+	homologacion := HomologacionConcepto{
+		Vigencia:       inputHomologacion["Vigencia"].(float64),
+		NominaTitan:    int(inputHomologacion["NominaTitan"].(float64)),
+		ConceptoKronos: &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+		ConceptoTitan:  int(inputHomologacion["ConceptoTitan"].(float64)),
+	}
+	err := o.Read(&homologacion, "Vigencia", "NominaTitan", "ConceptoKronos", "ConceptoTitan")
+	if err == orm.ErrNoRows {
+		existeHomologacionConcepto = false
+	} else {
+		existeHomologacionConcepto = true
+	}
+
+	if inputHomologacion["Facultad"] != nil {
+		conFacultad = true
+		facultad := int(inputHomologacion["Facultad"].(float64))
+		if inputHomologacion["ProyectoCurricular"] == nil {
+			proyectoC = 0
+		} else {
+			proyectoC = int(inputHomologacion["ProyectoCurricular"].(float64))
+		}
+		conceptoFacultad := ConceptoTesoralFacultadProyecto{
+			ConceptoTesoral:    &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+			Facultad:           facultad,
+			ProyectoCurricular: proyectoC,
+		}
+		err := o.Read(&conceptoFacultad, "ConceptoTesoral", "Facultad", "ProyectoCurricular")
+		if err == orm.ErrNoRows {
+			existeConceptoTesoralFacultadProyecto = false
+		} else {
+			existeConceptoTesoralFacultadProyecto = true
+		}
+	} else {
+		conFacultad = false
+	}
+
+	if conFacultad {
+		if existeHomologacionConcepto == false && existeConceptoTesoralFacultadProyecto == false {
+			outputRegistrarHomologacion = true
+		} else if existeHomologacionConcepto == false && existeConceptoTesoralFacultadProyecto == true {
+			outputRegistrarHomologacion = true
+		} else if existeHomologacionConcepto == true && existeConceptoTesoralFacultadProyecto == false {
+			outputRegistrarHomologacion = true
+		} else {
+			outputRegistrarHomologacion = false
+		}
+	} else {
+		if existeHomologacionConcepto == false {
+			outputRegistrarHomologacion = true
+		} else {
+			outputRegistrarHomologacion = false
+		}
+	}
+	return
+}
+
+// RegistrarHomologacionConcepto
+func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface{}) (alerta Alert) {
+	// validar existencia
+	registrarHomologacion, conFacultad := validarExistenciaHomologacionConcepto(dataHomologacionConcepto)
+	var proyectoC int
+	o := orm.NewOrm()
+	o.Begin()
+	if registrarHomologacion == true {
+		if conFacultad == true {
+			// 2 Registros: registra tabla ConceptoTesoralFacultadProyecto y HomologacionConcepto
+			homologacion := HomologacionConcepto{
+				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:  time.Now(),
+				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+			}
+			idHomologacion, err := o.Insert(&homologacion)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_HOCO_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			//
+			facultad := int(dataHomologacionConcepto["Facultad"].(float64))
+			if dataHomologacionConcepto["ProyectoCurricular"] == nil {
+				proyectoC = 0
+			} else {
+				proyectoC = int(dataHomologacionConcepto["ProyectoCurricular"].(float64))
+			}
+			conceptoFacultad := ConceptoTesoralFacultadProyecto{
+				ConceptoTesoral:    &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				Facultad:           facultad,
+				ProyectoCurricular: proyectoC,
+			}
+			idConceptoFacultad, err := o.Insert(&conceptoFacultad)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_HOCO_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			println(idConceptoFacultad)
+			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
+			o.Commit()
+			return
+		} else {
+			println("un registro")
+			// 1 Registros: registra tabla HomologacionConcepto
+			homologacion := HomologacionConcepto{
+				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:  time.Now(),
+				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+			}
+			idHomologacion, err := o.Insert(&homologacion)
+			if err != nil {
+				alerta.Type = "error"
+				alerta.Code = "E_HOCO_01"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+			alerta = Alert{Type: "success", Code: "S_HOCO_01", Body: idHomologacion}
+			o.Commit()
+			return
+		}
+	} else {
+		println("error que ya existe homologacion")
+		alerta = Alert{Type: "error", Code: "E_HOCO_02", Body: ""}
+		return
+	}
+
 }

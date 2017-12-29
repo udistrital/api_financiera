@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type OrdenPagoEstadoOrdenPago struct {
@@ -151,4 +152,67 @@ func DeleteOrdenPagoEstadoOrdenPago(id int) (err error) {
 		}
 	}
 	return
+}
+
+func WorkFlowOrdenPago(DataWorkFlowOrdenPago map[string]interface{}) (alerta []map[string]interface{}, err error) {
+	ouputError := make(map[string]interface{})
+	//get data
+	ordenPagoData, e := DataWorkFlowOrdenPago["OrdenPago"].([]interface{})
+	idEstadoNew, e := DataWorkFlowOrdenPago["NuevoEstado"].(interface{}).(map[string]interface{})["Id"].(float64)
+	idUsuario, e := DataWorkFlowOrdenPago["Usuario"].(interface{}).(map[string]interface{})["Id"].(float64)
+	if e != true {
+		fmt.Println("error de parametros")
+		ouputError["Type"] = "error"
+		ouputError["Code"] = "E_TRANS_01"
+		ouputError["Body"] = ""
+		alerta = append(alerta, ouputError)
+		return
+	}
+	var respuesta []map[string]interface{}
+	var parametros []interface{}
+	parametros = append(parametros, idEstadoNew)
+	parametros = append(parametros, idUsuario)
+
+	if ordenPagoData != nil {
+		done := make(chan interface{})
+		defer close(done)
+		resch := utilidades.GenChanInterface(ordenPagoData...)
+		chlistaLiquidacion := utilidades.Digest(done, changeEstadoOP, resch, parametros)
+		for dataLiquidacion := range chlistaLiquidacion {
+			if dataLiquidacion != nil {
+				respuesta = append(respuesta, dataLiquidacion.(map[string]interface{}))
+			}
+		}
+		return respuesta, nil
+	} else {
+		return nil, nil
+	}
+}
+
+func changeEstadoOP(ordenPago interface{}, params ...interface{}) (res interface{}) {
+	neworden, e := ordenPago.(map[string]interface{})
+	alerta := make(map[string]interface{})
+	if e {
+		o := orm.NewOrm()
+		newEstadoOp := OrdenPagoEstadoOrdenPago{}
+		newEstadoOp.OrdenPago = &OrdenPago{Id: int(neworden["Id"].(float64))}
+		newEstadoOp.EstadoOrdenPago = &EstadoOrdenPago{Id: int(params[0].(float64))}
+		newEstadoOp.FechaRegistro = time.Now()
+		newEstadoOp.Usuario = int(params[1].(float64))
+		_, err := o.Insert(&newEstadoOp)
+		if err != nil {
+			alerta["Type"] = "error"
+			alerta["Code"] = "E_OP_E_ACTUALIZAR"
+			alerta["Body"] = err.Error()
+			o.Rollback()
+			return alerta
+		} else {
+			alerta["Type"] = "success"
+			alerta["Code"] = "S_OP_ESTADO"
+			alerta["Body"] = newEstadoOp
+			o.Commit()
+			return alerta
+		}
+	}
+	return nil
 }

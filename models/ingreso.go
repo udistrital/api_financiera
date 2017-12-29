@@ -9,6 +9,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/astaxie/beego"
 )
 
 type Ingreso struct {
@@ -16,7 +17,9 @@ type Ingreso struct {
 	Consecutivo          float64               `orm:"column(consecutivo)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaConsignacion    time.Time             `orm:"column(fecha_consignacion);type(date)"`
+	FechaInicio    		 time.Time             `orm:"column(fecha_inicio);type(date)"`
+	FechaFin    		 time.Time             `orm:"column(fecha_fin);type(date)"`
+	Facultad    		 int             	   `orm:"column(facultad);null"`
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
@@ -99,21 +102,25 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		ingreso.Consecutivo = consecutivo
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
+		beego.Info(err)
 		//insert MovimientoContable
 		var mov []MovimientoContable
 		err = utilidades.FillStruct(m["Movimientos"], &mov)
 		for _, element := range mov {
 			element.Fecha = time.Now()
 			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
-			element.CodigoDocumentoAfectante = ingreso.Id
+			element.CodigoDocumentoAfectante = int(id)
+			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
 			_, err = o.Insert(&element)
 			if err != nil {
+				beego.Info(err.Error())
 				o.Rollback()
 				return
 			}
 		}
 
 		if err != nil {
+			beego.Info(err.Error())
 			o.Rollback()
 			return
 		} else {
@@ -130,16 +137,19 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 						Concepto: concepto}
 					_, err = o.Insert(ingreso_concepto)
 					if err != nil {
+						beego.Info(err.Error())
 						o.Rollback()
 						return
 					}
 
 				} else {
+					beego.Info(err.Error())
 					o.Rollback()
 					return
 				}
 
 			} else {
+				beego.Info(err.Error())
 				o.Rollback()
 				return
 			}

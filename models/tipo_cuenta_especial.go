@@ -14,7 +14,7 @@ type TipoCuentaEspecial struct {
 	Nombre            string  `orm:"column(nombre)"`
 	Descripcion       string  `orm:"column(descripcion);null"`
 	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
-	Estado            bool    `orm:"column(estado);null"`
+	Activo            bool    `orm:"column(activo);null"`
 	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 

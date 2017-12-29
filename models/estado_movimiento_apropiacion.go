@@ -9,50 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type SubTipoOrdenPago struct {
-	Id                int            `orm:"column(id);pk;auto"`
-	Nombre            string         `orm:"column(nombre)"`
-	Descripcion       string         `orm:"column(descripcion);null"`
-	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
-	Activo            bool           `orm:"column(activo)"`
-	NumeroOrden       float64        `orm:"column(numero_orden);null"`
-	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
-	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
+type EstadoMovimientoApropiacion struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion)"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion)"`
+	Activo            bool    `orm:"column(activo)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *SubTipoOrdenPago) TableName() string {
-	return "sub_tipo_orden_pago"
+func (t *EstadoMovimientoApropiacion) TableName() string {
+	return "estado_movimiento_apropiacion"
 }
 
 func init() {
-	orm.RegisterModel(new(SubTipoOrdenPago))
+	orm.RegisterModel(new(EstadoMovimientoApropiacion))
 }
 
-// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
+// AddEstadoMovimientoApropiacion insert a new EstadoMovimientoApropiacion into database and returns
 // last inserted Id on success.
-func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
+func AddEstadoMovimientoApropiacion(m *EstadoMovimientoApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
+// GetEstadoMovimientoApropiacionById retrieves EstadoMovimientoApropiacion by Id. Returns error if
 // Id doesn't exist
-func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
+func GetEstadoMovimientoApropiacionById(id int) (v *EstadoMovimientoApropiacion, err error) {
 	o := orm.NewOrm()
-	v = &SubTipoOrdenPago{Id: id}
+	v = &EstadoMovimientoApropiacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
+// GetAllEstadoMovimientoApropiacion retrieves all EstadoMovimientoApropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoMovimientoApropiacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(EstadoMovimientoApropiacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +100,7 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []SubTipoOrdenPago
+	var l []EstadoMovimientoApropiacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +123,11 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
+// UpdateEstadoMovimientoApropiacion updates EstadoMovimientoApropiacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
+func UpdateEstadoMovimientoApropiacionById(m *EstadoMovimientoApropiacion) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: m.Id}
+	v := EstadoMovimientoApropiacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +138,15 @@ func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	return
 }
 
-// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
+// DeleteEstadoMovimientoApropiacion deletes EstadoMovimientoApropiacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSubTipoOrdenPago(id int) (err error) {
+func DeleteEstadoMovimientoApropiacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: id}
+	v := EstadoMovimientoApropiacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoMovimientoApropiacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

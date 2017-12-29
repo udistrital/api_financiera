@@ -5,54 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type SubTipoOrdenPago struct {
-	Id                int            `orm:"column(id);pk;auto"`
-	Nombre            string         `orm:"column(nombre)"`
-	Descripcion       string         `orm:"column(descripcion);null"`
-	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
-	Activo            bool           `orm:"column(activo)"`
-	NumeroOrden       float64        `orm:"column(numero_orden);null"`
-	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
-	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
+type HomologacionDescuento struct {
+	Id                   int             `orm:"column(id);pk;auto"`
+	Vigencia             float64         `orm:"column(vigencia)"`
+	FechaCreacion        time.Time       `orm:"column(fecha_creacion);type(date)"`
+	CuentaEspecialKronos *CuentaEspecial `orm:"column(cuenta_especial_kronos);rel(fk)"`
+	ConceptoTitan        int             `orm:"column(concepto_titan)"`
 }
 
-func (t *SubTipoOrdenPago) TableName() string {
-	return "sub_tipo_orden_pago"
+func (t *HomologacionDescuento) TableName() string {
+	return "homologacion_descuento"
 }
 
 func init() {
-	orm.RegisterModel(new(SubTipoOrdenPago))
+	orm.RegisterModel(new(HomologacionDescuento))
 }
 
-// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
+// AddHomologacionDescuento insert a new HomologacionDescuento into database and returns
 // last inserted Id on success.
-func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
+func AddHomologacionDescuento(m *HomologacionDescuento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
+// GetHomologacionDescuentoById retrieves HomologacionDescuento by Id. Returns error if
 // Id doesn't exist
-func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
+func GetHomologacionDescuentoById(id int) (v *HomologacionDescuento, err error) {
 	o := orm.NewOrm()
-	v = &SubTipoOrdenPago{Id: id}
+	v = &HomologacionDescuento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
+// GetAllHomologacionDescuento retrieves all HomologacionDescuento matches certain condition. Returns empty list if
 // no records exist
-func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllHomologacionDescuento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(HomologacionDescuento)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +100,7 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []SubTipoOrdenPago
+	var l []HomologacionDescuento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +123,11 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
+// UpdateHomologacionDescuento updates HomologacionDescuento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
+func UpdateHomologacionDescuentoById(m *HomologacionDescuento) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: m.Id}
+	v := HomologacionDescuento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +138,15 @@ func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	return
 }
 
-// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
+// DeleteHomologacionDescuento deletes HomologacionDescuento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSubTipoOrdenPago(id int) (err error) {
+func DeleteHomologacionDescuento(id int) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: id}
+	v := HomologacionDescuento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&HomologacionDescuento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

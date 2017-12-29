@@ -15,7 +15,6 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-
 		beego.NSNamespace("/etapa_avance",
 			beego.NSInclude(
 				&controllers.EtapaAvanceController{},
@@ -538,15 +537,65 @@ func init() {
 		beego.NSNamespace("/estado_movimiento_contable",
 			beego.NSInclude(
 				&controllers.EstadoMovimientoContableController{},
-        ),
+			),
 		),
 
-    beego.NSNamespace("/sub_tipo_orden_pago",
-      beego.NSInclude(
-        &controllers.SubTipoOrdenPagoController{},
-      ),
-    ),
-                           
+		beego.NSNamespace("/sub_tipo_orden_pago",
+			beego.NSInclude(
+				&controllers.SubTipoOrdenPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/concepto_tesoral_facultad_proyecto",
+			beego.NSInclude(
+				&controllers.ConceptoTesoralFacultadProyectoController{},
+			),
+		),
+
+		beego.NSNamespace("/saldo_cuenta_contable",
+			beego.NSInclude(
+				&controllers.SaldoCuentaContableController{},
+			),
+		),
+
+		beego.NSNamespace("/homologacion_descuento",
+			beego.NSInclude(
+				&controllers.HomologacionDescuentoController{},
+			),
+		),
+		beego.NSNamespace("/tipo_disponibilidad",
+			beego.NSInclude(
+				&controllers.TipoDisponibilidadController{},
+			),
+		),
+		beego.NSNamespace("/disponibilidad_proceso_externo",
+			beego.NSInclude(
+				&controllers.DisponibilidadProcesoExternoController{},
+			),
+		),
+		beego.NSNamespace("/estado_movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.EstadoMovimientoApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.MovimientoApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/movimiento_apropiacion_disponibilidad_apropiacion",
+			beego.NSInclude(
+				&controllers.MovimientoApropiacionDisponibilidadApropiacionController{},
+			),
+		),
+
+		beego.NSNamespace("/tipo_movimiento_apropiacion",
+			beego.NSInclude(
+				&controllers.TipoMovimientoApropiacionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

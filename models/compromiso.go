@@ -19,7 +19,7 @@ type Compromiso struct {
 	FechaModificacion     time.Time              `orm:"column(fecha_modificacion);type(date)"`
 	EstadoCompromiso      *EstadoCompromiso      `orm:"column(estado_compromiso);rel(fk)"`
 	TipoCompromisoTesoral *TipoCompromisoTesoral `orm:"column(tipo_compromiso_financiero);rel(fk)"`
-	UnidadEjecutora       *UnidadEjecutora       `orm:"column(unidad_ejecutora);rel(fk)"`
+	UnidadEjecutora       int                    `orm:"column(unidad_ejecutora)"`
 }
 
 func (t *Compromiso) TableName() string {

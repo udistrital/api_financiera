@@ -9,50 +9,49 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type SubTipoOrdenPago struct {
-	Id                int            `orm:"column(id);pk;auto"`
-	Nombre            string         `orm:"column(nombre)"`
-	Descripcion       string         `orm:"column(descripcion);null"`
-	CodigoAbreviacion string         `orm:"column(codigo_abreviacion);null"`
-	Activo            bool           `orm:"column(activo)"`
-	NumeroOrden       float64        `orm:"column(numero_orden);null"`
-	TipoOrdenPago     *TipoOrdenPago `orm:"column(tipo_orden_pago);rel(fk)"`
-	GrupoSecuencia    string         `orm:"column(grupo_secuencia);null"`
+type MovimientoApropiacionDisponibilidadApropiacion struct {
+	Id                        int                        `orm:"auto;column(id);pk"`
+	MovimientoApropiacion     *MovimientoApropiacion     `orm:"column(movimiento_apropiacion);rel(fk)"`
+	Disponibilidad            *Disponibilidad            `orm:"column(disponibilidad);rel(fk);null"`
+	TipoMovimientoApropiacion *TipoMovimientoApropiacion `orm:"column(tipo_movimiento_apropiacion);rel(fk)"`
+	Valor                     float64                    `orm:"column(valor)"`
+	CuentaCredito             *Apropiacion               `orm:"column(cuenta_credito);rel(fk)"`
+	CuentaContraCredito       *Apropiacion               `orm:"column(cuenta_contra_credito);rel(fk);null"`
 }
 
-func (t *SubTipoOrdenPago) TableName() string {
-	return "sub_tipo_orden_pago"
+func (t *MovimientoApropiacionDisponibilidadApropiacion) TableName() string {
+	return "movimiento_apropiacion_disponibilidad_apropiacion"
 }
 
 func init() {
-	orm.RegisterModel(new(SubTipoOrdenPago))
+	orm.RegisterModel(new(MovimientoApropiacionDisponibilidadApropiacion))
 }
 
-// AddSubTipoOrdenPago insert a new SubTipoOrdenPago into database and returns
+// AddMovimientoApropiacionDisponibilidadApropiacion insert a new MovimientoApropiacionDisponibilidadApropiacion into database and returns
 // last inserted Id on success.
-func AddSubTipoOrdenPago(m *SubTipoOrdenPago) (id int64, err error) {
+func AddMovimientoApropiacionDisponibilidadApropiacion(m *MovimientoApropiacionDisponibilidadApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetSubTipoOrdenPagoById retrieves SubTipoOrdenPago by Id. Returns error if
+// GetMovimientoApropiacionDisponibilidadApropiacionById retrieves MovimientoApropiacionDisponibilidadApropiacion by Id. Returns error if
 // Id doesn't exist
-func GetSubTipoOrdenPagoById(id int) (v *SubTipoOrdenPago, err error) {
+func GetMovimientoApropiacionDisponibilidadApropiacionById(id int) (v *MovimientoApropiacionDisponibilidadApropiacion, err error) {
 	o := orm.NewOrm()
-	v = &SubTipoOrdenPago{Id: id}
+	v = &MovimientoApropiacionDisponibilidadApropiacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllSubTipoOrdenPago retrieves all SubTipoOrdenPago matches certain condition. Returns empty list if
+// GetAllMovimientoApropiacionDisponibilidadApropiacion retrieves all MovimientoApropiacionDisponibilidadApropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllMovimientoApropiacionDisponibilidadApropiacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SubTipoOrdenPago)).RelatedSel()
+	qs := o.QueryTable(new(MovimientoApropiacionDisponibilidadApropiacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,8 +101,8 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []SubTipoOrdenPago
-	qs = qs.OrderBy(sortFields...)
+	var l []MovimientoApropiacionDisponibilidadApropiacion
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -125,11 +124,11 @@ func GetAllSubTipoOrdenPago(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateSubTipoOrdenPago updates SubTipoOrdenPago by Id and returns error if
+// UpdateMovimientoApropiacionDisponibilidadApropiacion updates MovimientoApropiacionDisponibilidadApropiacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
+func UpdateMovimientoApropiacionDisponibilidadApropiacionById(m *MovimientoApropiacionDisponibilidadApropiacion) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: m.Id}
+	v := MovimientoApropiacionDisponibilidadApropiacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +139,15 @@ func UpdateSubTipoOrdenPagoById(m *SubTipoOrdenPago) (err error) {
 	return
 }
 
-// DeleteSubTipoOrdenPago deletes SubTipoOrdenPago by Id and returns error if
+// DeleteMovimientoApropiacionDisponibilidadApropiacion deletes MovimientoApropiacionDisponibilidadApropiacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteSubTipoOrdenPago(id int) (err error) {
+func DeleteMovimientoApropiacionDisponibilidadApropiacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := SubTipoOrdenPago{Id: id}
+	v := MovimientoApropiacionDisponibilidadApropiacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&SubTipoOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&MovimientoApropiacionDisponibilidadApropiacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

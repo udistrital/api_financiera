@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
 type CuentaContable struct {
 	Id                 int                 `orm:"column(id);pk;auto"`
-	Saldo              float64             `orm:"column(saldo)"`
+	Saldo              int64               `orm:"column(saldo)"`
 	Nombre             string              `orm:"column(nombre)"`
 	Naturaleza         string              `orm:"column(naturaleza)"`
 	Descripcion        string              `orm:"column(descripcion);null"`
@@ -107,6 +108,27 @@ func GetAllCuentaContable(query map[string]string, fields []string, sortby []str
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				today := time.Now()
+				var year, month int
+				if int(today.Month()) == 1 {
+					year = today.Year() - 1
+					month = 12
+				} else {
+					year = today.Year()
+					month = int(today.Month()) - 1
+				}
+				firstdate := time.Date(today.Year(), today.Month(), 1, 23, 0, 0, 0, time.UTC)
+				var rul string
+				if v.Naturaleza == "debito" {
+					rul = "sum(debito) - sum(credito)"
+				} else {
+					rul = "sum(credito) - sum(debito)"
+				}
+				o.Raw(`select sum(saldo) from (
+							select saldo from financiera.saldo_cuenta_contable where cuenta_contable=? and anio = ? and mes = ?
+							union
+							select `+rul+` saldo from financiera.movimiento_contable
+							 where cuenta_contable=? and fecha >= ?::DATE group by cuenta_contable ) a`, v.Id, year, month, v.Id, firstdate).QueryRow(&v.Saldo)
 				ml = append(ml, v)
 			}
 		} else {

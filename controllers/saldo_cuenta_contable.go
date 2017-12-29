@@ -3,23 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
 
-// TipoCompromisoTesoralController operations for TipoCompromisoTesoral
-type TipoCompromisoTesoralController struct {
+// SaldoCuentaContableController operations for SaldoCuentaContable
+type SaldoCuentaContableController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *TipoCompromisoTesoralController) URLMapping() {
+func (c *SaldoCuentaContableController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -29,43 +26,37 @@ func (c *TipoCompromisoTesoralController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create TipoCompromisoTesoral
-// @Param	body		body 	models.TipoCompromisoTesoral	true		"body for TipoCompromisoTesoral content"
-// @Success 201 {int} models.TipoCompromisoTesoral
+// @Description create SaldoCuentaContable
+// @Param	body		body 	models.SaldoCuentaContable	true		"body for SaldoCuentaContable content"
+// @Success 201 {int} models.SaldoCuentaContable
 // @Failure 403 body is empty
 // @router / [post]
-func (c *TipoCompromisoTesoralController) Post() {
-	var v models.TipoCompromisoTesoral
+func (c *SaldoCuentaContableController) Post() {
+	var v models.SaldoCuentaContable
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddTipoCompromisoTesoral(&v); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: v.Nombre}
+		if _, err := models.AddSaldoCuentaContable(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = alert
+			c.Data["json"] = v
 		} else {
-			alertdb := structs.Map(err)
-			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
-			c.Data["json"] = alert
+			c.Data["json"] = err.Error()
 		}
 	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
-		c.Data["json"] = alert
+		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
 
 // GetOne ...
 // @Title Get One
-// @Description get TipoCompromisoTesoral by id
+// @Description get SaldoCuentaContable by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.TipoCompromisoTesoral
+// @Success 200 {object} models.SaldoCuentaContable
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *TipoCompromisoTesoralController) GetOne() {
+func (c *SaldoCuentaContableController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetTipoCompromisoTesoralById(id)
+	v, err := models.GetSaldoCuentaContableById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -76,17 +67,17 @@ func (c *TipoCompromisoTesoralController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get TipoCompromisoTesoral
+// @Description get SaldoCuentaContable
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.TipoCompromisoTesoral
+// @Success 200 {object} models.SaldoCuentaContable
 // @Failure 403
 // @router / [get]
-func (c *TipoCompromisoTesoralController) GetAll() {
+func (c *SaldoCuentaContableController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -128,7 +119,7 @@ func (c *TipoCompromisoTesoralController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllTipoCompromisoTesoral(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllSaldoCuentaContable(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -139,18 +130,18 @@ func (c *TipoCompromisoTesoralController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the TipoCompromisoTesoral
+// @Description update the SaldoCuentaContable
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.TipoCompromisoTesoral	true		"body for TipoCompromisoTesoral content"
-// @Success 200 {object} models.TipoCompromisoTesoral
+// @Param	body		body 	models.SaldoCuentaContable	true		"body for SaldoCuentaContable content"
+// @Success 200 {object} models.SaldoCuentaContable
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *TipoCompromisoTesoralController) Put() {
+func (c *SaldoCuentaContableController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.TipoCompromisoTesoral{Id: id}
+	v := models.SaldoCuentaContable{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateTipoCompromisoTesoralById(&v); err == nil {
+		if err := models.UpdateSaldoCuentaContableById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -163,15 +154,15 @@ func (c *TipoCompromisoTesoralController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the TipoCompromisoTesoral
+// @Description delete the SaldoCuentaContable
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *TipoCompromisoTesoralController) Delete() {
+func (c *SaldoCuentaContableController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteTipoCompromisoTesoral(id); err == nil {
+	if err := models.DeleteSaldoCuentaContable(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

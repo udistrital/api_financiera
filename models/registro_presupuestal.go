@@ -86,7 +86,13 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 	id, err = o.Insert(m.Rp)
 	if err == nil {
 		m.Rp.Id = int(id)
+		var totalcdp float64
 		for _, data := range m.Rubros {
+			saldocdpapr, _, _, errcdp := SaldoCdp(data.Disponibilidad.Id, data.Apropiacion.Id, data.FuenteFinanciacion.Id)
+			if errcdp != nil {
+				o.Rollback()
+				return 0, errcdp
+			}
 			registro := RegistroPresupuestalDisponibilidadApropiacion{
 				RegistroPresupuestal:      m.Rp,
 				DisponibilidadApropiacion: &DisponibilidadApropiacion{Id: data.Id},
@@ -95,8 +101,28 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 			_, err2 := o.Insert(&registro)
 			if err2 != nil {
 				o.Rollback()
+				return 0, err2
+			}
+			totalcdp = totalcdp + saldocdpapr - data.ValorAsignado
+		}
+		if totalcdp > 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 2
+			o.Update(m.Rubros[0].Disponibilidad)
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
 				return
 			}
+		} else if totalcdp == 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 3
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		} else {
+			o.Rollback()
+			return
 		}
 	} else {
 		fmt.Println("error registro rp: ", err.Error())
@@ -178,7 +204,7 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	}
 
 	var l []RegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -341,10 +367,10 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 						JOIN
 						financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id 
+						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id
 						JOIN
 						financiera.registro_presupuestal_disponibilidad_apropiacion
-						ON 
+						ON
 						registro_presupuestal_disponibilidad_apropiacion.id = ada.registro_presupuestal_disponibilidad_apropiacion
 						JOIN
 						financiera.registro_presupuestal
@@ -431,10 +457,10 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 						JOIN
 						financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id 
+						ada.anulacion_registro_presupuestal = anulacion_registro_presupuestal.id
 						JOIN
 						financiera.registro_presupuestal_disponibilidad_apropiacion
-						ON 
+						ON
 						registro_presupuestal_disponibilidad_apropiacion.id = ada.registro_presupuestal_disponibilidad_apropiacion
 						JOIN
 						financiera.registro_presupuestal
@@ -598,15 +624,13 @@ func GetValorTotalComprometidoRp(rp_id int) (total float64, err error) {
 	o := orm.NewOrm()
 	var totalSql float64
 	err = o.Raw(`SELECT valor FROM(SELECT registro_presupuestal.id,
-            sum(concepto_orden_pago.valor) AS valor
-           FROM financiera.orden_pago
-             JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
-             JOIN financiera.concepto ON concepto.id = concepto_orden_pago.concepto
-             JOIN financiera.rubro ON concepto.rubro = rubro.id
-             JOIN financiera.registro_presupuestal ON registro_presupuestal.id = orden_pago.registro_presupuestal
-             JOIN financiera.apropiacion ON apropiacion.rubro = rubro.id AND apropiacion.vigencia = registro_presupuestal.vigencia
-          GROUP BY registro_presupuestal.id) as comprometido
-					WHERE id = ?`, rp_id).QueryRow(&totalSql)
+             sum(concepto_orden_pago.valor) AS valor
+            FROM financiera.orden_pago
+              JOIN financiera.concepto_orden_pago ON concepto_orden_pago.orden_de_pago = orden_pago.id
+              JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON concepto_orden_pago.registro_presupuestal_disponibilidad_apropiacion = registro_presupuestal_disponibilidad_apropiacion.id
+              JOIN financiera.registro_presupuestal ON registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal = registro_presupuestal.id
+           GROUP BY registro_presupuestal.id) as comprometido
+ 					WHERE id = ?`, rp_id).QueryRow(&totalSql)
 	if err == nil {
 		fmt.Println("total: ", totalSql)
 		return totalSql, nil
@@ -639,6 +663,47 @@ func GetValorActualRp(rp_id int) (total float64, err error) {
 	valor, err := GetValorTotalRp(rp_id)
 	comprometido, err := GetValorTotalComprometidoRp(rp_id)
 	anulado, err := GetValorTotalAnuladoRp(rp_id)
+	fmt.Println(anulado)
 	total = valor - comprometido - anulado
 	return
+
+}
+
+// totalDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalRp(vigencia int, UnidadEjecutora int, finicio string, ffin string) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	if finicio != "" && ffin != "" {
+		qb.Select("COUNT(DISTINCT(registro_presupuestal))").
+			From("financiera.registro_presupuestal").
+			InnerJoin("financiera.registro_presupuestal_disponibilidad_apropiacion").
+			On("registro_presupuestal.id=registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal").
+			InnerJoin("financiera.disponibilidad_apropiacion").
+			On("disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion").
+			InnerJoin("financiera.apropiacion").
+			On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+			InnerJoin("financiera.rubro").
+			On("rubro.id = apropiacion.rubro").
+			Where("registro_presupuestal.vigencia = ?").
+			And("fecha_registro >= ?").
+			And("fecha_registro <= ?").
+			And("unidad_ejecutora = ?")
+		err = o.Raw(qb.String(), vigencia, finicio, ffin, UnidadEjecutora).QueryRow(&total)
+		return
+	}
+	qb.Select("COUNT(DISTINCT(registro_presupuestal))").
+		From("financiera.registro_presupuestal").
+		InnerJoin("financiera.registro_presupuestal_disponibilidad_apropiacion").
+		On("registro_presupuestal.id=registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("rubro.id = apropiacion.rubro").
+		Where("registro_presupuestal.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, UnidadEjecutora).QueryRow(&total)
+	return
+
 }
