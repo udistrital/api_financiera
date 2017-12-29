@@ -8,18 +8,18 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type SolicitudRequisitoTipoAvance struct {
-	Id                  int                  `orm:"column(id);pk"`
+	Id                  int                  `orm:"column(id);pk;auto"`
 	RequisitoTipoAvance *RequisitoTipoAvance `orm:"column(requisito_tipo_avance);rel(fk)"`
 	SolicitudTipoAvance *SolicitudTipoAvance `orm:"column(solicitud_tipo_avance);rel(fk)"`
-	Valido              string               `orm:"column(valido);null"`
 	Observaciones       string               `orm:"column(observaciones);null"`
-	FechaRegistro       time.Time            `orm:"column(fecha_registro);type(timestamp with time zone)"`
 	Documento           string               `orm:"column(documento);null"`
-	Estado              string               `orm:"column(estado)"`
-	UbicacionDoc        string               `orm:"column(ubicacion_doc);null"`
+	Activo              bool                 `orm:"column(activo)"`
+	Valido              bool                 `orm:"column(valido);null"`
+	FechaRegistro       time.Time            `orm:"column(fecha_registro);type(date)"`
 }
 
 func (t *SolicitudRequisitoTipoAvance) TableName() string {
@@ -35,6 +35,42 @@ func init() {
 func AddSolicitudRequisitoTipoAvance(m *SolicitudRequisitoTipoAvance) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
+	return
+}
+
+func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) {
+	solicitudRequisitoTipoAvance := []SolicitudRequisitoTipoAvance{}
+	solicitud := SolicitudAvance{}
+	err = utilidades.FillStruct(m["Requisitos"], &solicitudRequisitoTipoAvance)
+	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
+	o := orm.NewOrm()
+	o.Begin()
+	if err == nil {
+		for _, data := range solicitudRequisitoTipoAvance {
+			data.Activo = true
+			data.Valido = true
+			data.FechaRegistro = time.Now().Local()
+			fmt.Println("solicitud_requisito_tipo_avance: ", data)
+			_, err = o.Insert(&data)
+		}
+		if err == nil {
+			estadoAvance := AvanceEstadoAvance{}
+			estadoVerificado := EstadoAvance{}
+			estadoVerificado.Id = 3
+			estadoAvance.EstadoAvance = &estadoVerificado
+			estadoAvance.SolicitudAvance = &solicitud
+			estadoAvance.FechaRegistro = time.Now()
+			estadoAvance.Responsable = 1
+			estadoAvance.Observaciones = "Requisitos Verificados"
+			fmt.Println("solicitud: ", solicitud)
+			_, err = o.Insert(&estadoAvance)
+			if err == nil {
+				o.Commit()
+			} else {
+				fmt.Println("Error", err)
+			}
+		}
+	}
 	return
 }
 
@@ -54,7 +90,7 @@ func GetSolicitudRequisitoTipoAvanceById(id int) (v *SolicitudRequisitoTipoAvanc
 func GetAllSolicitudRequisitoTipoAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SolicitudRequisitoTipoAvance))
+	qs := o.QueryTable(new(SolicitudRequisitoTipoAvance)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute

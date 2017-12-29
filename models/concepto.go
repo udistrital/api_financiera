@@ -15,15 +15,14 @@ type Concepto struct {
 	Codigo          string        `orm:"column(codigo)"`
 	Nombre          string        `orm:"column(nombre)"`
 	FechaCreacion   time.Time     `orm:"column(fecha_creacion);type(date)"`
-	Cabeza          bool          `orm:"column(cabeza)"`
 	FechaExpiracion time.Time     `orm:"column(fecha_expiracion);type(date);null"`
 	Descripcion     string        `orm:"column(descripcion);null"`
-	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto);rel(fk)"`
+	TipoConcepto    *TipoConcepto `orm:"column(tipo_concepto_tesoral);rel(fk)"`
 	Rubro           *Rubro        `orm:"column(rubro);rel(fk);null"`
 }
 
 func (t *Concepto) TableName() string {
-	return "concepto"
+	return "concepto_tesoral"
 }
 
 func init() {

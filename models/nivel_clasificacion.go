@@ -10,14 +10,17 @@ import (
 )
 
 type NivelClasificacion struct {
-	Id          int     `orm:"column(id);pk;auto"`
-	Nombre      string  `orm:"column(nombre)"`
-	Longitud    float64 `orm:"column(longitud)"`
-	Descripcion string  `orm:"column(descripcion);null"`
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Longitud          float64 `orm:"column(longitud)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
 func (t *NivelClasificacion) TableName() string {
-	return "nivel_clasificacion"
+	return "nivel_clasificacion_cuenta_contable"
 }
 
 func init() {
@@ -156,7 +159,7 @@ func DeleteNivelClasificacion(id int) (err error) {
 // row doesn't exist
 func GetPrimerNivelClasificacion() (v *NivelClasificacion, err error) {
 	o := orm.NewOrm()
-	if err = o.Raw("select * from financiera.nivel_clasificacion  where id not in (select nivel_hijo from financiera.estructura_niveles_clasificacion) and id in (select nivel_padre from financiera.estructura_niveles_clasificacion) order by id").QueryRow(&v); err == nil {
+	if err = o.Raw("select * from financiera.nivel_clasificacion_cuenta_contable  where id not in (select nivel_hijo from financiera.estructura_niveles_clasificacion_cuenta_contable) and id in (select nivel_padre from financiera.estructura_niveles_clasificacion_cuenta_contable) order by id").QueryRow(&v); err == nil {
 		return v, nil
 	}
 	return nil, err

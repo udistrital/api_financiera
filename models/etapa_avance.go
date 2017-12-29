@@ -9,47 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type Estados struct {
-	Id          int    `orm:"column(id);pk"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion)"`
-	Proceso     string `orm:"column(proceso);null"`
-	Estado      string `orm:"column(estado)"`
+type EtapaAvance struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *Estados) TableName() string {
-	return "estados"
+func (t *EtapaAvance) TableName() string {
+	return "etapa_avance"
 }
 
 func init() {
-	orm.RegisterModel(new(Estados))
+	orm.RegisterModel(new(EtapaAvance))
 }
 
-// AddEstados insert a new Estados into database and returns
+// AddEtapaAvance insert a new EtapaAvance into database and returns
 // last inserted Id on success.
-func AddEstados(m *Estados) (id int64, err error) {
+func AddEtapaAvance(m *EtapaAvance) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadosById retrieves Estados by Id. Returns error if
+// GetEtapaAvanceById retrieves EtapaAvance by Id. Returns error if
 // Id doesn't exist
-func GetEstadosById(id int) (v *Estados, err error) {
+func GetEtapaAvanceById(id int) (v *EtapaAvance, err error) {
 	o := orm.NewOrm()
-	v = &Estados{Id: id}
+	v = &EtapaAvance{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstados retrieves all Estados matches certain condition. Returns empty list if
+// GetAllEtapaAvance retrieves all EtapaAvance matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstados(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEtapaAvance(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Estados))
+	qs := o.QueryTable(new(EtapaAvance))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +100,7 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 		}
 	}
 
-	var l []Estados
+	var l []EtapaAvance
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +123,11 @@ func GetAllEstados(query map[string]string, fields []string, sortby []string, or
 	return nil, err
 }
 
-// UpdateEstados updates Estados by Id and returns error if
+// UpdateEtapaAvance updates EtapaAvance by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadosById(m *Estados) (err error) {
+func UpdateEtapaAvanceById(m *EtapaAvance) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: m.Id}
+	v := EtapaAvance{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +138,15 @@ func UpdateEstadosById(m *Estados) (err error) {
 	return
 }
 
-// DeleteEstados deletes Estados by Id and returns error if
+// DeleteEtapaAvance deletes EtapaAvance by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstados(id int) (err error) {
+func DeleteEtapaAvance(id int) (err error) {
 	o := orm.NewOrm()
-	v := Estados{Id: id}
+	v := EtapaAvance{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&Estados{Id: id}); err == nil {
+		if num, err = o.Delete(&EtapaAvance{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

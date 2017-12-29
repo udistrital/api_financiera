@@ -15,7 +15,7 @@ type SolicitudTipoAvance struct {
 	TipoAvance      *TipoAvance      `orm:"column(tipo_avance);rel(fk)"`
 	Descripcion     string           `orm:"column(descripcion)"`
 	Valor           float64          `orm:"column(valor)"`
-	Estado          string           `orm:"column(estado)"`
+	Activo          bool             `orm:"column(activo)"`
 }
 
 func (t *SolicitudTipoAvance) TableName() string {

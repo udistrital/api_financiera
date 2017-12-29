@@ -17,7 +17,6 @@ type Ingreso struct {
 	Vigencia             float64               `orm:"column(vigencia)"`
 	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
 	FechaConsignacion    time.Time             `orm:"column(fecha_consignacion);type(date)"`
-	Valor                float64               `orm:"column(valor)"`
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
@@ -72,7 +71,7 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 		return
 	}
 	for _, element := range mov {
-		element.Aprobado = true
+		element.EstadoMovimientoContable.Id = 1
 		_, err = o.Update(&element, "Aprobado")
 		if err != nil {
 			o.Rollback()

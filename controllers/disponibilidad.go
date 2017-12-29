@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 // DisponibilidadController operations for Disponibilidad
@@ -35,16 +37,24 @@ func (c *DisponibilidadController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *DisponibilidadController) Post() {
-	var v models.Disponibilidad
+	var v map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddDisponibilidad(&v); err == nil {
+		if res, err := models.AddDisponibilidad(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			if err == nil {
+				c.Data["json"] = models.Alert{Code: "S_CDP001", Body: res, Type: "success"}
+			} else {
+				alertdb := structs.Map(err)
+				var code string
+				utilidades.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+			}
 		} else {
-			c.Data["json"] = err.Error()
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 	}
 	c.ServeJSON()
 }

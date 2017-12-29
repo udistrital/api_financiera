@@ -1,11 +1,15 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades"
 
 	"github.com/astaxie/beego"
 )
@@ -37,12 +41,16 @@ func (c *ApropiacionController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddApropiacion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err, Type: "error"}
 	}
 	c.ServeJSON()
 }
@@ -143,12 +151,16 @@ func (c *ApropiacionController) Put() {
 	v := models.Apropiacion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateApropiacionById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err, Type: "error"}
 	}
 	c.ServeJSON()
 }
@@ -171,15 +183,151 @@ func (c *ApropiacionController) Delete() {
 	c.ServeJSON()
 }
 
-//funcion para verificar saldo de una apropiacion
-
+// SaldoApropiacion ...
+// @Title Get Saldo Apropiacion By Id
+// @Description Get Saldo Apropiacion By Id
+// @Param	Id	path 	string	true		"Id de la apropiacion"
+// @Success 200 {object} float64
+// @Failure 403
+// @router /SaldoApropiacion/:id [get]
 func (c *ApropiacionController) SaldoApropiacion() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 
-			valor := models.SaldoApropiacion(id)
+	valor, err := models.SaldoApropiacion(id)
+	//valor, err := models.SaldoRubroPadre(id, 1, 2017)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = valor
+	}
+
+	c.ServeJSON()
+}
+
+// SaldoApropiacionPadre ...
+// @Title Get Saldo Apropiacion By Id
+// @Description Get Saldo Apropiacion By Id
+// @Param	Id	path 	string	true		"Id del rubro padre"
+// @Param	UnidadEjecutora	query	string	false	"Unidad Ejecutora de los rubros hijo"
+// @Param	Vigencia	query	string	false	"Vigencia de las apropiaciones a consultar"
+// @Success 200 {object} float64
+// @Failure 403
+// @router /SaldoApropiacionPadre/:id [get]
+func (c *ApropiacionController) SaldoApropiacionPadre() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	ue, err := c.GetInt("UnidadEjecutora")
+	vigencia, err1 := c.GetInt("Vigencia")
+	if err == nil && err1 == nil {
+		valor, err := models.SaldoRubroPadre(id, ue, vigencia)
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
 			c.Data["json"] = valor
-			c.ServeJSON()
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: nil, Type: "error"}
+	}
+
+	c.ServeJSON()
 }
 
 //-----------------------------------------------
+
+// GetApropiacionesHijo ...
+// @Title Get Apropiaciones Hijo
+// @Description get Apropiaciones Hijo
+// @Param	vigencia	path 	string	true		"vigencia filtro de las apropiaciones hijo"
+// @Param	tipo	path 	string	true		"tipo del rubro"
+// @Success 200 {object} models.Apropiacion
+// @Failure 403
+// @router /GetApropiacionesHijo/:vigencia [get]
+func (c *ApropiacionController) GetApropiacionesHijo() {
+	vigStr := c.Ctx.Input.Param(":vigencia")
+	tipo := c.GetString("tipo")
+	vigencia, err := strconv.Atoi(vigStr)
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_XXX", Body: err.Error(), Type: "error"}
+	} else {
+		m, err := models.ListaApropiacionesHijo(vigencia, tipo+"%")
+		if err != nil {
+			alertdb := structs.Map(err)
+			var code string
+			utilidades.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = m
+		}
+
+	}
+	c.ServeJSON()
+}
+
+// ArbolApropiaciones ...
+// @Title ArbolApropiaciones
+// @Description genera arbol apropiaciones
+// @Success 200 {object} models.Rubro
+// @Failure 403 :vigencia is empty
+// @router /ArbolApropiaciones/:vigencia [get]
+func (c *ApropiacionController) ArbolApropiaciones() {
+	vigStr := c.Ctx.Input.Param(":vigencia")
+	vig, err := strconv.Atoi(vigStr)
+	fmt.Println(vig)
+	if err == nil {
+		v, err := models.ArbolApropiaciones(1, vig)
+		if err != nil {
+			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+			c.Data["json"] = alert
+		} else {
+			c.Data["json"] = v
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+
+	c.ServeJSON()
+}
+
+// AprobarPresupuesto ...
+// @Title AprobarPresupuesto
+// @Description aprueba la asignacion inicial de presupuesto
+// @Param	Vigencia		query 	string	true		"vigencia a comprobar"
+// @Param	UnidadEjecutora		query 	string	true		"unidad ejecutora de los rubros a comprobar"
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /AprobacionAsignacionInicial/ [get]
+func (c *ApropiacionController) AprobarPresupuesto() {
+	vigencia, err := c.GetInt("Vigencia")
+	if err == nil {
+		unidadejecutora, err := c.GetInt("UnidadEjecutora")
+		if err == nil {
+			err = models.AprobarPresupuesto(unidadejecutora, vigencia)
+			if err == nil {
+				c.Data["json"] = models.Alert{Code: "S_AP001", Body: nil, Type: "success"}
+			} else {
+				alertdb := structs.Map(err)
+				var code string
+				utilidades.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+			}
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+	c.ServeJSON()
+}

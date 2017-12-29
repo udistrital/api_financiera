@@ -10,9 +10,12 @@ import (
 )
 
 type TipoCuentaEspecial struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Estado            bool    `orm:"column(estado);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
 func (t *TipoCuentaEspecial) TableName() string {

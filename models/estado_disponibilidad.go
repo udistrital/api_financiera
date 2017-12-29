@@ -13,6 +13,9 @@ type EstadoDisponibilidad struct {
 	Id          int    `orm:"column(id);pk"`
 	Nombre      string `orm:"column(nombre)"`
 	Descripcion string `orm:"column(descripcion)"`
+	Activo 			bool   `orm:"column(activo)"`
+	CodigoAbreviacion		string `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden		string `orm:"column(numero_orden);null"`
 }
 
 func (t *EstadoDisponibilidad) TableName() string {

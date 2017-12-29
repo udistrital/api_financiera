@@ -16,6 +16,12 @@ import (
 func init() {
 	ns := beego.NewNamespace("/v1",
 
+		beego.NSNamespace("/etapa_avance",
+			beego.NSInclude(
+				&controllers.EtapaAvanceController{},
+			),
+		),
+
 		beego.NSNamespace("/tipo_movimiento",
 			beego.NSInclude(
 				&controllers.TipoMovimientoController{},
@@ -50,9 +56,9 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/estados",
+		beego.NSNamespace("/avance_estado_avance",
 			beego.NSInclude(
-				&controllers.EstadosController{},
+				&controllers.AvanceEstadoAvanceController{},
 			),
 		),
 
@@ -440,18 +446,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/categoria_iva",
-			beego.NSInclude(
-				&controllers.CategoriaIvaController{},
-			),
-		),
-
-		beego.NSNamespace("/iva",
-			beego.NSInclude(
-				&controllers.IvaController{},
-			),
-		),
-
 		beego.NSNamespace("/arbol_plan_cuentas",
 			beego.NSInclude(
 				&controllers.ArbolPlanCuentasController{},
@@ -482,9 +476,9 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/estado_calendario",
+		beego.NSNamespace("/estado_calendario_tributario",
 			beego.NSInclude(
-				&controllers.EstadoCalendarioController{},
+				&controllers.EstadoCalendarioTributarioController{},
 			),
 		),
 
@@ -499,6 +493,60 @@ func init() {
 				&controllers.ObservacionCalendarioController{},
 			),
 		),
+		beego.NSNamespace("/cierre_periodo_presupuestal",
+			beego.NSInclude(
+				&controllers.CierrePeriodoPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/orden_pago_estado_orden_pago",
+			beego.NSInclude(
+				&controllers.OrdenPagoEstadoOrdenPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/giro",
+			beego.NSInclude(
+				&controllers.GiroController{},
+			),
+		),
+
+		beego.NSNamespace("/giro_estado_giro",
+			beego.NSInclude(
+				&controllers.GiroEstadoGiroController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_giro",
+			beego.NSInclude(
+				&controllers.EstadoGiroController{},
+			),
+		),
+
+		beego.NSNamespace("/giro_detalle",
+			beego.NSInclude(
+				&controllers.GiroDetalleController{},
+			),
+		),
+
+		beego.NSNamespace("/forma_pago",
+			beego.NSInclude(
+				&controllers.FormaPagoController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_movimiento_contable",
+			beego.NSInclude(
+				&controllers.EstadoMovimientoContableController{},
+        ),
+		),
+
+    beego.NSNamespace("/sub_tipo_orden_pago",
+      beego.NSInclude(
+        &controllers.SubTipoOrdenPagoController{},
+      ),
+    ),
+                           
 	)
 	beego.AddNamespace(ns)
 }

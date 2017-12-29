@@ -35,20 +35,6 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-		beego.ControllerComments{
-			Method:           "RegistrarOpProveedor",
-			Router:           `RegistrarOpProveedor`,
-			AllowHTTPMethods: []string{"post"},
-			Params:           nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-		beego.ControllerComments{
-			Method:           "ActualizarOpProveedor",
-			Router:           `ActualizarOpProveedor`,
-			AllowHTTPMethods: []string{"post"},
-			Params:           nil})
-
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"],
 		beego.ControllerComments{
 			Method:           "ValorTotalRp",
@@ -56,23 +42,17 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
 
-	// beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
-	// 	beego.ControllerComments{
-	// 		Method:           "RegistrarOpPlanta",
-	// 		Router:           `RegistrarOpPlanta`,
-	// 		AllowHTTPMethods: []string{"post"},
-	// 		Params:           nil})
-
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
 		beego.ControllerComments{
 			Method:           "FechaActual",
 			Router:           `FechaActual/:formato`,
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
 		beego.ControllerComments{
-			Method:           "RubroReporte",
-			Router:           `RubroReporte/`,
+			Method:           "ApropiacionReporte",
+			Router:           `ApropiacionReporte/`,
 			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Params:           nil})

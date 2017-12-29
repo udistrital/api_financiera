@@ -9,45 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type EstadoCalendario struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Nombre      string `orm:"column(nombre)"`
-	Descripcion string `orm:"column(descripcion);null"`
+type DetalleCierrePeriodoPresupuestal struct {
+	Id                        int                        `orm:"column(id);pk;auto"`
+	NPeriodo                  int                        `orm:"column(n_periodo)"`
+	ValorEjecutado            float64                    `orm:"column(valor_ejecutado)"`
+	CierrePeriodoPresupuestal *CierrePeriodoPresupuestal `orm:"column(cierre_periodo_presupuestal);rel(fk)"`
+	Apropiacion               *Apropiacion               `orm:"column(apropiacion);rel(fk)"`
+	FuenteFinanciamiento      *FuenteFinanciamiento      `orm:"column(fuente_financiamiento);rel(fk)"`
 }
 
-func (t *EstadoCalendario) TableName() string {
-	return "estado_calendario"
+func (t *DetalleCierrePeriodoPresupuestal) TableName() string {
+	return "detalle_cierre_periodo_presupuestal"
 }
 
 func init() {
-	orm.RegisterModel(new(EstadoCalendario))
+	orm.RegisterModel(new(DetalleCierrePeriodoPresupuestal))
 }
 
-// AddEstadoCalendario insert a new EstadoCalendario into database and returns
+// AddDetalleCierrePeriodoPresupuestal insert a new DetalleCierrePeriodoPresupuestal into database and returns
 // last inserted Id on success.
-func AddEstadoCalendario(m *EstadoCalendario) (id int64, err error) {
+func AddDetalleCierrePeriodoPresupuestal(m *DetalleCierrePeriodoPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetEstadoCalendarioById retrieves EstadoCalendario by Id. Returns error if
+// GetDetalleCierrePeriodoPresupuestalById retrieves DetalleCierrePeriodoPresupuestal by Id. Returns error if
 // Id doesn't exist
-func GetEstadoCalendarioById(id int) (v *EstadoCalendario, err error) {
+func GetDetalleCierrePeriodoPresupuestalById(id int) (v *DetalleCierrePeriodoPresupuestal, err error) {
 	o := orm.NewOrm()
-	v = &EstadoCalendario{Id: id}
+	v = &DetalleCierrePeriodoPresupuestal{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllEstadoCalendario retrieves all EstadoCalendario matches certain condition. Returns empty list if
+// GetAllDetalleCierrePeriodoPresupuestal retrieves all DetalleCierrePeriodoPresupuestal matches certain condition. Returns empty list if
 // no records exist
-func GetAllEstadoCalendario(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDetalleCierrePeriodoPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(EstadoCalendario)).RelatedSel()
+	qs := o.QueryTable(new(DetalleCierrePeriodoPresupuestal))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,7 +100,7 @@ func GetAllEstadoCalendario(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []EstadoCalendario
+	var l []DetalleCierrePeriodoPresupuestal
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -120,11 +123,11 @@ func GetAllEstadoCalendario(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateEstadoCalendario updates EstadoCalendario by Id and returns error if
+// UpdateDetalleCierrePeriodoPresupuestal updates DetalleCierrePeriodoPresupuestal by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateEstadoCalendarioById(m *EstadoCalendario) (err error) {
+func UpdateDetalleCierrePeriodoPresupuestalById(m *DetalleCierrePeriodoPresupuestal) (err error) {
 	o := orm.NewOrm()
-	v := EstadoCalendario{Id: m.Id}
+	v := DetalleCierrePeriodoPresupuestal{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,15 +138,15 @@ func UpdateEstadoCalendarioById(m *EstadoCalendario) (err error) {
 	return
 }
 
-// DeleteEstadoCalendario deletes EstadoCalendario by Id and returns error if
+// DeleteDetalleCierrePeriodoPresupuestal deletes DetalleCierrePeriodoPresupuestal by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteEstadoCalendario(id int) (err error) {
+func DeleteDetalleCierrePeriodoPresupuestal(id int) (err error) {
 	o := orm.NewOrm()
-	v := EstadoCalendario{Id: id}
+	v := DetalleCierrePeriodoPresupuestal{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&EstadoCalendario{Id: id}); err == nil {
+		if num, err = o.Delete(&DetalleCierrePeriodoPresupuestal{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

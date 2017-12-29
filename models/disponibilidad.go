@@ -19,16 +19,14 @@ type Info_disponibilidad_a_anular struct {
 	Valor                      float64
 }
 type Disponibilidad struct {
-	Id                   int                   `orm:"auto;column(id);pk"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	NumeroDisponibilidad float64               `orm:"column(numero_disponibilidad);null"`
-	Responsable          int                   `orm:"column(responsable);null"`
-	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(date);null"`
-	Estado               *EstadoDisponibilidad `orm:"column(estado);rel(fk)"`
-	NumeroOficio         string                `orm:"column(numero_oficio);null"`
-	Destino              int                   `orm:"column(destino);null"`
-	Solicitud            int                   `orm:"column(solicitud)"`
+	Id                        int                          `orm:"auto;column(id);pk"`
+	Vigencia                  float64                      `orm:"column(vigencia)"`
+	NumeroDisponibilidad      float64                      `orm:"column(numero_disponibilidad);null"`
+	Responsable               int                          `orm:"column(responsable);null"`
+	FechaRegistro             time.Time                    `orm:"column(fecha_registro);type(date);null"`
+	Estado                    *EstadoDisponibilidad        `orm:"column(estado);rel(fk)"`
+	Solicitud                 int                          `orm:"column(solicitud)"`
+	DisponibilidadApropiacion []*DisponibilidadApropiacion `orm:"reverse(many)"`
 }
 
 func (t *Disponibilidad) TableName() string {
@@ -41,18 +39,56 @@ func init() {
 
 // AddDisponibilidad insert a new Disponibilidad into database and returns
 // last inserted Id on success.
-func AddDisponibilidad(m *Disponibilidad) (id int64, err error) {
+func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	var consecutivo float64
-	err = o.Raw(`SELECT COALESCE(MAX(numero_disponibilidad), 0)+1  as consecutivo
-					FROM financiera.disponibilidad WHERE vigencia = ?`, m.Vigencia).QueryRow(&consecutivo)
-	m.NumeroDisponibilidad = consecutivo
+	var afectacion []DisponibilidadApropiacion
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COALESCE(MAX(numero_disponibilidad), 0)+1 as consecutivo").
+		From("financiera.disponibilidad").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("disponibilidad.id = disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("apropiacion.id = disponibilidad_apropiacion.apropiacion").
+		InnerJoin("financiera.rubro").
+		On("apropiacion.rubro = rubro.id").
+		Where("disponibilidad.vigencia = ?").
+		And("rubro.unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64)),
+		int(m["Disponibilidad"].(map[string]interface{})["UnidadEjecutora"].(float64))).QueryRow(&consecutivo)
+	err = utilidades.FillStruct(m["Disponibilidad"], &v)
+	if err != nil {
+		o.Rollback()
+		fmt.Println(m["Disponibilidad"])
+		return
+	}
+	v.NumeroDisponibilidad = consecutivo
 	if err != nil {
 		o.Rollback()
 		return
 	}
-	id, err = o.Insert(m)
+	_, err = o.Insert(&v)
+	if err == nil {
+		err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+		if err == nil {
+			for _, row := range afectacion {
+				row.Disponibilidad = &v
+				_, err = o.Insert(&row)
+				if err != nil {
+					o.Rollback()
+					return
+				}
+			}
+		} else {
+			o.Rollback()
+			return
+		}
+
+	} else {
+		o.Rollback()
+		return
+	}
 	o.Commit()
 	return
 }
@@ -131,6 +167,7 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "DisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {

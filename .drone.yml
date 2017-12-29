@@ -1,0 +1,67 @@
+clone:
+  path: github.com/udistrital/api_financiera
+
+build:
+  pruebas_unitarias:
+    image: golang:1.8
+    debug: true
+    commands:
+      - echo testing
+      - cd test && go test
+      - go test -v ./...
+    when:
+      branch: master
+  construccion:
+    image: golang:1.8
+    commands:
+      - echo building
+      - mkdir -p target
+      - GOOS=linux GOARCH=amd64 go build -o target/api_financiera-$${COMMIT:0:7}-linux-x86_64
+      - GOOS=windows GOARCH=amd64 go build -o target/api_financiera-$${COMMIT:0:7}-windows-x86_64.exe
+      - GOOS=darwin GOARCH=amd64 go build -o target/api_financiera-$${COMMIT:0:7}-darwin-x86_64
+    when:
+      branch:
+        - develop
+        - master
+
+# package:
+#   image: alpine
+#   commands:
+#     - echo packaging
+#     - echo tar cf package-$$BRANCH-$${COMMIT:0:7}-$$BUILD_NUMBER.tar index.html bundle.js
+#     - echo gzip package-$$BRANCH-$${COMMIT:0:7}-$$BUILD_NUMBER.tar
+#     - echo jorge hacer algo con el binario que se compilo antes, ver el proyecto update_tuleap para un ejemplo
+
+publish:
+  sftp:
+    host: nas03.udistritaloas.edu.co
+    port: 22
+    username: drone
+    password: $$DRONE_NAS_PASSWORD
+    destination_path: /share/artifacts/golang
+    files:
+      - target/*
+    when:
+      branch: master
+
+deploy:
+  ssh:
+    host: 10.20.0.254
+    user: alejandrodc
+    port: 37511
+    commands:
+      - touch hello_world.txt
+    when:
+      branch: develop
+
+notify:
+  webhook:
+    urls:
+      - https://api.telegram.org/bot$$DRONE_TELEGRAM_TOKEN/sendMessage
+    content_type: application/json
+    template: >
+      {
+        "chat_id": "-162718164",
+        "parse_mode": "Markdown",
+        "text": "`{{repo.full_name}}` [{{uppercase build.status}}]({{build.link_url}}) `{{build.branch}}`@{{truncate build.commit 7}}"
+}

@@ -9,45 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CategoriaIva struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Nombre       string `orm:"column(nombre);null"`
-	EstadoActivo bool   `orm:"column(estado_activo)"`
+type EstadoGiro struct {
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	Activo            bool    `orm:"column(activo)"`
+	CodigoAbreviatura string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *CategoriaIva) TableName() string {
-	return "categoria_iva"
+func (t *EstadoGiro) TableName() string {
+	return "estado_giro"
 }
 
 func init() {
-	orm.RegisterModel(new(CategoriaIva))
+	orm.RegisterModel(new(EstadoGiro))
 }
 
-// AddCategoriaIva insert a new CategoriaIva into database and returns
+// AddEstadoGiro insert a new EstadoGiro into database and returns
 // last inserted Id on success.
-func AddCategoriaIva(m *CategoriaIva) (id int64, err error) {
+func AddEstadoGiro(m *EstadoGiro) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCategoriaIvaById retrieves CategoriaIva by Id. Returns error if
+// GetEstadoGiroById retrieves EstadoGiro by Id. Returns error if
 // Id doesn't exist
-func GetCategoriaIvaById(id int) (v *CategoriaIva, err error) {
+func GetEstadoGiroById(id int) (v *EstadoGiro, err error) {
 	o := orm.NewOrm()
-	v = &CategoriaIva{Id: id}
+	v = &EstadoGiro{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCategoriaIva retrieves all CategoriaIva matches certain condition. Returns empty list if
+// GetAllEstadoGiro retrieves all EstadoGiro matches certain condition. Returns empty list if
 // no records exist
-func GetAllCategoriaIva(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoGiro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CategoriaIva)).RelatedSel()
+	qs := o.QueryTable(new(EstadoGiro))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,7 +100,7 @@ func GetAllCategoriaIva(query map[string]string, fields []string, sortby []strin
 		}
 	}
 
-	var l []CategoriaIva
+	var l []EstadoGiro
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -120,11 +123,11 @@ func GetAllCategoriaIva(query map[string]string, fields []string, sortby []strin
 	return nil, err
 }
 
-// UpdateCategoriaIva updates CategoriaIva by Id and returns error if
+// UpdateEstadoGiro updates EstadoGiro by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCategoriaIvaById(m *CategoriaIva) (err error) {
+func UpdateEstadoGiroById(m *EstadoGiro) (err error) {
 	o := orm.NewOrm()
-	v := CategoriaIva{Id: m.Id}
+	v := EstadoGiro{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,15 +138,15 @@ func UpdateCategoriaIvaById(m *CategoriaIva) (err error) {
 	return
 }
 
-// DeleteCategoriaIva deletes CategoriaIva by Id and returns error if
+// DeleteEstadoGiro deletes EstadoGiro by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCategoriaIva(id int) (err error) {
+func DeleteEstadoGiro(id int) (err error) {
 	o := orm.NewOrm()
-	v := CategoriaIva{Id: id}
+	v := EstadoGiro{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CategoriaIva{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoGiro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
