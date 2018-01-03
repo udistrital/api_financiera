@@ -37,6 +37,13 @@ func init() {
 				&controllers.FuenteFinanciamientoController{},
 			),
 		),
+
+		beego.NSNamespace("/tipo_fuente_financiamiento",
+			beego.NSInclude(
+				&controllers.TipoFuenteFinanciamientoController{},
+			),
+		),
+
 		beego.NSNamespace("/fuente_financiamiento_apropiacion",
 			beego.NSInclude(
 				&controllers.FuenteFinanciamientoApropiacionController{},
