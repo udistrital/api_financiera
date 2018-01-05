@@ -209,7 +209,10 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "RegistroPresupuestalDisponibilidadApropiacion", 5)
+				o.LoadRelated(&v, "RegistroPresupuestalDisponibilidadApropiacion", 5, 1, 0, "-Id")
+				for _, sub := range v.RegistroPresupuestalDisponibilidadApropiacion {
+					o.LoadRelated(sub.DisponibilidadApropiacion.Disponibilidad, "DisponibilidadProcesoExterno", 5, 1, 0, "-Id")
+				}
 				ml = append(ml, v)
 			}
 		} else {
