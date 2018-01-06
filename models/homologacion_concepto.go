@@ -284,7 +284,7 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 				return
 			}
 			println(idConceptoFacultad)
-			alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: idHomologacion}
+			alerta = Alert{Type: "success", Code: "S_HOCO_01", Body: idHomologacion}
 			o.Commit()
 			return
 		} else {
@@ -356,7 +356,7 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 	err := o.Read(&homologacion)
 	if err != nil {
 		alerta.Type = "error"
-		alerta.Code = "E_OPN_02"
+		alerta.Code = "E_UPDATE_HOCO_01"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -369,7 +369,7 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 	rows, err := o.Update(&homologacion)
 	if err != nil {
 		alerta.Type = "error"
-		alerta.Code = "E_OPN_02"
+		alerta.Code = "E_UPDATE_HOCO_01"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -385,7 +385,7 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 			proyectoC = int(dataHomologacionConcepto["ProyectoCurricular"].(float64))
 		}
 		conceptoFacultad := ConceptoTesoralFacultadProyecto{
-			ConceptoTesoral:      &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+			ConceptoTesoral:      &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(map[string]interface{})["Id"].(float64))},
 			Facultad:             facultad,
 			ProyectoCurricular:   proyectoC,
 			HomologacionConcepto: &HomologacionConcepto{Id: int(homologacion.Id)},
@@ -393,12 +393,12 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 		_, err := o.Insert(&conceptoFacultad)
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_HOCO_01"
+			alerta.Code = "E_UPDATE_HOCO_01"
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
 		}
-		alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: homologacion.Id}
+		alerta = Alert{Type: "success", Code: "S_UPDATE_HOCO_01", Body: homologacion.Id}
 		o.Commit()
 		return
 	} else if operacionActualizar == 2 {
@@ -413,7 +413,7 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 		err := o.Read(&conceptoFacultad, "HomologacionConcepto")
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPN_02"
+			alerta.Code = "E_UPDATE_HOCO_01"
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
@@ -425,13 +425,17 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 		rows, err := o.Update(&conceptoFacultad)
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPN_02"
+			alerta.Code = "E_UPDATE_HOCO_01"
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
 		}
 		println(rows)
-		alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: homologacion.Id}
+		alerta = Alert{Type: "success", Code: "S_UPDATE_HOCO_01", Body: homologacion.Id}
+		o.Commit()
+		return
+	} else if operacionActualizar == 3 {
+		alerta = Alert{Type: "success", Code: "S_UPDATE_HOCO_01", Body: homologacion.Id}
 		o.Commit()
 		return
 	} else if operacionActualizar == 4 {
@@ -440,7 +444,7 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 		err := o.Read(&conceptoFacultad, "HomologacionConcepto")
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPN_02"
+			alerta.Code = "E_UPDATE_HOCO_01"
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
@@ -448,13 +452,13 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 		rows, err := o.Delete(&conceptoFacultad)
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPN_02"
+			alerta.Code = "E_UPDATE_HOCO_01"
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
 		}
 		println(rows)
-		alerta = Alert{Type: "success", Code: "S_HOMO_01", Body: homologacion.Id}
+		alerta = Alert{Type: "success", Code: "S_UPDATE_HOCO_01", Body: homologacion.Id}
 		o.Commit()
 		return
 	}
