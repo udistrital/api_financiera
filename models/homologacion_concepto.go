@@ -21,12 +21,13 @@ type RpCdpRubroConceptoValor struct {
 }
 
 type HomologacionConcepto struct {
-	Id             int       `orm:"column(id);pk;auto"`
-	Vigencia       float64   `orm:"column(vigencia)"`
-	FechaCreacion  time.Time `orm:"column(fecha_creacion);type(date)"`
-	ConceptoKronos *Concepto `orm:"column(concepto_kronos);rel(fk)"`
-	ConceptoTitan  int       `orm:"column(concepto_titan)"`
-	NominaTitan    int       `orm:"column(nomina_titan)"`
+	Id              int       `orm:"column(id);pk;auto"`
+	Vigencia        float64   `orm:"column(vigencia)"`
+	FechaCreacion   time.Time `orm:"column(fecha_creacion);type(date)"`
+	ConceptoKronos  *Concepto `orm:"column(concepto_kronos);rel(fk)"`
+	ConceptoTitan   int       `orm:"column(concepto_titan)"`
+	NominaTitan     int       `orm:"column(nomina_titan)"`
+	SeguridadSocial bool      `orm:"column(seguridad_social)"`
 }
 
 func (t *HomologacionConcepto) TableName() string {
@@ -172,10 +173,11 @@ func validarExistenciaHomologacionConcepto(inputHomologacion map[string]interfac
 	o.Begin()
 
 	homologacion := HomologacionConcepto{
-		Vigencia:       inputHomologacion["Vigencia"].(float64),
-		NominaTitan:    int(inputHomologacion["NominaTitan"].(float64)),
-		ConceptoKronos: &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
-		ConceptoTitan:  int(inputHomologacion["ConceptoTitan"].(float64)),
+		Vigencia:        inputHomologacion["Vigencia"].(float64),
+		NominaTitan:     int(inputHomologacion["NominaTitan"].(float64)),
+		ConceptoKronos:  &Concepto{Id: int(inputHomologacion["ConceptoKronos"].(float64))},
+		ConceptoTitan:   int(inputHomologacion["ConceptoTitan"].(float64)),
+		SeguridadSocial: inputHomologacion["SeguridadSocial"].(bool),
 	}
 	err := o.Read(&homologacion, "Vigencia", "NominaTitan", "ConceptoKronos", "ConceptoTitan")
 	if err == orm.ErrNoRows {
@@ -248,11 +250,12 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 		if conFacultad == true {
 			// 2 Registros: registra tabla ConceptoTesoralFacultadProyecto y HomologacionConcepto
 			homologacion := HomologacionConcepto{
-				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
-				FechaCreacion:  time.Now(),
-				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
-				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
-				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+				Vigencia:        dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:   time.Now(),
+				NominaTitan:     int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos:  &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:   int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+				SeguridadSocial: dataHomologacionConcepto["SeguridadSocial"].(bool),
 			}
 			idHomologacion, err := o.Insert(&homologacion)
 			if err != nil {
@@ -290,11 +293,12 @@ func RegistrarHomologacionConcepto(dataHomologacionConcepto map[string]interface
 		} else {
 			// 1 Registros: registra tabla HomologacionConcepto
 			homologacion := HomologacionConcepto{
-				Vigencia:       dataHomologacionConcepto["Vigencia"].(float64),
-				FechaCreacion:  time.Now(),
-				NominaTitan:    int(dataHomologacionConcepto["NominaTitan"].(float64)),
-				ConceptoKronos: &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
-				ConceptoTitan:  int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+				Vigencia:        dataHomologacionConcepto["Vigencia"].(float64),
+				FechaCreacion:   time.Now(),
+				NominaTitan:     int(dataHomologacionConcepto["NominaTitan"].(float64)),
+				ConceptoKronos:  &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(float64))},
+				ConceptoTitan:   int(dataHomologacionConcepto["ConceptoTitan"].(float64)),
+				SeguridadSocial: dataHomologacionConcepto["SeguridadSocial"].(bool),
 			}
 			idHomologacion, err := o.Insert(&homologacion)
 			if err != nil {
@@ -366,6 +370,8 @@ func ActualizarHomologacionConcepto(dataHomologacionConcepto map[string]interfac
 	homologacion.NominaTitan = int(dataHomologacionConcepto["NominaTitan"].(float64))
 	homologacion.ConceptoKronos = &Concepto{Id: int(dataHomologacionConcepto["ConceptoKronos"].(map[string]interface{})["Id"].(float64))}
 	homologacion.ConceptoTitan = int(dataHomologacionConcepto["ConceptoTitan"].(float64))
+	homologacion.SeguridadSocial = dataHomologacionConcepto["SeguridadSocial"].(bool)
+
 	rows, err := o.Update(&homologacion)
 	if err != nil {
 		alerta.Type = "error"
