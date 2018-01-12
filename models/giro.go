@@ -17,6 +17,7 @@ type Giro struct {
 	CuentaBancaria *CuentaBancaria `orm:"column(cuenta_bancaria);rel(fk)"`
 	Vigencia       float64         `orm:"column(vigencia);null"`
 	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(date)"`
+	FormaPago      *FormaPago      `orm:"column(forma_pago);rel(fk)"`
 }
 
 func (t *Giro) TableName() string {
