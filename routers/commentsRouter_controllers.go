@@ -2023,6 +2023,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"],
+		beego.ControllerComments{
+			Method: "RegistrarGiro",
+			Router: `RegistrarGiro`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroDetalleController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroDetalleController"],
 		beego.ControllerComments{
 			Method: "Post",

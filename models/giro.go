@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type Giro struct {
@@ -152,5 +153,56 @@ func DeleteGiro(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	newGiro := Giro{}
+	OrdenesPago := []OrdenPago{}
+	err1 := utilidades.FillStruct(dataGiro["Giro"], &newGiro)
+	err2 := utilidades.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
+	if err1 != nil || err2 != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01" //error en parametros de entrada
+		alerta.Body = "Erro en parametros de entrada en RegistrarGiro()"
+		o.Rollback()
+		return
+	}
+	// consecutivo
+	var consecutivo int
+	sqlConsecutivo := "SELECT COALESCE(MAX(consecutivo), 0)+1 FROM financiera.giro;"
+	o.Raw(sqlConsecutivo).QueryRow(&consecutivo)
+	newGiro.Consecutivo = consecutivo
+	newGiro.FechaRegistro = time.Now()
+	//insert giro
+	idNewGiro, err := o.Insert(&newGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// Primer estado
+	estadoNewGiro := EstadoOrdenPago{CodigoAbreviacion: "EGI_01"}
+	err = o.Read(&estadoNewGiro, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	//insert giro_estado_giro
+	newGiroEstadoGiro := GiroEstadoGiro{}
+	newGiroEstadoGiro.Giro = &Giro{Id: int(idNewGiro)}
+	newGiroEstadoGiro.FechaRegistro = time.Now()
+	newGiroEstadoGiro.EstadoGiro = &EstadoGiro{Id: int(estadoNewGiro.Id)}
+
+	//insert giro_detalle
+
+	//
 	return
 }
