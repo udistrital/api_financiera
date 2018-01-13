@@ -2145,6 +2145,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"],
 		beego.ControllerComments{
+			Method: "ActualizarHomologacionConcepto",
+			Router: `ActualizarHomologacionConcepto`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:HomologacionConceptoController"],
+		beego.ControllerComments{
 			Method: "RegistrarHomologacionConcepto",
 			Router: `RegistrarHomologacionConcepto`,
 			AllowHTTPMethods: []string{"post"},

@@ -195,3 +195,27 @@ func (c *HomologacionConceptoController) RegistrarHomologacionConcepto() {
 	}
 	c.ServeJSON()
 }
+
+// ActualizarHomologacionConcepto ...
+// @Title ActualizarHomologacionConcepto
+// @Description Actualiza homologacion_concepto y  de concepto_tesoral_facultad_proyecto
+// @Param	body		body 	models.homologacion_concepto	true		"body for homologacion_concepto content"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router ActualizarHomologacionConcepto [post]
+func (c *HomologacionConceptoController) ActualizarHomologacionConcepto() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		mensaje := models.ActualizarHomologacionConcepto(m)
+		if mensaje.Type != "success" {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = mensaje
+		}
+	} else {
+		c.Data["json"] = err
+	}
+	c.ServeJSON()
+}
