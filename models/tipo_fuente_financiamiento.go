@@ -9,47 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type FuenteFinanciamiento struct {
-	Id          						int    `orm:"column(id);pk;auto"`
-	Descripcion 						string `orm:"column(descripcion);null"`
-	Nombre       						string `orm:"column(nombre)"`
-	Codigo      						string `orm:"column(codigo)"`
-	TipoFuenteFinanciamiento *TipoFuenteFinanciamiento `orm:"column(tipo_fuente_financiamiento);rel(fk)"`
+type TipoFuenteFinanciamiento struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	Activo            bool    `orm:"column(activo)"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *FuenteFinanciamiento) TableName() string {
-	return "fuente_financiamiento"
+func (t *TipoFuenteFinanciamiento) TableName() string {
+	return "tipo_fuente_financiamiento"
 }
 
 func init() {
-	orm.RegisterModel(new(FuenteFinanciamiento))
+	orm.RegisterModel(new(TipoFuenteFinanciamiento))
 }
 
-// AddFuenteFinanciamiento insert a new FuenteFinanciamiento into database and returns
+// AddTipoFuenteFinanciamiento insert a new TipoFuenteFinanciamiento into database and returns
 // last inserted Id on success.
-func AddFuenteFinanciamiento(m *FuenteFinanciamiento) (id int64, err error) {
+func AddTipoFuenteFinanciamiento(m *TipoFuenteFinanciamiento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetFuenteFinanciamientoById retrieves FuenteFinanciamiento by Id. Returns error if
+// GetTipoFuenteFinanciamientoById retrieves TipoFuenteFinanciamiento by Id. Returns error if
 // Id doesn't exist
-func GetFuenteFinanciamientoById(id int) (v *FuenteFinanciamiento, err error) {
+func GetTipoFuenteFinanciamientoById(id int) (v *TipoFuenteFinanciamiento, err error) {
 	o := orm.NewOrm()
-	v = &FuenteFinanciamiento{Id: id}
+	v = &TipoFuenteFinanciamiento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllFuenteFinanciamiento retrieves all FuenteFinanciamiento matches certain condition. Returns empty list if
+// GetAllTipoFuenteFinanciamiento retrieves all TipoFuenteFinanciamiento matches certain condition. Returns empty list if
 // no records exist
-func GetAllFuenteFinanciamiento(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoFuenteFinanciamiento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(FuenteFinanciamiento)).RelatedSel()
+	qs := o.QueryTable(new(TipoFuenteFinanciamiento))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +100,7 @@ func GetAllFuenteFinanciamiento(query map[string]string, fields []string, sortby
 		}
 	}
 
-	var l []FuenteFinanciamiento
+	var l []TipoFuenteFinanciamiento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +123,11 @@ func GetAllFuenteFinanciamiento(query map[string]string, fields []string, sortby
 	return nil, err
 }
 
-// UpdateFuenteFinanciamiento updates FuenteFinanciamiento by Id and returns error if
+// UpdateTipoFuenteFinanciamiento updates TipoFuenteFinanciamiento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateFuenteFinanciamientoById(m *FuenteFinanciamiento) (err error) {
+func UpdateTipoFuenteFinanciamientoById(m *TipoFuenteFinanciamiento) (err error) {
 	o := orm.NewOrm()
-	v := FuenteFinanciamiento{Id: m.Id}
+	v := TipoFuenteFinanciamiento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +138,15 @@ func UpdateFuenteFinanciamientoById(m *FuenteFinanciamiento) (err error) {
 	return
 }
 
-// DeleteFuenteFinanciamiento deletes FuenteFinanciamiento by Id and returns error if
+// DeleteTipoFuenteFinanciamiento deletes TipoFuenteFinanciamiento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteFuenteFinanciamiento(id int) (err error) {
+func DeleteTipoFuenteFinanciamiento(id int) (err error) {
 	o := orm.NewOrm()
-	v := FuenteFinanciamiento{Id: id}
+	v := TipoFuenteFinanciamiento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&FuenteFinanciamiento{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoFuenteFinanciamiento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
