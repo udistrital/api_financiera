@@ -444,3 +444,18 @@ func ValorTotal(m int) (valorTotal int, err error) {
 	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
 	return
 }
+
+func GetEstadoOrdenPago(CodeEstado string) (outputIdEstado EstadoOrdenPago, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	outputIdEstado = EstadoOrdenPago{CodigoAbreviacion: CodeEstado}
+	err := o.Read(&outputIdEstado, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	return
+}
