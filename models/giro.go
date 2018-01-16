@@ -186,8 +186,8 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 		return
 	}
 	// Primer estado
-	estadoNewGiro := EstadoOrdenPago{CodigoAbreviacion: "EGI_01"}
-	err = o.Read(&estadoNewGiro, "CodigoAbreviacion")
+	estadoNewGiro := EstadoGiro{CodigoAbreviatura: "EGI_01"}
+	err = o.Read(&estadoNewGiro, "CodigoAbreviatura")
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //en busqueda de estado
@@ -200,9 +200,32 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	newGiroEstadoGiro.Giro = &Giro{Id: int(idNewGiro)}
 	newGiroEstadoGiro.FechaRegistro = time.Now()
 	newGiroEstadoGiro.EstadoGiro = &EstadoGiro{Id: int(estadoNewGiro.Id)}
-
+	_, err = o.Insert(&newGiroEstadoGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	//insert giro_detalle
-
-	//
+	var giroDetalles []GiroDetalle
+	for i := 0; i < len(OrdenesPago); i++ {
+		rowGiroDetalle := GiroDetalle{
+			Giro:      &Giro{Id: int(idNewGiro)},
+			OrdenPago: &OrdenPago{Id: int(OrdenesPago[i].Id)},
+		}
+		giroDetalles = append(giroDetalles, rowGiroDetalle)
+	}
+	_, err = o.InsertMulti(100, giroDetalles)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	alerta = Alert{Type: "success", Code: "S_GIRO_01", Body: consecutivo}
+	o.Commit()
 	return
 }
