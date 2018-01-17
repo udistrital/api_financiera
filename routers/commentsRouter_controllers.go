@@ -2713,6 +2713,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
 		beego.ControllerComments{
+			Method: "GetOrdenPagoByEstado",
+			Router: `/GetOrdenPagoByEstado`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenPagoController"],
+		beego.ControllerComments{
 			Method: "ActualizarOpProveedor",
 			Router: `ActualizarOpProveedor`,
 			AllowHTTPMethods: []string{"post"},

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -456,6 +457,47 @@ func GetEstadoOrdenPago(CodeEstado string) (outputIdEstado EstadoOrdenPago, aler
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
+	}
+	return
+}
+
+// personalizado Registrar orden_pago, concepto_ordenpago y transacciones
+func GetOrdenPagoByEstado(codeEstdoOrdenPago string) (outputOrdenes []interface{}, alerta Alert) {
+	if codeEstdoOrdenPago != "" {
+		println("1111111111111111")
+		var ordenes []OrdenPago
+		o := orm.NewOrm()
+		o.Begin()
+		_, err := o.Raw(`SELECT DISTINCT OP.id
+			FROM financiera.orden_pago OP, financiera.orden_pago_estado_orden_pago OPEOP, financiera.estado_orden_pago OPE
+			WHERE OP.id = OPEOP.orden_pago
+			AND OPEOP.id=(SELECT MAX(opeop2.id) from financiera.orden_pago_estado_orden_pago opeop2 where opeop2.orden_pago = OP.id group by opeop2.orden_pago)
+			AND OPEOP.estado_orden_pago = OPE.id
+			AND OPE.codigo_abreviacion = ?;`, codeEstdoOrdenPago).QueryRows(&ordenes)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = err.Error()
+			o.Rollback()
+			return
+		}
+
+		for i := 0; i < len(ordenes); i++ {
+			println("Id: ", ordenes[i].Id)
+			var query = make(map[string]string)
+			query["Id"] = strconv.Itoa(ordenes[i].Id)
+			v, err := GetAllOrdenPago(query, nil, nil, nil, 0, 10)
+			if err == nil {
+				outputOrdenes = append(outputOrdenes, v[0])
+			}
+		}
+
+		alerta = Alert{Type: "success", Code: "S_OPP_01", Body: "OK"}
+	} else {
+		println("22222222222222222")
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = "Error Parameter codigoEstado is null"
 	}
 	return
 }

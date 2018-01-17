@@ -260,3 +260,25 @@ func (c *OrdenPagoController) ValorTotal() {
 	}
 	c.ServeJSON()
 }
+
+// GetOrdenPagoByEstado ...
+// @Title GetOrdenPagoByEstado
+// @Description return OrdenPago by Estado
+// @Param	codigoEstado		query string true		"code estado OrdenPago for search"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router /GetOrdenPagoByEstado [get]
+func (c *OrdenPagoController) GetOrdenPagoByEstado() {
+	estadoOrden := c.GetString("codigoEstado")
+	Ordenes, mensaje := models.GetOrdenPagoByEstado(estadoOrden)
+	if mensaje.Type == "success" {
+		println("OK")
+		c.Data["json"] = Ordenes
+	} else {
+		println("EROR")
+		c.Ctx.Output.SetStatus(201)
+		c.Data["json"] = mensaje
+	}
+	//
+	c.ServeJSON()
+}
