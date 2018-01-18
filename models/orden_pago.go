@@ -476,7 +476,7 @@ func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string
 			AND OPE.codigo_abreviacion = ?
 			AND OP.vigencia = ?
 			AND OP.forma_pago = ?
-			AND TOP.id = ?`, codeEstdoOrdenPago, vigencia, tipoOp, formaPago).QueryRows(&ordenes)
+			AND TOP.id = ?`, codeEstdoOrdenPago, vigencia, formaPago, tipoOp).QueryRows(&ordenes)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
