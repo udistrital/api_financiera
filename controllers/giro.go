@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -166,6 +167,31 @@ func (c *GiroController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// RegistrarGiro ...
+// @Title RegistrarGiro
+// @Description Registrar orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Param	body		body 	models.giro	true		"body for giro content"
+// @Success 201 {int} models.Giro
+// @Failure 403 body is empty
+// @router RegistrarGiro [post]
+func (c *GiroController) RegistrarGiro() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		mensaje := models.RegistrarGiro(m)
+		if mensaje.Type != "success" {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			//alert := models.Alert{Type: mensaje.Type, Code: mensaje.Code, Body: consecutivoOp}
+			c.Data["json"] = mensaje
+		}
+	} else {
+		c.Data["json"] = err
 	}
 	c.ServeJSON()
 }

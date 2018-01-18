@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -442,5 +443,57 @@ func FechaActual(formato string) (fechaActual string, err error) {
 func ValorTotal(m int) (valorTotal int, err error) {
 	o := orm.NewOrm()
 	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
+	return
+}
+
+func GetEstadoOrdenPago(CodeEstado string) (outputIdEstado EstadoOrdenPago, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	outputIdEstado = EstadoOrdenPago{CodigoAbreviacion: CodeEstado}
+	err := o.Read(&outputIdEstado, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	return
+}
+
+// personalizado consultar orden_pago en su estado actual
+func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string) (outputOrdenes []interface{}, alerta Alert) {
+	var ordenes []OrdenPago
+	o := orm.NewOrm()
+	o.Begin()
+	_, err := o.Raw(`SELECT DISTINCT OP.*
+			FROM orden_pago OP,orden_pago_estado_orden_pago OPEOP, estado_orden_pago OPE, tipo_orden_pago TOP,  sub_tipo_orden_pago STOP
+			WHERE OP.id = OPEOP.orden_pago
+			AND OPEOP.id=(SELECT MAX(opeop2.id) from orden_pago_estado_orden_pago opeop2 where opeop2.orden_pago = OP.id group by opeop2.orden_pago)
+			AND OPEOP.estado_orden_pago = OPE.id
+			AND TOP.id = STOP.tipo_orden_pago
+			AND STOP.id = OP.sub_tipo_orden_pago
+			AND OPE.codigo_abreviacion = ?
+			AND OP.vigencia = ?
+			AND OP.forma_pago = ?
+			AND TOP.id = ?`, codeEstdoOrdenPago, vigencia, tipoOp, formaPago).QueryRows(&ordenes)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(ordenes); i++ {
+		println("Id: ", ordenes[i].Id)
+		var query = make(map[string]string)
+		query["Id"] = strconv.Itoa(ordenes[i].Id)
+		v, err := GetAllOrdenPago(query, nil, nil, nil, 0, 10)
+		if err == nil {
+			outputOrdenes = append(outputOrdenes, v[0])
+		}
+	}
+	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: "OK"}
+	//
 	return
 }
