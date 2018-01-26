@@ -3,11 +3,12 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/api_financiera/utilidades"
 )
 
 type MovimientoApropiacion struct {
@@ -47,6 +48,20 @@ func AddMovimientoApropiacion(m *MovimientoApropiacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
+}
+
+// totalMovimientos retorna total de movimientos por vigencia
+func GetTotalMovimientosApropiacion(vigencia int, unidadEjecutora int) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	qb.Select("COUNT(DISTINCT(movimiento_apropiacion))").
+		From("financiera.movimiento_apropiacion").
+		Where("movimiento_apropiacion.vigencia = ?") //.
+		//And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+	return
+
 }
 
 // Registra un MovimientoApropiacion
