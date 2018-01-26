@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
@@ -91,7 +92,7 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 // @router /AprobarMovimietnoApropiacion [post]
 func (c *MovimientoApropiacionController) AprobarMovimietnoApropiacion() {
 	var v models.MovimientoApropiacion
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil && v.Vigencia == time.Now().Year() {
 		if res, err := models.AprobarMovimietnoApropiaciontr(&v); err == nil && res != nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = res
