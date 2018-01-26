@@ -21,6 +21,7 @@ type MovimientoApropiacion struct {
 	Descripcion                                    string                                            `orm:"column(descripcion);null"`
 	MovimientoApropiacionDisponibilidadApropiacion []*MovimientoApropiacionDisponibilidadApropiacion `orm:"reverse(many)"`
 	EstadoMovimientoApropiacion                    *EstadoMovimientoApropiacion                      `orm:"column(estado_movimiento_apropiacion);rel(fk)"`
+	UnidadEjecutora                                int                                               `orm:"column(unidad_ejecutora)"`
 }
 
 type MovimientosPorApropiacion struct {
@@ -57,9 +58,9 @@ func GetTotalMovimientosApropiacion(vigencia int, unidadEjecutora int) (total in
 
 	qb.Select("COUNT(DISTINCT(movimiento_apropiacion))").
 		From("financiera.movimiento_apropiacion").
-		Where("movimiento_apropiacion.vigencia = ?") //.
-		//And("unidad_ejecutora = ?")
-	err = o.Raw(qb.String(), vigencia).QueryRow(&total)
+		Where("movimiento_apropiacion.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
 	return
 
 }
