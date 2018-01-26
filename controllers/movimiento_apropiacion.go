@@ -3,12 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/api_financiera/utilidades"
-	"strconv"
-	"strings"
 )
 
 // MovimientoApropiacionController operations for MovimientoApropiacion
@@ -23,6 +25,32 @@ func (c *MovimientoApropiacionController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+}
+
+// TotalMovimientosApropiacion ...
+// @Title TotalMovimientosApropiacion
+// @Description numero de movimientos segun vigencia
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalMovimientosApropiacion/:vigencia [get]
+func (c *MovimientoApropiacionController) TotalMovimientosApropiacion() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalMovimientosApropiacion(vigencia, UnidadEjecutora)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+
+	c.ServeJSON()
 }
 
 // RegistroSolicitudMovimientoApropiacion ...
@@ -64,7 +92,7 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 // @router /AprobarMovimietnoApropiacion [post]
 func (c *MovimientoApropiacionController) AprobarMovimietnoApropiacion() {
 	var v models.MovimientoApropiacion
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil && v.Vigencia == time.Now().Year() {
 		if res, err := models.AprobarMovimietnoApropiaciontr(&v); err == nil && res != nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = res

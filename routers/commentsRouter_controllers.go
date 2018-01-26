@@ -2393,17 +2393,17 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"],
 		beego.ControllerComments{
-			Method: "Post",
+			Method: "GetAll",
 			Router: `/`,
-			AllowHTTPMethods: []string{"post"},
+			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"],
 		beego.ControllerComments{
-			Method: "GetAll",
+			Method: "Post",
 			Router: `/`,
-			AllowHTTPMethods: []string{"get"},
+			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -2444,6 +2444,14 @@ func init() {
 			Method: "RegistroSolicitudMovimientoApropiacion",
 			Router: `/RegistroSolicitudMovimientoApropiacion`,
 			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:MovimientoApropiacionController"],
+		beego.ControllerComments{
+			Method: "TotalMovimientosApropiacion",
+			Router: `/TotalMovimientosApropiacion/:vigencia`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
