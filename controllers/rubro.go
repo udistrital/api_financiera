@@ -208,9 +208,14 @@ func (c *RubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteRubro(id); err == nil {
-		c.Data["json"] = "OK"
+		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		c.Data["json"] = alert
 	} else {
-		c.Data["json"] = err.Error()
+		alertdb := structs.Map(err)
+		var code string
+		utilidades.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
