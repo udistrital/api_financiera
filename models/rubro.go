@@ -149,11 +149,43 @@ func UpdateRubroById(m *Rubro) (err error) {
 func DeleteRubro(id int) (err error) {
 	o := orm.NewOrm()
 	v := Rubro{Id: id}
+	var apropiaciones []int
+	var rubrorubro []int
 	// ascertain id exists in the database
+	o.Begin()
 	if err = o.Read(&v); err == nil {
 		var num int64
+		qb, _ := orm.NewQueryBuilder("mysql")
+		qb.Select("id").
+			From("financiera.apropiacion").
+			Where("rubro=?")
+		if _, err = o.Raw(qb.String(), id).QueryRows(&apropiaciones); err == nil {
+
+			if len(apropiaciones) == 0 {
+				qb, _ = orm.NewQueryBuilder("mysql")
+				qb.Select("id").
+					From("financiera.rubro_rubro").
+					//Where("rubro_padre=?").
+					Where("rubro_hijo=?")
+				if _, err = o.Raw(qb.String(), id).QueryRows(&rubrorubro); err == nil {
+					for _, idx := range rubrorubro {
+						if _, err = o.Delete(&RubroRubro{Id: idx}); err == nil {
+
+						} else {
+							o.Rollback()
+						}
+					}
+				}
+			} else {
+				o.Rollback()
+			}
+
+		} else {
+			o.Rollback()
+		}
 		if num, err = o.Delete(&Rubro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
+			o.Commit()
 		}
 	}
 	return
