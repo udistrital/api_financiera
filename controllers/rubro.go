@@ -3,6 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +31,14 @@ func (c *RubroController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("ApropiacionReporte", c.ApropiacionReporte)
 }
+func genRubrosTreeFile(UnidadEjecutora int) {
+	v, err := models.ArbolRubros(UnidadEjecutora, 0)
+	rankingsJson, _ := json.Marshal(v)
+	if err == nil {
+		err = ioutil.WriteFile("RubroTreeUe"+strconv.Itoa(UnidadEjecutora)+".json", rankingsJson, 0644)
+
+	}
+}
 
 // Post ...
 // @Title Post
@@ -41,6 +52,7 @@ func (c *RubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			go genRubrosTreeFile(int(v.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
@@ -87,12 +99,25 @@ func (c *RubroController) ArbolRubros() {
 	idpadre, _ := c.GetInt("idpadre")
 	unidadEjecutora, err := c.GetInt("UnidadEjecutora")
 	if err == nil {
-		v, err := models.ArbolRubros(unidadEjecutora, idpadre)
-		if err != nil {
-			c.Data["json"] = err.Error()
+		if _, err := os.Stat("RubroTreeUe" + strconv.Itoa(unidadEjecutora) + ".json"); os.IsNotExist(err) {
+			// path/to/whatever does not exist
+			v, err := models.ArbolRubros(unidadEjecutora, idpadre)
+			if err != nil {
+				c.Data["json"] = err.Error()
+			} else {
+				rankingsJson, _ := json.Marshal(v)
+				err = ioutil.WriteFile("RubroTreeUe"+strconv.Itoa(unidadEjecutora)+".json", rankingsJson, 0644)
+				fmt.Println("err ", err)
+				c.Data["json"] = v
+			}
 		} else {
+			data, _ := ioutil.ReadFile("RubroTreeUe" + strconv.Itoa(unidadEjecutora) + ".json")
+			var v interface{}
+			err = json.Unmarshal(data, &v)
+			//fmt.Println("read from file")
 			c.Data["json"] = v
 		}
+
 	} else {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -207,8 +232,12 @@ func (c *RubroController) Put() {
 func (c *RubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
+	v, err1 := models.GetRubroById(id)
 	if err := models.DeleteRubro(id); err == nil {
 		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		if err1 == nil {
+			go genRubrosTreeFile(int(v.UnidadEjecutora))
+		}
 		c.Data["json"] = alert
 	} else {
 		alertdb := structs.Map(err)
@@ -228,7 +257,6 @@ func (c *RubroController) Delete() {
 // @Success 200 {object} interface{}
 // @Failure 403 No se encontraron datos
 // @router ApropiacionReporte/ [post]
-
 func (c *RubroController) ApropiacionReporte() {
 	var v interface{}
 	var p interface{}

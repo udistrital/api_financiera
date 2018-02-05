@@ -39,6 +39,7 @@ func (c *RubroRubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			go genRubrosTreeFile(int(v.RubroHijo.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
