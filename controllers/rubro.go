@@ -257,7 +257,6 @@ func (c *RubroController) Delete() {
 // @Success 200 {object} interface{}
 // @Failure 403 No se encontraron datos
 // @router ApropiacionReporte/ [post]
-
 func (c *RubroController) ApropiacionReporte() {
 	var v interface{}
 	var p interface{}
