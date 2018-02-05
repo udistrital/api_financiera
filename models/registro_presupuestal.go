@@ -315,11 +315,19 @@ func ComprometidoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64
             sum(concepto_orden_pago.valor) AS valor
            FROM financiera.concepto_orden_pago
              JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.id = concepto_orden_pago.registro_presupuestal_disponibilidad_apropiacion
+             AND
+			concepto_orden_pago.orden_de_pago = 
+				(
+					SELECT orden_de_pago FROM financiera.orden_pago_estado_orden_pago
+						WHERE orden_pago = concepto_orden_pago.orden_de_pago
+						AND estado_orden_pago NOT IN (3,5)
+						ORDER BY fecha_registro DESC
+						LIMIT 1 		) 
              JOIN financiera.registro_presupuestal ON registro_presupuestal.id = registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal
              JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
              JOIN financiera.apropiacion ON financiera.apropiacion.id = disponibilidad_apropiacion.apropiacion
-          GROUP BY registro_presupuestal.id, apropiacion.id, fuente_financiamiento) as comprometido
-          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?`, id_rp, id_apropiacion, id_fuente).Values(&maps)
+          	GROUP BY registro_presupuestal.id, apropiacion.id, fuente_financiamiento) as comprometido
+          	WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?`, id_rp, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
 	if maps == nil {
 		valor = 0
