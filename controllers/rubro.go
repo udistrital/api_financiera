@@ -372,3 +372,48 @@ func (c *RubroController) GetRubroIngreso() {
 	c.Data["json"] = res
 	c.ServeJSON()
 }
+
+// GetIngresoCierre ...
+// @Title Get Ingreso Cierre
+// @Description Obtiene informacion para cierre ingresos mes
+// @Param	vigencia	path 	int64	true		"valor vigencia apropiacion"
+// @Param	codigo		path 	string	true		"numero inicial de codigo rubro consultar"
+// @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
+// @Param	ffin		path 	string	true		"fecha final para el reporte"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetRubroIngreso [get]
+func (c *RubroController) GetIngresoCierre() {
+	vigencia, err := c.GetInt64("vigencia")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	codigo, err := c.GetString("codigo")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	finicioStr := c.GetString("finicio")
+
+	ffinStr := c.GetString("ffin")
+
+	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	ffin, err := time.ParseInLocation("2006-01-02", ffinStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	res, err := models.RubroIngresoCierre(finicio, ffin,codigo,vigencia)
+	c.Data["json"] = res
+	c.ServeJSON()
+}
