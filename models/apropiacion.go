@@ -49,7 +49,7 @@ func GetApropiacionById(id int) (v *Apropiacion, err error) {
 
 // GetAllApropiacion retrieves all Apropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllApropiacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllApropiacion(query map[string]string, exclude map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(Apropiacion))
@@ -63,6 +63,18 @@ func GetAllApropiacion(query map[string]string, fields []string, sortby []string
 			qs = qs.Filter(k, v)
 		}
 	}
+
+	// exclude k=v
+	for k, v := range exclude {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Exclude(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Exclude(k, v)
+		}
+	}
+
 	// order by:
 	var sortFields []string
 	if len(sortby) != 0 {
@@ -342,7 +354,7 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 						err = utilidades.FillStruct(fork["Id"], &id)
 						query["Rubro.Id"] = id
 						query["Vigencia"] = strconv.Itoa(Vigencia)
-						v, err := GetAllApropiacion(query, nil, nil, nil, 0, 1)
+						v, err := GetAllApropiacion(query, nil, nil, nil, nil, 0, 1)
 						if v != nil && err == nil {
 							fork["Apropiacion"] = v[0]
 							fork["Hijos"] = nil
@@ -498,7 +510,7 @@ func AprobarPresupuesto(UnidadEjecutora int, Vigencia int) (err error) {
 	query["Rubro.UnidadEjecutora"] = strconv.Itoa(UnidadEjecutora)
 	query["Vigencia"] = strconv.Itoa(Vigencia)
 	fmt.Println(query)
-	v, err := GetAllApropiacion(query, nil, nil, nil, 0, -1)
+	v, err := GetAllApropiacion(query, nil, nil, nil, nil, 0, -1)
 	o.Begin()
 	ap := Apropiacion{}
 	for _, apropiacion := range v {
