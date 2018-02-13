@@ -331,3 +331,19 @@ func (c *ApropiacionController) AprobarPresupuesto() {
 
 	c.ServeJSON()
 }
+
+// VigenciaApropiaciones ...
+// @Title VigenciaApropiaciones
+// @Description Obtiene todas las vigencias no repetidas de las apropiaciones
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /VigenciaApropiaciones [get]
+func (c *ApropiacionController) VigenciaApropiaciones() {
+	m, err := models.VigenciaApropiacion()
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_458", Body: err.Error(), Type: "error"}
+	} else {
+		c.Data["json"] = m
+	}
+	c.ServeJSON()
+}

@@ -199,6 +199,21 @@ func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
 	return
 }
 
+func VigenciaApropiacion() (ml []int, err error) {
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("DISTINCT vigencia").
+		From("financiera.apropiacion")
+
+	sql := qb.String()
+	o := orm.NewOrm()
+	o.Raw(sql).QueryRows(&ml)
+
+	if len(ml) == 0 {
+		return nil, err
+	}
+	return ml, nil
+}
+
 //funcion para determinar el valor con traslados de la apropiacion
 func ValorApropiacion(Id int) (valor float64, err error) {
 	o := orm.NewOrm()
@@ -263,7 +278,7 @@ func ValorAnuladoCdpPorApropiacion(Id int) (valor float64, err error) {
 		 					JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
 		 					JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
 					 		JOIN financiera.anulacion_disponibilidad ON anulacion_disponibilidad.id = anulacion_disponibilidad_apropiacion.anulacion
-							 WHERE apropiacion = ?  AND estado_anulacion = 3  
+							 WHERE apropiacion = ?  AND estado_anulacion = 3
 							 GROUP BY  anulacion_disponibilidad.estado_anulacion, disponibilidad_apropiacion.apropiacion
 							`, Id).Values(&maps_valor_tot)
 	//fmt.Println("maps: ", len(maps_valor_tot))
