@@ -382,7 +382,7 @@ func (c *RubroController) GetRubroIngreso() {
 // @Param	ffin		path 	string	true		"fecha final para el reporte"
 // @Success 200 {object} models.Rubro
 // @Failure 403
-// @router /GetRubroIngreso [get]
+// @router /GetIngresoCierre [get]
 func (c *RubroController) GetIngresoCierre() {
 	vigencia, err := c.GetInt64("vigencia")
 	if err != nil {
@@ -390,7 +390,8 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	codigo, err := c.GetString("codigo")
+	
+	codigo := c.GetString("codigo") 
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -412,7 +413,7 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-
+	codigo = codigo + "%"
 	res, err := models.RubroIngresoCierre(finicio, ffin,codigo,vigencia)
 	c.Data["json"] = res
 	c.ServeJSON()

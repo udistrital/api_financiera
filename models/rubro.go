@@ -665,9 +665,10 @@ id_aprop,
 	return
 }
 
-func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string,vigencia int) (res []interface{}, err error) {
+func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string,vigencia int64) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
+	fmt.Println("Going on RubroIngresoCierre")
 	_, err = o.Raw(`SELECT  apropiacion.id as idaprop,
 							rubro.id as idrubro,
 							rubro.codigo as codigoRub,
