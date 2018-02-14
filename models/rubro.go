@@ -204,9 +204,9 @@ func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err 
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
 	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
-		FROM
+	FROM
 		financiera.apropiacion as apropiacion
-	JOINvigencia int, codigo string
+	JOIN
 		financiera.rubro as rubro
 	ON
 		rubro.id = apropiacion.rubro
@@ -665,33 +665,32 @@ id_aprop,
 	return
 }
 
-func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string,vigencia int64) (res []interface{}, err error) {
+func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	fmt.Println("Going on RubroIngresoCierre")
 	_, err = o.Raw(`SELECT  apropiacion.id as idaprop,
 							rubro.id as idrubro,
 							rubro.codigo as codigoRub,
-							rubro.nombre as descRub, 
-							COALESCE(fuente.id,0) as idfuente, 
-							COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip, 
-							'Ingresos' as tipo, 
-							0 as Proyeccion, 
-							0 as pvariacion,
-							sum(COALESCE(ingresoconcepto.valor_agregado,0)) as valor,
-							0 as variacion
+							rubro.nombre as descrubro,
+							COALESCE(fuente.id,0) as idfuente,
+							COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+							'Ingresos' as tipo,
+							0 as Proyeccion,
+							0 as Pvariacion,
+							sum(COALESCE(ingresoconcepto.valor_agregado,0)) as Valor,
+							0 as Variacion
 					FROM financiera.apropiacion as apropiacion
 					JOIN financiera.rubro as rubro ON rubro.id = apropiacion.rubro
-					LEFT JOIN financiera.estado_ingreso as estadoingreso ON estadoingreso.nombre = 'Aprobado' 
-					LEFT JOIN financiera.concepto_tesoral as concepto ON concepto.rubro = rubro.id 
-					LEFT JOIN financiera.ingreso_concepto as ingresoconcepto ON ingresoconcepto.concepto = concepto.id  
-					LEFT JOIN financiera.ingreso as ingreso  ON ingresoconcepto.ingreso = ingreso.id 
+					LEFT JOIN financiera.estado_ingreso as estadoingreso ON estadoingreso.nombre = 'Aprobado'
+					LEFT JOIN financiera.concepto_tesoral as concepto ON concepto.rubro = rubro.id
+					LEFT JOIN financiera.ingreso_concepto as ingresoconcepto ON ingresoconcepto.concepto = concepto.id
+					LEFT JOIN financiera.ingreso as ingreso  ON ingresoconcepto.ingreso = ingreso.id
 										    AND ingreso.estado_ingreso = estadoingreso.id
 										    AND ingreso.fecha_ingreso BETWEEN ? AND ?
 					LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa ON apropiacion.id = ffa.apropiacion
 					LEFT JOIN financiera.fuente_financiamiento as fuente ON fuente.id = ffa.fuente_financiamiento
 					LEFT JOIN financiera.forma_ingreso as formaingreso ON formaingreso.id = ingreso.forma_ingreso
-					WHERE 
+					WHERE
 					rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
 					AND rubro.codigo LIKE ?
 					AND  apropiacion.vigencia =?
@@ -700,9 +699,9 @@ func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string,vigencia 
 						rubro.id,
 						rubro.codigo,
 						idfuente,
-						COALESCE(fuente.id,0), 
+						COALESCE(fuente.id,0),
 						fuente.descripcion
-					ORDER BY apropiacion.id`,inicio, fin,codigo,vigencia).Values(&m)
+					ORDER BY apropiacion.id`, inicio, fin, codigo, vigencia).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
