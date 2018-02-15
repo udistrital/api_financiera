@@ -710,51 +710,65 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
 	o := orm.NewOrm()
 	var m []orm.Params
 	_, err = o.Raw(`SELECT apropiacion.id as idaprop,
-	    rubro.id as idrubro,
-	    rubro.nombre as descrubro,
-	    COALESCE(fuente.id,0) as idfuente,
-	    COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
-	    'Egresos' as tipo,
-	    0 as Proyeccion,
-	    0 as Pvariacion,
-            SUM(orden_concepto.valor) as valor ,
-            0 as Variacion
-            From financiera.apropiacion as apropiacion
-            JOIN financiera.rubro as rubro
-                ON apropiacion.rubro = rubro.id
-            JOIN financiera.disponibilidad_apropiacion AS disp_apr
-                ON disp_apr.apropiacion = apropiacion.id
-            JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
-                ON rpda.disponibilidad_apropiacion = disp_apr.id
-            JOIN financiera.concepto_orden_pago as orden_concepto
-                ON  orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
-            JOIN financiera.orden_pago as orden
-                ON orden.id = orden_concepto.orden_de_pago
-            JOIN financiera.orden_pago_estado_orden_pago ep
-                ON ep.orden_pago = orden.id
-            JOIN financiera.registro_presupuestal as rp
-                ON rp.id = rpda.registro_presupuestal
-            JOIN financiera.disponibilidad as cdp
-                ON cdp.id = disp_apr.disponibilidad
-            LEFT JOIN financiera.fuente_financiamiento AS fuente
-                ON disp_apr.fuente_financiamiento = fuente.id
-
-        WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
-            AND apropiacion.vigencia = ?
-            AND rubro.codigo LIKE ?
-            AND ep.fecha_registro between ? and ?
-            AND not exists (Select distinct ant.orden_pago
-                    from  financiera.orden_pago_estado_orden_pago ant
-                    where ant.orden_pago  = ep.orden_pago
-                        and ant.estado_orden_pago = 5
-                        and ant.fecha_registro between ? and ?)
-                        group by apropiacion.id ,
-            rubro.id ,
-            fuente.id,
-            fuente.descripcion
-					ORDER BY apropiacion.id`, codigo, vigencia, inicio, fin, inicio, fin).Values(&m)
+	    					rubro.id as idrubro,
+	    					rubro.nombre as descrubro,
+	    					COALESCE(fuente.id,0) as idfuente,
+	    					COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+	    					'Egresos' as tipo,
+	    					0 as Proyeccion,
+	    					0 as Pvariacion,
+        					SUM (COALESCE(orden_concepto.valor,0)) as valor ,
+            						0 as Variacion
+            		From financiera.apropiacion as apropiacion
+            		    --ON apropiacion.id = disponibilidad.apropiacion
+            		JOIN financiera.rubro as rubro
+            		    ON apropiacion.rubro = rubro.id
+            		    
+            		LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
+							ON apropiacion.id = ffa.apropiacion
+	    			LEFT JOIN financiera.fuente_financiamiento as fuente
+							ON fuente.id = ffa.fuente_financiamiento		
+            		LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
+            		    ON disp_apr.apropiacion = apropiacion.id 
+            		LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+            		    ON rpda.disponibilidad_apropiacion = disp_apr.id
+            		LEFT JOIN financiera.concepto_orden_pago as orden_concepto
+            		    ON  orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+            		LEFT JOIN financiera.orden_pago_estado_orden_pago ep
+            		    ON ep.fecha_registro between ? and ?
+            		    AND not exists (Select distinct ant.orden_pago
+            		        			from  financiera.orden_pago_estado_orden_pago ant
+            		        			where ant.orden_pago  = ep.orden_pago
+            		            				and ant.estado_orden_pago = 5
+            		            				and ant.fecha_registro 
+            		            				between ? and ?)
+            		    AND ep.orden_pago = orden_concepto.orden_de_pago 
+            		LEFT JOIN financiera.orden_pago as orden
+            		    ON ep.orden_pago = orden.id
+        			WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+            								AND apropiacion.vigencia = ?
+            								AND rubro.codigo LIKE ?
+            		group by apropiacion.id ,
+            				rubro.id ,
+            				fuente.id,
+            				rubro.codigo
+							ORDER BY apropiacion.id`, inicio, fin,inicio, fin, codigo, vigencia).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
+}
+
+func ValEjecutadoPac(vigencia, mes, rubro, fuente){
+ 	o:=orm.NewOrm()
+ 	var m[]orm.Params
+
+ 	_,err = o.Raw(`Select valor_ejecutado_mes as valor
+					from financiera.detalle_pac detalle 
+					join financiera.pac pac 
+    					on detalle.pac = pac.id 
+					where pac.vigencia = ?
+						and detalle.mes = ?
+						and detalle.rubro = ?
+						and detalle.fuente_financiamiento = ?`, vigencia,mes,rubro,fuente).Values(&m)
 }
 
 // RubroIngreso informe ingresos

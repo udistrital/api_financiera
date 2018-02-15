@@ -413,12 +413,47 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	codigo = codigo
-	if compare(codigo, "2") == 1 {
-		res, err := models.RubroIngresoCierre(finicio, ffin, codigo + +"%", vigencia)
+	if v:=strings.Compare(codigo, "2"); v == 0 {
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo +"%", vigencia)
+		c.Data["json"] = res
+		c.ServeJSON()
 	} else {
-		res, err := models.RubroIngresoCierre(finicio, ffin, codigo + +"%", vigencia)
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo +"%", vigencia)
+		c.Data["json"] = res
+		c.ServeJSON()
 	}
+	
+}
+// GetPacValue...
+// @Title Get Pac value
+// @Description Obtiene el valor de ejecucion para meses cesrrados
+// @Param	vigencia	path 	int64	true		"valor vigencia apropiacion"
+// @Param	mes			path 	int64	true		"valor mes a consultar cierre"
+// @Param	rubro		path 	string	true		"id rubro a consultar"
+// @Param	fuente		path 	string	true		"valor de la fuente a consultar"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetPacValue[get]
+func (c *RubroController) GetPacValue() {
+	vigencia, err := c.GetInt64("vigencia")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	mes,err := c.GetInt64("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	rubro := c.GetString("rubro")
+	fuente := c.GetString("fuente")
+	
+	res, _ := models.ValEjecutado(vigencia, mes, rubro, fuente)
 	c.Data["json"] = res
 	c.ServeJSON()
+	
+	
 }
