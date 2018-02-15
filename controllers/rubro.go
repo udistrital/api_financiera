@@ -390,8 +390,8 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	
-	codigo := c.GetString("codigo") 
+
+	codigo := c.GetString("codigo")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -413,8 +413,12 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	codigo = codigo + "%"
-	res, err := models.RubroIngresoCierre(finicio, ffin,codigo,vigencia)
+	codigo = codigo
+	if compare(codigo, "2") == 1 {
+		res, err := models.RubroIngresoCierre(finicio, ffin, codigo + +"%", vigencia)
+	} else {
+		res, err := models.RubroIngresoCierre(finicio, ffin, codigo + +"%", vigencia)
+	}
 	c.Data["json"] = res
 	c.ServeJSON()
 }

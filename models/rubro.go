@@ -706,6 +706,57 @@ func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia
 	return
 }
 
+func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT apropiacion.id as idaprop,
+	    rubro.id as idrubro,
+	    rubro.nombre as descrubro,
+	    COALESCE(fuente.id,0) as idfuente,
+	    COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+	    'Egresos' as tipo,
+	    0 as Proyeccion,
+	    0 as Pvariacion,
+            SUM(orden_concepto.valor) as valor ,
+            0 as Variacion
+            From financiera.apropiacion as apropiacion
+            JOIN financiera.rubro as rubro
+                ON apropiacion.rubro = rubro.id
+            JOIN financiera.disponibilidad_apropiacion AS disp_apr
+                ON disp_apr.apropiacion = apropiacion.id
+            JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+                ON rpda.disponibilidad_apropiacion = disp_apr.id
+            JOIN financiera.concepto_orden_pago as orden_concepto
+                ON  orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+            JOIN financiera.orden_pago as orden
+                ON orden.id = orden_concepto.orden_de_pago
+            JOIN financiera.orden_pago_estado_orden_pago ep
+                ON ep.orden_pago = orden.id
+            JOIN financiera.registro_presupuestal as rp
+                ON rp.id = rpda.registro_presupuestal
+            JOIN financiera.disponibilidad as cdp
+                ON cdp.id = disp_apr.disponibilidad
+            LEFT JOIN financiera.fuente_financiamiento AS fuente
+                ON disp_apr.fuente_financiamiento = fuente.id
+
+        WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+            AND apropiacion.vigencia = ?
+            AND rubro.codigo LIKE ?
+            AND ep.fecha_registro between ? and ?
+            AND not exists (Select distinct ant.orden_pago
+                    from  financiera.orden_pago_estado_orden_pago ant
+                    where ant.orden_pago  = ep.orden_pago
+                        and ant.estado_orden_pago = 5
+                        and ant.fecha_registro between ? and ?)
+                        group by apropiacion.id ,
+            rubro.id ,
+            fuente.id,
+            fuente.descripcion
+					ORDER BY apropiacion.id`, codigo, vigencia, inicio, fin, inicio, fin).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
 // RubroIngreso informe ingresos
 //falta filtro por fechas.
 func RubroIngreso(rubro interface{}, fuente interface{}, inicio time.Time, fin time.Time) (res []interface{}, err error) {
