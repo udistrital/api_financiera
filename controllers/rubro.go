@@ -433,8 +433,9 @@ func (c *RubroController) GetIngresoCierre() {
 // @Param	fuente		path 	string	true		"valor de la fuente a consultar"
 // @Success 200 {object} models.Rubro
 // @Failure 403
-// @router /GetPacValue[get]
+// @router /GetPacValue [get]
 func (c *RubroController) GetPacValue() {
+	fmt.Println("entra contorl crus GetPacValue")
 	vigencia, err := c.GetInt64("vigencia")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
@@ -442,7 +443,7 @@ func (c *RubroController) GetPacValue() {
 		c.ServeJSON()
 	}
 
-	mes,err := c.GetInt64("mes")
+	mes,err := c.GetInt("mes")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -451,7 +452,7 @@ func (c *RubroController) GetPacValue() {
 	rubro := c.GetString("rubro")
 	fuente := c.GetString("fuente")
 	
-	res, _ := models.ValEjecutado(vigencia, mes, rubro, fuente)
+	res, _ := models.ValEjecutadoPac(vigencia, mes, rubro, fuente)
 	c.Data["json"] = res
 	c.ServeJSON()
 	

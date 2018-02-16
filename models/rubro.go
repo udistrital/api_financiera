@@ -757,10 +757,10 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
 	return
 }
 
-func ValEjecutadoPac(vigencia, mes, rubro, fuente){
+func ValEjecutadoPac(vigencia int64,mes int, rubro string, fuente string)(res []interface{}, err error){
  	o:=orm.NewOrm()
  	var m[]orm.Params
-
+ 	fmt.Println("modelos ValEjecutadoPac")
  	_,err = o.Raw(`Select valor_ejecutado_mes as valor
 					from financiera.detalle_pac detalle 
 					join financiera.pac pac 
@@ -769,6 +769,8 @@ func ValEjecutadoPac(vigencia, mes, rubro, fuente){
 						and detalle.mes = ?
 						and detalle.rubro = ?
 						and detalle.fuente_financiamiento = ?`, vigencia,mes,rubro,fuente).Values(&m)
+ 	err= utilidades.FillStruct(m,&res)
+ 	return
 }
 
 // RubroIngreso informe ingresos
