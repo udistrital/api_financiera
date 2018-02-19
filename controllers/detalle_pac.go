@@ -169,3 +169,25 @@ func (c *DetallePacController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+
+
+
+
+// insertarRegistros ...
+// @Title insertarRegistros
+// @Description funcion que recibe e inserta los registros de la generacion del cierre
+// @Param	query		path 	interface{}	true		"The list you wanna insert"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /InsertarRegistros/ [post]
+func (c *DetallePacController) InsertarRegistros(){
+	var request interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+		fmt.Println("request a insertar Registros", request)
+	}else{
+		fmt.Println("err 1")
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+}
