@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/api_financiera/utilidades/security"
 
 	"github.com/astaxie/beego"
 )
@@ -74,6 +76,9 @@ func (c *AfectacionConceptoController) GetOne() {
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
+// @Param	user	query	string	false	"user cc for security validation"
+// @Param	token	query	string	false	"token of app  shared"
+// @Param	hash	query	string	false	"hash provided for app shared"
 // @Success 200 {object} models.AfectacionConcepto
 // @Failure 403
 // @router / [get]
@@ -119,12 +124,27 @@ func (c *AfectacionConceptoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllAfectacionConcepto(query, fields, sortby, order, offset, limit)
-	if err != nil {
-		c.Data["json"] = err.Error()
+	// implementacion security
+	user := c.GetString("user")
+	token := c.GetString("token")
+	hash := c.GetString("hash")
+	if user != "" && token != "" && hash != "" {
+		if answer, err := security.SecurityHivridApp(user, token, hash); err == nil && answer == true {
+			// aqui contenido funcional del microservicio
+			l, err := models.GetAllAfectacionConcepto(query, fields, sortby, order, offset, limit)
+			if err != nil {
+				c.Data["json"] = err.Error()
+			} else {
+				c.Data["json"] = l
+			}
+			// aqui contenido funcional del microservicio
+		} else {
+			c.Data["json"] = err.Error()
+		}
 	} else {
-		c.Data["json"] = l
+		c.Data["json"] = errors.New("Error: not enough parameter of SecurityHivridApp")
 	}
+	//
 	c.ServeJSON()
 }
 
