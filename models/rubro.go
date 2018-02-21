@@ -224,6 +224,8 @@ func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err 
 
 		WHERE vigencia = ?
 		AND codigo LIKE ?
+		order by idfuente,
+							idrubro
 	`, vigencia, codigo).Values(&res)
 	return
 }
@@ -723,13 +725,13 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
             		    --ON apropiacion.id = disponibilidad.apropiacion
             		JOIN financiera.rubro as rubro
             		    ON apropiacion.rubro = rubro.id
-            		    
+
             		LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
 							ON apropiacion.id = ffa.apropiacion
 	    			LEFT JOIN financiera.fuente_financiamiento as fuente
-							ON fuente.id = ffa.fuente_financiamiento		
+							ON fuente.id = ffa.fuente_financiamiento
             		LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
-            		    ON disp_apr.apropiacion = apropiacion.id 
+            		    ON disp_apr.apropiacion = apropiacion.id
             		LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
             		    ON rpda.disponibilidad_apropiacion = disp_apr.id
             		LEFT JOIN financiera.concepto_orden_pago as orden_concepto
@@ -740,9 +742,9 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
             		        			from  financiera.orden_pago_estado_orden_pago ant
             		        			where ant.orden_pago  = ep.orden_pago
             		            				and ant.estado_orden_pago = 5
-            		            				and ant.fecha_registro 
+            		            				and ant.fecha_registro
             		            				between ? and ?)
-            		    AND ep.orden_pago = orden_concepto.orden_de_pago 
+            		    AND ep.orden_pago = orden_concepto.orden_de_pago
             		LEFT JOIN financiera.orden_pago as orden
             		    ON ep.orden_pago = orden.id
         			WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
@@ -752,25 +754,44 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
             				rubro.id ,
             				fuente.id,
             				rubro.codigo
-							ORDER BY apropiacion.id`, inicio, fin,inicio, fin, codigo, vigencia).Values(&m)
+							ORDER BY apropiacion.id`, inicio, fin, inicio, fin, codigo, vigencia).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
 
-func ValEjecutadoPac(vigencia int64,mes int, rubro string, fuente string)(res []interface{}, err error){
- 	o:=orm.NewOrm()
- 	var m[]orm.Params
- 	fmt.Println("modelos ValEjecutadoPac")
- 	_,err = o.Raw(`Select valor_ejecutado_mes as valor
-					from financiera.detalle_pac detalle 
-					join financiera.pac pac 
-    					on detalle.pac = pac.id 
+func ValEjecutadoPac(vigencia int64, mes int, rubro string, fuente string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos ValEjecutadoPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as valor
+					from financiera.detalle_pac detalle
+					join financiera.pac pac
+    					on detalle.pac = pac.id
 					where pac.vigencia = ?
 						and detalle.mes = ?
 						and detalle.rubro = ?
-						and detalle.fuente_financiamiento = ?`, vigencia,mes,rubro,fuente).Values(&m)
- 	err= utilidades.FillStruct(m,&res)
- 	return
+						and detalle.fuente_financiamiento = ?`, vigencia, mes, rubro, fuente).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+func GetSumbySource(vigencia int, mes int, fuente string, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos ValEjecutadoPac")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and rubro.Codigo like ?`, vigencia, mes, fuente, tipo).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
 }
 
 // RubroIngreso informe ingresos

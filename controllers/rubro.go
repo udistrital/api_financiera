@@ -413,17 +413,18 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	if v:=strings.Compare(codigo, "2"); v == 0 {
-		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo +"%", vigencia)
+	if v := strings.Compare(codigo, "2"); v == 0 {
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo+"%", vigencia)
 		c.Data["json"] = res
 		c.ServeJSON()
 	} else {
-		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo +"%", vigencia)
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo+"%", vigencia)
 		c.Data["json"] = res
 		c.ServeJSON()
 	}
-	
+
 }
+
 // GetPacValue...
 // @Title Get Pac value
 // @Description Obtiene el valor de ejecucion para meses cesrrados
@@ -435,7 +436,6 @@ func (c *RubroController) GetIngresoCierre() {
 // @Failure 403
 // @router /GetPacValue [get]
 func (c *RubroController) GetPacValue() {
-	fmt.Println("entra contorl crus GetPacValue")
 	vigencia, err := c.GetInt64("vigencia")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
@@ -443,7 +443,7 @@ func (c *RubroController) GetPacValue() {
 		c.ServeJSON()
 	}
 
-	mes,err := c.GetInt("mes")
+	mes, err := c.GetInt("mes")
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -451,10 +451,34 @@ func (c *RubroController) GetPacValue() {
 	}
 	rubro := c.GetString("rubro")
 	fuente := c.GetString("fuente")
-	
+
 	res, _ := models.ValEjecutadoPac(vigencia, mes, rubro, fuente)
 	c.Data["json"] = res
 	c.ServeJSON()
-	
-	
+}
+
+// GetSumbySource...
+// @Title Get Pac value
+// @Description Obtiene el valor de ejecucion para meses cesrrados
+// @Param	vigencia	path 	int	true		"valor vigencia apropiacion"
+// @Param	mes			path 	int	true		"valor mes a consultar cierre"
+// @Param	fuente		path 	string	true		"valor de la fuente a consultar"
+// @Param	tipo		path 	string	true		"ingresos :2, egresos:3"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetSumbySource [get]
+func (c *RubroController) GetSumbySource() {
+	vigencia, err := c.GetInt("vigencia")
+	mes, err := c.GetInt("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente := c.GetString("fuente")
+	tipo := c.GetString("tipo") + "%"
+	res, _ := models.GetSumbySource(vigencia, mes, fuente, tipo)
+	c.Data["json"] = res
+	c.ServeJSON()
+
 }
