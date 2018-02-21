@@ -157,6 +157,82 @@ func DeleteDetallePac(id int) (err error) {
 	return
 }
 
+func AddIngresoPac(ingreso Ingreso)(err error){
+	
+	var valorAgregado float64
+	var IdFuente int
+	var detPac DetallePac
+	var TotalEjecutado float64
+	var idRubro int
+	var codigo string
+	vigencia := ingreso.Vigencia
+	mes := int(ingreso.FechaIngreso.Month())
+	
+	for _, ingConcep := range ingreso.IngresoConcepto {
+		valorAgregado = valorAgregado + ingConcep.ValorAgregado
+		concepto := ingConcep.Concepto
+		rubro := concepto.Rubro
+		idRubro = rubro.Id
+	}
+	
+	fuenteFinan:=ingreso.FuenteFinanciamiento
+	if fuenteFinan != nil{
+		codigo = fuenteFinan.Codigo
+	}
+	
+	IdFuente,err = strconv.Atoi(codigo)
+	
+	if err!=nil {
+		IdFuente = 0;
+		beego.Error(err.Error);
+	}
+
+	pac,err := GetPacByVigencia(vigencia,mes)
+	o := orm.NewOrm()
+
+	qs:=o.QueryTable("detalle_pac")
+	qs.Filter("vigencia", vigencia)
+	qs.Filter("mes", mes)
+	qs.Filter("pac",pac.Id)
+	qs.Filter("fuente_financiamiento",IdFuente)
+	qs.Filter("rubro",idRubro)
+
+	err = qs.One(&detPac)
+
+	if err == orm.ErrMultiRows {
+    	fmt.Println("Returned Multi Rows Not One")
+    	return
+	}
+	if err == orm.ErrNoRows {
+
+		detalle_pac := &DetallePac{ValorProyectadoMes: -1,
+			ValorEjecutadoMes:    valorAgregado,
+			FuenteFinanciamiento: IdFuente,
+			Rubro:                idRubro,
+			Pac:                  &pac,
+			Mes:                  mes}
+
+		_, err = o.Insert(detalle_pac)
+
+		if err != nil {
+			beego.Info(err.Error())
+			return
+		}
+
+	}
+	if err == nil {
+		TotalEjecutado = detPac.ValorEjecutadoMes + valorAgregado
+		detPac.ValorEjecutadoMes = TotalEjecutado
+		var num int64
+		if num, err = o.Update(&detPac); err == nil {
+			fmt.Println("Number of records updated in database:", num)
+		}
+	}
+	fmt.Println(" valor para pac ", pac)
+	beego.Info(strconv.FormatFloat(vigencia, 'E', -1, 64) + "mes "+strconv.Itoa(mes) + " valor " +strconv.FormatFloat(valorAgregado, 'E', -1, 64))
+	return
+}
+
 func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac DetallePac, err error) {
 	var pac Pac
 	o := orm.NewOrm()
