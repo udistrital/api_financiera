@@ -32,6 +32,7 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+
 	pacUtils.Init()
 	beego.Run()
 }

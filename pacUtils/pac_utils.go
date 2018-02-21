@@ -10,6 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
+	"github.com/udistrital/api_financiera/models"
 )
 
 func failOnError(err error, msg string) {
@@ -33,8 +34,10 @@ func FunctionBeforeExec(ctx *context.Context) {
 func FunctionAfterExecIngresoPac(ctx *context.Context) {
 	//beego.Info("Llamada...")
 	var u map[string]interface{}
+	ingreso := models.Ingreso{}
 	FillStruct(ctx.Input.Data()["json"], &u)
-	beego.Info(u)
+	FillStruct(u["Body"], &ingreso)
+	beego.Info(ingreso)
 }
 
 func FillStruct(m interface{}, s interface{}) (err error) {
