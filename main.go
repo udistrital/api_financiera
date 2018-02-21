@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/plugins/cors"
 	_ "github.com/lib/pq"
+	"github.com/udistrital/api_financiera/pacUtils"
 	_ "github.com/udistrital/api_financiera/routers"
 )
 
@@ -31,5 +32,6 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+	pacUtils.Init()
 	beego.Run()
 }
