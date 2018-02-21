@@ -13,11 +13,93 @@ import (
 	"github.com/udistrital/api_financiera/models"
 )
 
+type WorkRequest struct {
+	JobParameter interface{}
+	Job          func(...interface{}) interface{}
+}
+
+var WorkQueue = make(chan WorkRequest, 100)
+var WorkerQueue chan chan WorkRequest
+
 func failOnError(err error, msg string) {
 	if err != nil {
 		beego.Info("%s: %s", msg, err)
 		beego.Info(fmt.Sprintf("%s: %s", msg, err))
 	}
+}
+
+func NewWorker(id int, workerQueue chan chan WorkRequest) Worker {
+	// Create, and return the worker.
+	worker := Worker{
+		ID:          id,
+		Work:        make(chan WorkRequest),
+		WorkerQueue: workerQueue,
+		QuitChan:    make(chan bool)}
+
+	return worker
+}
+
+type Worker struct {
+	ID          int
+	Work        chan WorkRequest
+	WorkerQueue chan chan WorkRequest
+	QuitChan    chan bool
+}
+
+// This function "starts" the worker by starting a goroutine, that is
+// an infinite "for-select" loop.
+func (w *Worker) Start() {
+	go func() {
+		for {
+			// Add ourselves into the worker queue.
+			w.WorkerQueue <- w.Work
+
+			select {
+			case work := <-w.Work:
+				work.Job(work.JobParameter)
+			case <-w.QuitChan:
+				// We have been asked to stop.
+				fmt.Printf("worker%d stopping\n", w.ID)
+				return
+			}
+		}
+	}()
+}
+
+// Stop tells the worker to stop listening for work requests.
+//
+// Note that the worker will only stop *after* it has finished its work.
+func (w *Worker) Stop() {
+	go func() {
+		w.QuitChan <- true
+	}()
+}
+
+func StartDispatcher(nworkers int) {
+	// First, initialize the channel we are going to but the workers' work channels into.
+	WorkerQueue = make(chan chan WorkRequest, nworkers)
+
+	// Now, create all of our workers.
+	for i := 0; i < nworkers; i++ {
+		beego.Info("Starting worker", i+1)
+		worker := NewWorker(i+1, WorkerQueue)
+		worker.Start()
+	}
+
+	go func() {
+		for {
+			select {
+			case work := <-WorkQueue:
+				beego.Info("Received work requeust")
+				go func() {
+					worker := <-WorkerQueue
+
+					beego.Info("Dispatching work request")
+					worker <- work
+				}()
+			}
+		}
+	}()
 }
 
 func FunctionBeforeStatic(ctx *context.Context) {
@@ -37,7 +119,15 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 	ingreso := models.Ingreso{}
 	FillStruct(ctx.Input.Data()["json"], &u)
 	FillStruct(u["Body"], &ingreso)
-	beego.Info(ingreso)
+	work := WorkRequest{JobParameter: ingreso, Job: FunctionJobExample}
+	// Push the work onto the queue.
+	WorkQueue <- work
+	beego.Info("Work request queued")
+}
+
+func FunctionJobExample(parameter ...interface{}) (res interface{}) {
+	beego.Info("Job's Parameter: ", parameter[0].(models.Ingreso).Id)
+	return
 }
 
 func FillStruct(m interface{}, s interface{}) (err error) {
@@ -76,7 +166,8 @@ func FunctionFinishRouter(ctx *context.Context) {
 }
 
 func Init() {
-	go beego.InsertFilter("/v1/ingreso/AprobarIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
+	StartDispatcher(1)
+	beego.InsertFilter("/v1/ingreso/AprobarIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
 }
 
 func sendJson(urlp string, trequest string, target interface{}, datajson interface{}) error {
