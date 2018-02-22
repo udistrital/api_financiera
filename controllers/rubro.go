@@ -477,8 +477,44 @@ func (c *RubroController) GetSumbySource() {
 	}
 	fuente := c.GetString("fuente")
 	tipo := c.GetString("tipo") + "%"
-	res, _ := models.GetSumbySource(vigencia, mes, fuente, tipo)
+	if len(fuente) > 0 {
+		res, _ := models.GetSumbySource(vigencia, mes, fuente, tipo)
+		c.Data["json"] = res
+	} else {
+		beego.Error("entra a calcular por tipo")
+		res, _ := models.GetSumbyTotal(vigencia, mes, tipo)
+		c.Data["json"] = res
+	}
+
+	c.ServeJSON()
+}
+
+// GetRubroPac ...
+// @Title Get Pac Rubro
+// @Description get Apropiaciones Hijo
+// @Param	vigencia		path 	int	true		"apropiacion a consultar"
+// @Param	mes		path 	int	true		"fuente a consultar"
+// @Param	idRubro		path 	string	true		"fecha de inicio para el reporte"
+// @Param	idFuente		path 	string	true		"fecha final para el reporte"
+// @Success 200 interface{}
+// @Failure 403
+// @router /GetRubroPac [get]
+func (c *RubroController) GetRubroPac() {
+	vigencia, err := c.GetInt("vigencia")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	mes, err := c.GetInt("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	rubro := c.GetString("idRubro")
+	fuente := c.GetString("idFuente")
+	res, err := models.GetRubroPac(vigencia, mes, fuente, rubro)
 	c.Data["json"] = res
 	c.ServeJSON()
-
 }

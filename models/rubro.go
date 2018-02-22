@@ -778,7 +778,7 @@ func ValEjecutadoPac(vigencia int64, mes int, rubro string, fuente string) (res 
 func GetSumbySource(vigencia int, mes int, fuente string, tipo string) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	fmt.Println("modelos ValEjecutadoPac")
+	fmt.Println("modelos GetSumbySource")
 	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
 									sum(valor_proyectado_mes) as proyectado
 										from financiera.detalle_pac detalle
@@ -790,6 +790,41 @@ func GetSumbySource(vigencia int, mes int, fuente string, tipo string) (res []in
 												and detalle.mes = ?
 												and detalle.fuente_financiamiento = ?
 												and rubro.Codigo like ?`, vigencia, mes, fuente, tipo).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+func GetSumbyTotal(vigencia int, mes int, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos GetSumbyTotal")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and rubro.Codigo like ?`, vigencia, mes, tipo).Values(&m)
+	err = utilidades.FillStruct(m, &res)
+	return
+}
+
+func GetRubroPac(vigencia int, mes int, fuente string, rubro string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos getRubroPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as ejecutado,
+										valor_proyectado_mes as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and detalle.rubro = ?`, vigencia, mes, fuente, rubro).Values(&m)
 	err = utilidades.FillStruct(m, &res)
 	return
 }
