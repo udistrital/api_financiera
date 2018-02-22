@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Giro struct {
@@ -165,8 +165,8 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	o.Begin()
 	newGiro := Giro{}
 	OrdenesPago := []OrdenPago{}
-	err1 := utilidades.FillStruct(dataGiro["Giro"], &newGiro)
-	err2 := utilidades.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
+	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
+	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada

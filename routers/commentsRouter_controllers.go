@@ -3297,6 +3297,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
 		beego.ControllerComments{
+			Method: "ApropiacionReporte",
+			Router: `ApropiacionReporte/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
 			Method: "ArbolRubros",
 			Router: `ArbolRubros/`,
 			AllowHTTPMethods: []string{"get"},
