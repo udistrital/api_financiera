@@ -9,7 +9,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -45,7 +45,7 @@ func (c *ApropiacionController) Post() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -155,7 +155,7 @@ func (c *ApropiacionController) Put() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -199,7 +199,7 @@ func (c *ApropiacionController) SaldoApropiacion() {
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alert
 	} else {
@@ -228,7 +228,7 @@ func (c *ApropiacionController) SaldoApropiacionPadre() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -262,7 +262,7 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -318,7 +318,7 @@ func (c *ApropiacionController) AprobarPresupuesto() {
 			} else {
 				alertdb := structs.Map(err)
 				var code string
-				utilidades.FillStruct(alertdb["Code"], &code)
+				formatdata.FillStruct(alertdb["Code"], &code)
 				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 				c.Data["json"] = alert
 			}

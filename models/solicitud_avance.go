@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type SolicitudAvance struct {
@@ -34,7 +34,7 @@ func init() {
 
 func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err error) {
 	//var id int64
-	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
+	err = formatdata.FillStruct(m["Solicitud"], &solicitud)
 	if err == nil {
 		fmt.Println("Solicitud: ", solicitud)
 		//solicitud.Fecha = time.Now()
@@ -50,7 +50,7 @@ func TrSolicitudAvance(m map[string]interface{}) (solicitud SolicitudAvance, err
 			_, err = o.Insert(&solicitud)
 			if err == nil {
 				solicitudTipoAvance := []SolicitudTipoAvance{}
-				err = utilidades.FillStruct(m["TipoAvance"], &solicitudTipoAvance)
+				err = formatdata.FillStruct(m["TipoAvance"], &solicitudTipoAvance)
 				if err == nil {
 					for _, data := range solicitudTipoAvance {
 						data.Activo = true
