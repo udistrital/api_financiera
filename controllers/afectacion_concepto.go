@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades/security"
+	"github.com/udistrital/utils_oas/security"
 
 	"github.com/astaxie/beego"
 )
@@ -137,12 +137,13 @@ func (c *AfectacionConceptoController) GetAll() {
 			} else {
 				c.Data["json"] = l
 			}
-			// aqui contenido funcional del microservicio
+			// Fin aqui contenido funcional del microservicio
 		} else {
 			c.Data["json"] = err.Error()
 		}
 	} else {
-		c.Data["json"] = errors.New("Error: not enough parameter of SecurityHivridApp")
+		err := errors.New("Error: not enough parameter of SecurityHivridApp")
+		c.Data["json"] = err.Error()
 	}
 	//
 	c.ServeJSON()
