@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 type Rubro struct {
@@ -275,7 +276,7 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 				fll := egresos[0].(map[string]interface{})
 
 				var ejstr string
-				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
 				fmt.Println("err ", err)
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
@@ -293,8 +294,8 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 				fll["proyeccion"] = proy
 				var mp interface{}
 				var mpp interface{}
-				err = utilidades.FillStruct(variacion, &mp)
-				err = utilidades.FillStruct(pvariacion, &mpp)
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
 				fll["pvariacion"] = mpp
 				aux["valores"] = fll
@@ -314,7 +315,7 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		fmt.Println("err2 ", err)
 		return
@@ -339,7 +340,7 @@ func RubroReporteEgresosProyeccion(inicio time.Time, fin time.Time, nperiodos in
 				for _, m := range aux {
 					p := m.(map[string]interface{})
 					var val float64
-					err = utilidades.FillStruct(p["valor"], &val)
+					err = formatdata.FillStruct(p["valor"], &val)
 					proy = proy + val
 					fmt.Println("proy: ", proy)
 				}
@@ -369,7 +370,7 @@ func RubroReporteIngresosProyeccion(inicio time.Time, fin time.Time, nperiodos i
 				for _, m := range aux {
 					p := m.(map[string]interface{})
 					var val float64
-					err = utilidades.FillStruct(p["valor"], &val)
+					err = formatdata.FillStruct(p["valor"], &val)
 					proy = proy + val
 					fmt.Println("proy: ", proy)
 				}
@@ -427,7 +428,7 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 			} else {
 				fll := ingr[0].(map[string]interface{})
 				var ejstr string
-				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
 				//fmt.Println("err ", err)
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
@@ -445,8 +446,8 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 				fll["proyeccion"] = proy
 				var mp interface{}
 				var mpp interface{}
-				err = utilidades.FillStruct(variacion, &mp)
-				err = utilidades.FillStruct(pvariacion, &mpp)
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
 				fll["pvariacion"] = mpp
 				aux["valores"] = fll
@@ -466,7 +467,7 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		return
 	}
@@ -535,7 +536,7 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		return
 	}
@@ -600,7 +601,7 @@ func ApropiacionOrdenPago(apropiacion interface{}, fuente interface{}) (res []in
 		id_apr,
 		  codigo,
 			idfuente`, apropiacion, fuente).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -661,7 +662,7 @@ GROUP BY
 id_aprop,
 	codigo,
 	idfuente`, apropiacion, fuente, inicio, fin).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -723,7 +724,7 @@ id_aprop,
 idrubro,
 	codigo,
 	idfuente`, rubro, fuente, inicio, fin).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -786,7 +787,7 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 		id_apr,
 		  codigo,
 			idfuente`, rubro, fuente).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 func RamaRubros(forkin interface{}, params ...interface{}) (forkout interface{}) {
@@ -802,12 +803,12 @@ func RamaRubros(forkin interface{}, params ...interface{}) (forkout interface{})
 	  WHERE rubro_rubro.rubro_padre = ?
 	  AND unidad_ejecutora in (?,0)`, fork["Id"], params).Values(&m)
 	if err == nil {
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		var hijos []map[string]interface{}
 		done := make(chan interface{})
 		defer close(done)
-		resch := utilidades.GenChanInterface(res...)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
+		resch := optimize.GenChanInterface(res...)
+		charbolrubros := optimize.Digest(done, RamaRubros, resch, params)
 		for hijo := range charbolrubros {
 			if hijo != nil {
 				hijos = append(hijos, hijo.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
@@ -841,13 +842,13 @@ func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]inte
 			  AND rubro.unidad_ejecutora IN (?,0)`, searchparam, unidadEjecutora).Values(&m)
 	if err == nil {
 		var res []interface{}
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		done := make(chan interface{})
 		defer close(done)
-		resch := utilidades.GenChanInterface(res...)
+		resch := optimize.GenChanInterface(res...)
 		var params []interface{}
 		params = append(params, unidadEjecutora)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
+		charbolrubros := optimize.Digest(done, RamaRubros, resch, params)
 		for padre := range charbolrubros {
 			padres = append(padres, padre.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
 		}

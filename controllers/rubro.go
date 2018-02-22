@@ -12,7 +12,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -57,7 +57,7 @@ func (c *RubroController) Post() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -242,7 +242,7 @@ func (c *RubroController) Delete() {
 	} else {
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alert
 	}
@@ -265,9 +265,9 @@ func (c *RubroController) ApropiacionReporte() {
 		//fmt.Println("inicio: ", m["inicio"])
 		//fmt.Println("inicio: ", m["fin"])
 		var inicio time.Time
-		err = utilidades.FillStruct(m["inicio"], &inicio)
+		err = formatdata.FillStruct(m["inicio"], &inicio)
 		var fin time.Time
-		err = utilidades.FillStruct(m["fin"], &fin)
+		err = formatdata.FillStruct(m["fin"], &fin)
 		//fmt.Println("format inicio: ", int(inicio.Year()))
 		//fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
 		reporte := make(map[string]interface{})
@@ -278,7 +278,7 @@ func (c *RubroController) ApropiacionReporte() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -317,7 +317,7 @@ func (c *RubroController) GetRubroOrdenPago() {
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alert
 		c.ServeJSON()

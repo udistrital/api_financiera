@@ -10,7 +10,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type RegistroPresupuestal struct {
@@ -573,7 +573,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
@@ -597,7 +597,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 			o.Rollback()
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 			return
 		}
@@ -613,7 +613,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}

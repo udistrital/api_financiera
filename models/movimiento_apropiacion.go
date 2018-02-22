@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type MovimientoApropiacion struct {
@@ -70,8 +70,8 @@ func GetTotalMovimientosApropiacion(vigencia int, unidadEjecutora int) (total in
 func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert Alert, err error) {
 	var movimientoapr MovimientoApropiacion
 	var desgrMovimientoApr []MovimientoApropiacionDisponibilidadApropiacion
-	if err = utilidades.FillStruct(movimiento["MovimientoApropiacion"], &movimientoapr); err == nil {
-		if err = utilidades.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
+	if err = formatdata.FillStruct(movimiento["MovimientoApropiacion"], &movimientoapr); err == nil {
+		if err = formatdata.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
 			o := orm.NewOrm()
 			o.Begin()
 			var consecutivo int
