@@ -157,7 +157,7 @@ func DeleteDetallePac(id int) (err error) {
 	return
 }
 
-func AddIngresoPac(ingreso Ingreso)(err error){
+func AddIngresoPac(parameter ...interface{})(err interface{}){
 	
 	var valorAgregado float64
 	var IdFuente int
@@ -165,6 +165,8 @@ func AddIngresoPac(ingreso Ingreso)(err error){
 	var TotalEjecutado float64
 	var idRubro int
 	var codigo string
+	var errs error
+	ingreso:= parameter[0].(Ingreso)
 	vigencia := ingreso.Vigencia
 	mes := int(ingreso.FechaIngreso.Month())
 	
@@ -180,14 +182,15 @@ func AddIngresoPac(ingreso Ingreso)(err error){
 		codigo = fuenteFinan.Codigo
 	}
 	
-	IdFuente,err = strconv.Atoi(codigo)
+	IdFuente,errs = strconv.Atoi(codigo)
 	
-	if err!=nil {
+	if errs!=nil {
 		IdFuente = 0;
-		beego.Error(err.Error);
+		utilidades.FillStruct(errs.Error(),&err)
+		beego.Error(errs);
 	}
 
-	pac,err := GetPacByVigencia(vigencia,mes)
+	pac,errs := GetPacByVigencia(vigencia,mes)
 	o := orm.NewOrm()
 
 	qs:=o.QueryTable("detalle_pac")
@@ -197,13 +200,13 @@ func AddIngresoPac(ingreso Ingreso)(err error){
 	qs.Filter("fuente_financiamiento",IdFuente)
 	qs.Filter("rubro",idRubro)
 
-	err = qs.One(&detPac)
+	errs = qs.One(&detPac)
 
-	if err == orm.ErrMultiRows {
+	if errs == orm.ErrMultiRows {
     	fmt.Println("Returned Multi Rows Not One")
     	return
 	}
-	if err == orm.ErrNoRows {
+	if errs == orm.ErrNoRows {
 
 		detalle_pac := &DetallePac{ValorProyectadoMes: -1,
 			ValorEjecutadoMes:    valorAgregado,
@@ -212,15 +215,16 @@ func AddIngresoPac(ingreso Ingreso)(err error){
 			Pac:                  &pac,
 			Mes:                  mes}
 
-		_, err = o.Insert(detalle_pac)
+		_, errs = o.Insert(detalle_pac)
 
-		if err != nil {
-			beego.Info(err.Error())
+		if errs != nil {
+			utilidades.FillStruct(errs.Error(),&err)
+			beego.Info(err)
 			return
 		}
 
 	}
-	if err == nil {
+	if errs == nil {
 		TotalEjecutado = detPac.ValorEjecutadoMes + valorAgregado
 		detPac.ValorEjecutadoMes = TotalEjecutado
 		var num int64

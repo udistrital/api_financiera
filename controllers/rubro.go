@@ -376,15 +376,15 @@ func (c *RubroController) GetRubroIngreso() {
 // GetIngresoCierre ...
 // @Title Get Ingreso Cierre
 // @Description Obtiene informacion para cierre ingresos mes
-// @Param	vigencia	path 	int64	true		"valor vigencia apropiacion"
+// @Param	vigencia	path 	int64 	true		"valor vigencia apropiacion"
 // @Param	codigo		path 	string	true		"numero inicial de codigo rubro consultar"
-// @Param	finicio		path 	string	true		"fecha de inicio para el reporte"
-// @Param	ffin		path 	string	true		"fecha final para el reporte"
+// @Param	mes		    path 	int	true		"fecha de inicio para el reporte"
 // @Success 200 {object} models.Rubro
 // @Failure 403
 // @router /GetIngresoCierre [get]
 func (c *RubroController) GetIngresoCierre() {
 	vigencia, err := c.GetInt64("vigencia")
+
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -397,9 +397,18 @@ func (c *RubroController) GetIngresoCierre() {
 		c.Data["json"] = e
 		c.ServeJSON()
 	}
-	finicioStr := c.GetString("finicio")
 
-	ffinStr := c.GetString("ffin")
+	mes,err := c.GetInt("mes")
+
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	finicioStr := time.Date(int(vigencia),time.Month(mes),1,0,0,0,0,time.UTC).Format("2006-01-02")
+
+	ffinStr := time.Date(int(vigencia),time.Month(mes) + 1 ,0,0,0,0,0,time.UTC).Format("2006-01-02")
 
 	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
 	if err != nil {

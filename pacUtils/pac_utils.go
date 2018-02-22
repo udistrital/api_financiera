@@ -119,7 +119,8 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 	ingreso := models.Ingreso{}
 	FillStruct(ctx.Input.Data()["json"], &u)
 	FillStruct(u["Body"], &ingreso)
-	work := WorkRequest{JobParameter: ingreso, Job: FunctionJobExample}
+	//work := WorkRequest{JobParameter: ingreso, Job: FunctionJobExample}
+	work := WorkRequest{JobParameter: ingreso, Job: (models.AddIngresoPac)}
 	// Push the work onto the queue.
 	WorkQueue <- work
 	beego.Info("Work request queued")
