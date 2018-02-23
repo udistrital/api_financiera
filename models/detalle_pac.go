@@ -157,83 +157,79 @@ func DeleteDetallePac(id int) (err error) {
 	return
 }
 
-func AddIngresoPac(parameter ...interface{})(err interface{}){
-	
-	var valorAgregado float64
+func AddIngresoPac(parameter ...interface{}) (err interface{}) {
+
 	var IdFuente int
 	var detPac DetallePac
 	var TotalEjecutado float64
-	var idRubro int
 	var codigo string
 	var errs error
-	ingreso:= parameter[0].(Ingreso)
+	ingreso := parameter[0].(Ingreso)
 	vigencia := ingreso.Vigencia
 	mes := int(ingreso.FechaIngreso.Month())
-	
-	for _, ingConcep := range ingreso.IngresoConcepto {
-		valorAgregado = valorAgregado + ingConcep.ValorAgregado
-		concepto := ingConcep.Concepto
-		rubro := concepto.Rubro
-		idRubro = rubro.Id
-	}
-	
-	fuenteFinan:=ingreso.FuenteFinanciamiento
-	if fuenteFinan != nil{
+
+	fuenteFinan := ingreso.FuenteFinanciamiento
+	if fuenteFinan != nil {
 		codigo = fuenteFinan.Codigo
 	}
-	
-	IdFuente,errs = strconv.Atoi(codigo)
-	
-	if errs!=nil {
-		IdFuente = 0;
-		utilidades.FillStruct(errs.Error(),&err)
-		beego.Error(errs);
+
+	IdFuente, errs = strconv.Atoi(codigo)
+
+	if errs != nil {
+		IdFuente = 0
+		utilidades.FillStruct(errs.Error(), &err)
+		beego.Error(errs)
 	}
 
-	pac,errs := GetPacByVigencia(vigencia,mes)
+	pac, errs := GetPacByVigencia(vigencia, mes)
 	o := orm.NewOrm()
 
-	qs:=o.QueryTable("detalle_pac")
-	qs.Filter("vigencia", vigencia)
-	qs.Filter("mes", mes)
-	qs.Filter("pac",pac.Id)
-	qs.Filter("fuente_financiamiento",IdFuente)
-	qs.Filter("rubro",idRubro)
+	for _, ingConcep := range ingreso.IngresoConcepto {
 
-	errs = qs.One(&detPac)
+		concepto := ingConcep.Concepto
+		rubro := concepto.Rubro
 
-	if errs == orm.ErrMultiRows {
-    	fmt.Println("Returned Multi Rows Not One")
-    	return
-	}
-	if errs == orm.ErrNoRows {
+		beego.Info("rubro ", rubro.Id)
+		beego.Info("valorAgregado ", ingConcep.ValorAgregado)
 
-		detalle_pac := &DetallePac{ValorProyectadoMes: -1,
-			ValorEjecutadoMes:    valorAgregado,
-			FuenteFinanciamiento: IdFuente,
-			Rubro:                idRubro,
-			Pac:                  &pac,
-			Mes:                  mes}
+		errs = o.QueryTable("detalle_pac").
+			Filter("mes", mes).
+			Filter("pac", pac.Id).
+			Filter("fuente_financiamiento", IdFuente).
+			Filter("rubro", rubro.Id).
+			One(&detPac)
 
-		_, errs = o.Insert(detalle_pac)
-
-		if errs != nil {
-			utilidades.FillStruct(errs.Error(),&err)
-			beego.Info(err)
+		if errs == orm.ErrMultiRows {
+			fmt.Println("Returned Multi Rows Not One")
 			return
 		}
+		if errs == orm.ErrNoRows {
 
-	}
-	if errs == nil {
-		TotalEjecutado = detPac.ValorEjecutadoMes + valorAgregado
-		detPac.ValorEjecutadoMes = TotalEjecutado
-		var num int64
-		if num, err = o.Update(&detPac); err == nil {
-			fmt.Println("Number of records updated in database:", num)
+			detalle_pac := &DetallePac{ValorProyectadoMes: -1,
+				ValorEjecutadoMes:    ingConcep.ValorAgregado,
+				FuenteFinanciamiento: IdFuente,
+				Rubro:                rubro.Id,
+				Pac:                  &pac,
+				Mes:                  mes}
+
+			_, errs = o.Insert(detalle_pac)
+
+			if errs != nil {
+				utilidades.FillStruct(errs.Error(), &err)
+				beego.Info(err)
+				return
+			}
+
+		}
+		if errs == nil {
+			TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
+			detPac.ValorEjecutadoMes = TotalEjecutado
+			var num int64
+			if num, err = o.Update(&detPac); err == nil {
+				fmt.Println("Number of records updated in database:", num)
+			}
 		}
 	}
-	fmt.Println(" valor para pac ", pac)
-	beego.Info(strconv.FormatFloat(vigencia, 'E', -1, 64) + "mes "+strconv.Itoa(mes) + " valor " +strconv.FormatFloat(valorAgregado, 'E', -1, 64))
 	return
 }
 
