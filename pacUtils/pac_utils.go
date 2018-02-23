@@ -117,12 +117,20 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 	//beego.Info("Llamada...")
 	var u map[string]interface{}
 	ingreso := models.Ingreso{}
-	FillStruct(ctx.Input.Data()["json"], &u)
-	FillStruct(u["Body"], &ingreso)
+	var tipo string
+	if err := FillStruct(ctx.Input.Data()["json"], &u); err == nil {
+		if err = FillStruct(u["Body"], &ingreso); err == nil && ingreso.Id != 0 {
+			if err = FillStruct(u["Type"], &tipo); err == nil && tipo == "success" {
+				work := WorkRequest{JobParameter: ingreso, Job: (models.AddIngresoPac)}
+				// Push the work onto the queue.
+				WorkQueue <- work
+			}
+
+		}
+
+	}
 	//work := WorkRequest{JobParameter: ingreso, Job: FunctionJobExample}
-	work := WorkRequest{JobParameter: ingreso, Job: (models.AddIngresoPac)}
-	// Push the work onto the queue.
-	WorkQueue <- work
+
 	beego.Info("Work request queued")
 }
 
