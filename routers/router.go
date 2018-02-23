@@ -368,6 +368,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/detalle_pac",
+			beego.NSInclude(
+				&controllers.DetallePacController{},
+			),
+		),
+
 		beego.NSNamespace("/forma_ingreso",
 			beego.NSInclude(
 				&controllers.FormaIngresoController{},

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/astaxie/beego"
 )
 
 type Ingreso struct {
@@ -17,9 +17,9 @@ type Ingreso struct {
 	Consecutivo          float64               `orm:"column(consecutivo)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaInicio    		 time.Time             `orm:"column(fecha_inicio);type(date)"`
-	FechaFin    		 time.Time             `orm:"column(fecha_fin);type(date)"`
-	Facultad    		 int             	   `orm:"column(facultad);null"`
+	FechaInicio          time.Time             `orm:"column(fecha_inicio);type(date)"`
+	FechaFin             time.Time             `orm:"column(fecha_fin);type(date)"`
+	Facultad             int                   `orm:"column(facultad);null"`
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
@@ -74,8 +74,9 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 		return
 	}
 	for _, element := range mov {
-		element.EstadoMovimientoContable.Id = 1
-		_, err = o.Update(&element, "Aprobado")
+		element.EstadoMovimientoContable.Id = 2
+		beego.Info(element)
+		_, err = o.Update(&element, "EstadoMovimientoContable")
 		if err != nil {
 			o.Rollback()
 			return
