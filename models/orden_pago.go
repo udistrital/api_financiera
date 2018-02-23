@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Usuario struct {
@@ -194,10 +194,10 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
-	err1 := utilidades.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
-	err2 := utilidades.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err3 := utilidades.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
-	err4 := utilidades.FillStruct(DataOpProveedor["Usuario"], &usuario)
+	err1 := formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
+	err2 := formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err3 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
+	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
@@ -323,10 +323,10 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
-	err = utilidades.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_UPD_01" //error en parametros de entrada

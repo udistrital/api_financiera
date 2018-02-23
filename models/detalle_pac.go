@@ -9,7 +9,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type DetallePac struct {
@@ -177,7 +177,7 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 
 	if errs != nil {
 		IdFuente = 0
-		utilidades.FillStruct(errs.Error(), &err)
+		formatdata.FillStruct(errs.Error(), &err)
 		beego.Error(errs)
 	}
 
@@ -215,7 +215,7 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			_, errs = o.Insert(detalle_pac)
 
 			if errs != nil {
-				utilidades.FillStruct(errs.Error(), &err)
+				formatdata.FillStruct(errs.Error(), &err)
 				beego.Info(err)
 				return
 			}
@@ -257,10 +257,10 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 	var idR int
 
 	for _, registroInsertar := range v {
-		utilidades.FillStruct(registroInsertar["Proyeccion"], &proy)
-		utilidades.FillStruct(registroInsertar["Valor"], &ejec)
-		utilidades.FillStruct(registroInsertar["Idfuente"], &idFuente)
-		err = utilidades.FillStruct(registroInsertar["Idrubro"], &idRubro)
+		formatdata.FillStruct(registroInsertar["Proyeccion"], &proy)
+		formatdata.FillStruct(registroInsertar["Valor"], &ejec)
+		formatdata.FillStruct(registroInsertar["Idfuente"], &idFuente)
+		err = formatdata.FillStruct(registroInsertar["Idrubro"], &idRubro)
 		if err != nil {
 			beego.Info(err.Error())
 		}
