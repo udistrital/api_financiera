@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // DetallePacController operations for DetallePac
@@ -168,4 +169,25 @@ func (c *DetallePacController) Delete() {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// InsertarRegistros ...
+// @Title InsertarRegistros
+// @Description funcion que recibe e inserta los registros de la generacion del cierre
+// @Param	 request   query   interface{}    true		"The list you wanna insert"
+// @Success 200
+// @Failure 403 id is empty
+// @router /InsertarRegistros [post]
+func (c *DetallePacController) InsertarRegistros() {
+	var request []map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+		//for _, registroInsertar := range request {
+		//fmt.Println("registro insertar %v", registroInsertar["Idrubro"])
+		//}
+		models.AddPacCierre(request, 1, 2017)
+	} else {
+		fmt.Println("err 1")
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
 }

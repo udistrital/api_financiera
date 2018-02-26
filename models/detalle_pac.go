@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type DetallePac struct {
@@ -151,5 +154,135 @@ func DeleteDetallePac(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func AddIngresoPac(parameter ...interface{}) (err interface{}) {
+
+	var IdFuente int
+	var detPac DetallePac
+	var TotalEjecutado float64
+	var codigo string
+	var errs error
+	ingreso := parameter[0].(Ingreso)
+	vigencia := ingreso.Vigencia
+	mes := int(ingreso.FechaIngreso.Month())
+
+	fuenteFinan := ingreso.FuenteFinanciamiento
+	if fuenteFinan != nil {
+		codigo = fuenteFinan.Codigo
+	}
+
+	IdFuente, errs = strconv.Atoi(codigo)
+
+	if errs != nil {
+		IdFuente = 0
+		formatdata.FillStruct(errs.Error(), &err)
+		beego.Error(errs)
+	}
+
+	pac, errs := GetPacByVigencia(vigencia, mes)
+	o := orm.NewOrm()
+
+	for _, ingConcep := range ingreso.IngresoConcepto {
+
+		concepto := ingConcep.Concepto
+		rubro := concepto.Rubro
+
+		beego.Info("rubro ", rubro.Id)
+		beego.Info("valorAgregado ", ingConcep.ValorAgregado)
+
+		errs = o.QueryTable("detalle_pac").
+			Filter("mes", mes).
+			Filter("pac", pac.Id).
+			Filter("fuente_financiamiento", IdFuente).
+			Filter("rubro", rubro.Id).
+			One(&detPac)
+
+		if errs == orm.ErrMultiRows {
+			fmt.Println("Returned Multi Rows Not One")
+			return
+		}
+		if errs == orm.ErrNoRows {
+
+			detalle_pac := &DetallePac{ValorProyectadoMes: -1,
+				ValorEjecutadoMes:    ingConcep.ValorAgregado,
+				FuenteFinanciamiento: IdFuente,
+				Rubro:                rubro.Id,
+				Pac:                  &pac,
+				Mes:                  mes}
+
+			_, errs = o.Insert(detalle_pac)
+
+			if errs != nil {
+				formatdata.FillStruct(errs.Error(), &err)
+				beego.Info(err)
+				return
+			}
+
+		}
+		if errs == nil {
+			TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
+			detPac.ValorEjecutadoMes = TotalEjecutado
+			var num int64
+			if num, err = o.Update(&detPac); err == nil {
+				fmt.Println("Number of records updated in database:", num)
+			}
+		}
+	}
+	return
+}
+
+func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac DetallePac, err error) {
+	var pac Pac
+	o := orm.NewOrm()
+	o.Begin()
+	pac.Descripcion = "Cierre mes" + strconv.Itoa(mes)
+	pac.Vigencia = vigencia
+	//insert pac
+	_, err = o.Insert(&pac)
+	if err != nil {
+		beego.Info(err.Error())
+		o.Rollback()
+		return
+	}
+	var proy string
+	var ejec string
+	var idFuente string
+	var idRubro string
+
+	var proyec float64
+	var ejecu float64
+	var idF int
+	var idR int
+
+	for _, registroInsertar := range v {
+		formatdata.FillStruct(registroInsertar["Proyeccion"], &proy)
+		formatdata.FillStruct(registroInsertar["Valor"], &ejec)
+		formatdata.FillStruct(registroInsertar["Idfuente"], &idFuente)
+		err = formatdata.FillStruct(registroInsertar["Idrubro"], &idRubro)
+		if err != nil {
+			beego.Info(err.Error())
+		}
+		fmt.Println("id rubro ", registroInsertar["Idrubro"])
+		fmt.Println("id rubro  en estructura ", idRubro)
+		proyec, err = strconv.ParseFloat(proy, 64)
+		ejecu, err = strconv.ParseFloat(ejec, 64)
+		idF, err = strconv.Atoi(idFuente)
+		idR, err = strconv.Atoi(idRubro)
+		detalle_pac := &DetallePac{ValorProyectadoMes: proyec,
+			ValorEjecutadoMes:    ejecu,
+			FuenteFinanciamiento: idF,
+			Rubro:                idR,
+			Pac:                  &pac,
+			Mes:                  mes}
+		_, err = o.Insert(detalle_pac)
+		if err != nil {
+			beego.Info(err.Error())
+			o.Rollback()
+			return
+		}
+	}
+	o.Commit()
 	return
 }

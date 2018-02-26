@@ -205,7 +205,7 @@ func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err 
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
 	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
-		FROM
+	FROM
 		financiera.apropiacion as apropiacion
 	JOIN
 		financiera.rubro as rubro
@@ -225,6 +225,8 @@ func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err 
 
 		WHERE vigencia = ?
 		AND codigo LIKE ?
+		order by idfuente,
+							idrubro
 	`, vigencia, codigo).Values(&res)
 	return
 }
@@ -662,6 +664,168 @@ GROUP BY
 id_aprop,
 	codigo,
 	idfuente`, apropiacion, fuente, inicio, fin).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT  apropiacion.id as idaprop,
+							rubro.id as idrubro,
+							rubro.codigo as codigoRub,
+							rubro.nombre as descrubro,
+							COALESCE(fuente.id,0) as idfuente,
+							COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+							'Ingresos' as tipo,
+							0 as Proyeccion,
+							0 as Pvariacion,
+							sum(COALESCE(ingresoconcepto.valor_agregado,0)) as Valor,
+							0 as Variacion
+					FROM financiera.apropiacion as apropiacion
+					JOIN financiera.rubro as rubro ON rubro.id = apropiacion.rubro
+					LEFT JOIN financiera.estado_ingreso as estadoingreso ON estadoingreso.nombre = 'Aprobado'
+					LEFT JOIN financiera.concepto_tesoral as concepto ON concepto.rubro = rubro.id
+					LEFT JOIN financiera.ingreso_concepto as ingresoconcepto ON ingresoconcepto.concepto = concepto.id
+					LEFT JOIN financiera.ingreso as ingreso  ON ingresoconcepto.ingreso = ingreso.id
+										    AND ingreso.estado_ingreso = estadoingreso.id
+										    AND ingreso.fecha_ingreso BETWEEN ? AND ?
+					LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa ON apropiacion.id = ffa.apropiacion
+					LEFT JOIN financiera.fuente_financiamiento as fuente ON fuente.id = ffa.fuente_financiamiento
+					LEFT JOIN financiera.forma_ingreso as formaingreso ON formaingreso.id = ingreso.forma_ingreso
+					WHERE
+					rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+					AND rubro.codigo LIKE ?
+					AND  apropiacion.vigencia =?
+					GROUP BY
+						apropiacion.id,
+						rubro.id,
+						rubro.codigo,
+						idfuente,
+						COALESCE(fuente.id,0),
+						fuente.descripcion
+					ORDER BY apropiacion.id`, inicio, fin, codigo, vigencia).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT apropiacion.id as idaprop,
+	    					rubro.id as idrubro,
+	    					rubro.nombre as descrubro,
+	    					COALESCE(fuente.id,0) as idfuente,
+	    					COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+	    					'Egresos' as tipo,
+	    					0 as Proyeccion,
+	    					0 as Pvariacion,
+        					SUM (COALESCE(orden_concepto.valor,0)) as valor ,
+            						0 as Variacion
+            		From financiera.apropiacion as apropiacion
+            		    --ON apropiacion.id = disponibilidad.apropiacion
+            		JOIN financiera.rubro as rubro
+            		    ON apropiacion.rubro = rubro.id
+
+            		LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
+							ON apropiacion.id = ffa.apropiacion
+	    			LEFT JOIN financiera.fuente_financiamiento as fuente
+							ON fuente.id = ffa.fuente_financiamiento
+            		LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
+            		    ON disp_apr.apropiacion = apropiacion.id
+            		LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+            		    ON rpda.disponibilidad_apropiacion = disp_apr.id
+            		LEFT JOIN financiera.concepto_orden_pago as orden_concepto
+            		    ON  orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+            		LEFT JOIN financiera.orden_pago_estado_orden_pago ep
+            		    ON ep.fecha_registro between ? and ?
+            		    AND not exists (Select distinct ant.orden_pago
+            		        			from  financiera.orden_pago_estado_orden_pago ant
+            		        			where ant.orden_pago  = ep.orden_pago
+            		            				and ant.estado_orden_pago = 5
+            		            				and ant.fecha_registro
+            		            				between ? and ?)
+            		    AND ep.orden_pago = orden_concepto.orden_de_pago
+            		LEFT JOIN financiera.orden_pago as orden
+            		    ON ep.orden_pago = orden.id
+        			WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+            								AND apropiacion.vigencia = ?
+            								AND rubro.codigo LIKE ?
+            		group by apropiacion.id ,
+            				rubro.id ,
+            				fuente.id,
+            				rubro.codigo
+							ORDER BY apropiacion.id`, inicio, fin, inicio, fin, codigo, vigencia).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func ValEjecutadoPac(vigencia int64, mes int, rubro string, fuente string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos ValEjecutadoPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as valor
+					from financiera.detalle_pac detalle
+					join financiera.pac pac
+    					on detalle.pac = pac.id
+					where pac.vigencia = ?
+						and detalle.mes = ?
+						and detalle.rubro = ?
+						and detalle.fuente_financiamiento = ?`, vigencia, mes, rubro, fuente).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetSumbySource(vigencia int, mes int, fuente string, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos GetSumbySource")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and rubro.Codigo like ?`, vigencia, mes, fuente, tipo).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetSumbyTotal(vigencia int, mes int, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos GetSumbyTotal")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and rubro.Codigo like ?`, vigencia, mes, tipo).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetRubroPac(vigencia int, mes int, fuente string, rubro string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos getRubroPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as ejecutado,
+										valor_proyectado_mes as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and detalle.rubro = ?`, vigencia, mes, fuente, rubro).Values(&m)
 	err = formatdata.FillStruct(m, &res)
 	return
 }

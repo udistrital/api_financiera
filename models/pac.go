@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"strconv"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -149,4 +151,28 @@ func DeletePac(id int) (err error) {
 		}
 	}
 	return
+}
+
+
+func GetPacByVigencia (vigencia float64, mes int)(v Pac, err error){
+	o := orm.NewOrm()
+	qs:=o.QueryTable("pac")
+	qs.Filter("vigencia", vigencia)
+	qs.Filter("descripcion__endswith", strconv.Itoa(mes))
+	err = qs.One(&v)
+	if err == orm.ErrMultiRows {
+    	fmt.Println("Returned Multi Rows Not One")
+	}
+	if err == orm.ErrNoRows {
+    	fmt.Println("Not row found")
+    	v.Descripcion = "Cierre mes " + strconv.Itoa(mes)
+		v.Vigencia = int(vigencia)
+		//insert pac
+		_, err = o.Insert(&v)
+		if err != nil {
+			beego.Info(err.Error())
+			return
+		}
+	}
+	return 
 }
