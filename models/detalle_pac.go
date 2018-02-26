@@ -179,11 +179,12 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 		IdFuente = 0
 		formatdata.FillStruct(errs.Error(), &err)
 		beego.Error(errs)
+		return
 	}
 
 	pac, errs := GetPacByVigencia(vigencia, mes)
 	o := orm.NewOrm()
-
+	o.Begin()
 	for _, ingConcep := range ingreso.IngresoConcepto {
 
 		concepto := ingConcep.Concepto
@@ -217,6 +218,7 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			if errs != nil {
 				formatdata.FillStruct(errs.Error(), &err)
 				beego.Info(err)
+				o.Rollback()
 				return
 			}
 
@@ -225,36 +227,38 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
 			detPac.ValorEjecutadoMes = TotalEjecutado
 			var num int64
-			if num, err = o.Update(&detPac); err == nil {
+			if num, errs = o.Update(&detPac); errs == nil {
 				fmt.Println("Number of records updated in database:", num)
+			} else {
+				beego.Info(errs.Error())
+				o.Rollback()
+				return
 			}
 		}
 	}
+	o.Commit()
 	return
 }
 
 func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac DetallePac, err error) {
-	var pac Pac
-	o := orm.NewOrm()
-	o.Begin()
-	pac.Descripcion = "Cierre mes" + strconv.Itoa(mes)
-	pac.Vigencia = vigencia
-	//insert pac
-	_, err = o.Insert(&pac)
-	if err != nil {
-		beego.Info(err.Error())
-		o.Rollback()
-		return
-	}
 	var proy string
 	var ejec string
 	var idFuente string
 	var idRubro string
-
 	var proyec float64
 	var ejecu float64
 	var idF int
 	var idR int
+
+	o := orm.NewOrm()
+	o.Begin()
+	//insert pac
+	pac, errs := GetPacByVigencia(float64(vigencia), mes)
+	if errs != nil {
+		beego.Info(err.Error())
+		o.Rollback()
+		return
+	}
 
 	for _, registroInsertar := range v {
 		formatdata.FillStruct(registroInsertar["Proyeccion"], &proy)

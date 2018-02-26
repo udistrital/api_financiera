@@ -9,6 +9,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // DetallePacController operations for DetallePac
@@ -175,18 +176,35 @@ func (c *DetallePacController) Delete() {
 // @Title InsertarRegistros
 // @Description funcion que recibe e inserta los registros de la generacion del cierre
 // @Param	 request   query   interface{}    true		"The list you wanna insert"
-// @Success 200
-// @Failure 403 id is empty
+// @Success 200 {int} models.Pac
+// @Failure 403 Interface{}
 // @router /InsertarRegistros [post]
 func (c *DetallePacController) InsertarRegistros() {
-	var request []map[string]interface{}
+	var request map[string]interface{}
+	var data []map[string]interface{}
+	var vigencia int
+	var mes int
+	var m string
+	defer c.ServeJSON()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-		//for _, registroInsertar := range request {
-		//fmt.Println("registro insertar %v", registroInsertar["Idrubro"])
-		//}
-		models.AddPacCierre(request, 1, 2017)
+		err = formatdata.FillStruct(request["datos"], &data)
+		err = formatdata.FillStruct(request["vigencia"], &vigencia)
+		err = formatdata.FillStruct(request["mes"], &m)
+		mes, err = strconv.Atoi(m)
+		if err != nil {
+			fmt.Println("error ", err.Error())
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+		fmt.Println(mes)
+		if res, err := models.AddPacCierre(data, mes, vigencia); err != nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
+			c.Data["json"] = alert
+		} else {
+			fmt.Println("error ", err.Error())
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
 	} else {
-		fmt.Println("err 1")
+		fmt.Println("err 1", err.Error())
 		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 	}
 
