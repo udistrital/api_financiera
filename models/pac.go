@@ -9,6 +9,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Pac struct {
@@ -155,9 +156,10 @@ func DeletePac(id int) (err error) {
 
 func GetPacByVigencia(vigencia float64, mes int) (v Pac, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable("pac")
-	qs.Filter("vigencia", vigencia)
-	qs.Filter("descripcion__endswith", strconv.Itoa(mes))
+	
+	qs := o.QueryTable("pac").
+		 Filter("vigencia", vigencia)
+
 	err = qs.One(&v)
 	if err == orm.ErrMultiRows {
 		fmt.Println("Returned Multi Rows Not One")
@@ -173,5 +175,23 @@ func GetPacByVigencia(vigencia float64, mes int) (v Pac, err error) {
 			return
 		}
 	}
+	return
+}
+
+func GetPacProjection(vigencia int, mes int, fuente string, rubro string,nperiodos int) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	vigenciaInicial:=vigencia - nperiodos
+	_, err = o.Raw(`Select COALESCE(valor_proyectado_mes,0) as pry,
+       					ROW_NUMBER () OVER (ORDER BY  pac.vigencia desc) as nfila
+					from financiera.pac pac 
+					left join financiera.detalle_pac detalle
+    					on detalle.pac = pac.id
+							and detalle.mes = ?
+							and detalle.fuente_financiamiento = ?
+							and detalle.rubro = ?
+					where pac.vigencia >= ? and pac.vigencia < ?`, 
+							mes, fuente, rubro,vigenciaInicial,vigencia).Values(&m)
+	err = formatdata.FillStruct(m, &res)
 	return
 }

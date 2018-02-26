@@ -17,6 +17,11 @@ type DetallePacController struct {
 	beego.Controller
 }
 
+type Point struct {
+	x float64
+	y float64
+}
+
 // URLMapping ...
 func (c *DetallePacController) URLMapping() {
 	c.Mapping("Post", c.Post)
@@ -196,6 +201,9 @@ func (c *DetallePacController) InsertarRegistros() {
 			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 		}
 		fmt.Println(mes)
+
+		beego.Error("imprime metodo insertar")
+		
 		if res, err := models.AddPacCierre(data, mes, vigencia); err != nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
 			c.Data["json"] = alert
@@ -209,3 +217,4 @@ func (c *DetallePacController) InsertarRegistros() {
 	}
 
 }
+
