@@ -16,12 +16,6 @@ import (
 type DetallePacController struct {
 	beego.Controller
 }
-
-type Point struct {
-	x float64
-	y float64
-}
-
 // URLMapping ...
 func (c *DetallePacController) URLMapping() {
 	c.Mapping("Post", c.Post)
