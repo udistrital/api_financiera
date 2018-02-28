@@ -164,9 +164,11 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 	var TotalEjecutado float64
 	var codigo string
 	var errs error
+	var valoresAnt []map[string]interface{}
 	ingreso := parameter[0].(Ingreso)
 	vigencia := ingreso.Vigencia
 	mes := int(ingreso.FechaIngreso.Month())
+	beego.Error("AddingresosPac")
 
 	fuenteFinan := ingreso.FuenteFinanciamiento
 	if fuenteFinan != nil {
@@ -177,13 +179,12 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 
 	if errs != nil {
 		IdFuente = 0
-		formatdata.FillStruct(errs.Error(), &err)
 		beego.Error(errs)
 	}
 
 	pac, errs := GetPacByVigencia(vigencia, mes)
 	o := orm.NewOrm()
-
+	o.Begin()
 	for _, ingConcep := range ingreso.IngresoConcepto {
 
 		concepto := ingConcep.Concepto
@@ -205,7 +206,26 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 		}
 		if errs == orm.ErrNoRows {
 
-			detalle_pac := &DetallePac{ValorProyectadoMes: -1,
+			resp, errs := GetPacProjection(int(vigencia), mes,strconv.Itoa(IdFuente),strconv.Itoa(rubro.Id),3)
+
+			errs = formatdata.FillStruct(resp,&valoresAnt)
+
+			if errs != nil {
+				formatdata.FillStruct(errs.Error(), &err)
+				beego.Info(err)
+				return
+			}
+
+			errs, vlrProyectado := LeastSquaresMethod(&valoresAnt)
+    	
+			if errs != nil {
+				formatdata.FillStruct(errs.Error(), &err)
+				beego.Info(err)
+				return
+			}    		
+		
+
+			detalle_pac := &DetallePac{ValorProyectadoMes: vlrProyectado,
 				ValorEjecutadoMes:    ingConcep.ValorAgregado,
 				FuenteFinanciamiento: IdFuente,
 				Rubro:                rubro.Id,
@@ -217,6 +237,7 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			if errs != nil {
 				formatdata.FillStruct(errs.Error(), &err)
 				beego.Info(err)
+				o.Rollback()
 				return
 			}
 
@@ -225,36 +246,38 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
 			detPac.ValorEjecutadoMes = TotalEjecutado
 			var num int64
-			if num, err = o.Update(&detPac); err == nil {
+			if num, errs = o.Update(&detPac); errs == nil {
 				fmt.Println("Number of records updated in database:", num)
+			} else {
+				beego.Info(errs.Error())
+				o.Rollback()
+				return
 			}
 		}
 	}
+	o.Commit()
 	return
 }
 
 func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac DetallePac, err error) {
-	var pac Pac
-	o := orm.NewOrm()
-	o.Begin()
-	pac.Descripcion = "Cierre mes" + strconv.Itoa(mes)
-	pac.Vigencia = vigencia
-	//insert pac
-	_, err = o.Insert(&pac)
-	if err != nil {
-		beego.Info(err.Error())
-		o.Rollback()
-		return
-	}
 	var proy string
 	var ejec string
 	var idFuente string
 	var idRubro string
-
 	var proyec float64
 	var ejecu float64
 	var idF int
 	var idR int
+
+	o := orm.NewOrm()
+	o.Begin()
+	//insert pac
+	pac, errs := GetPacByVigencia(float64(vigencia), mes)
+	if errs != nil {
+		beego.Info(err.Error())
+		o.Rollback()
+		return
+	}
 
 	for _, registroInsertar := range v {
 		formatdata.FillStruct(registroInsertar["Proyeccion"], &proy)
@@ -285,4 +308,45 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 	}
 	o.Commit()
 	return
+}
+
+func LeastSquaresMethod(points *[]map[string]interface{}) (err error, b float64){
+	var x float64
+	var y float64
+	var x1 string
+	var y1 string
+
+	n := float64(len(*points))
+
+	b = 0.0
+
+    sumX := 0.0
+    sumY := 0.0
+    sumXY := 0.0
+    sumXX := 0.0
+    for _, p := range *points{
+    	err =formatdata.FillStruct(p["nfila"],&x1)
+    	err=formatdata.FillStruct(p["pry"],&y1)
+
+    	if err!=nil{
+    		beego.Error("Error ",err.Error())
+    		return
+    	}
+
+    	x,err = strconv.ParseFloat(x1,64)
+    	y,err = strconv.ParseFloat(y1,64)
+    	
+        sumX += x
+        sumY += y
+        sumXY += x * y
+        sumXX += x * x
+    }
+ 	if (n>0){
+    	base :=  (n * sumXX - sumX * sumX)
+    	//a = (n * sumXY - sumX * sumY) / base
+    	b = (sumXX * sumY - sumXY * sumX) / base
+ 	}
+ 	
+    return
+
 }
