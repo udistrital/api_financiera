@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-03.dtd">
+<coverage line-rate="0" branch-rate="0" version="" timestamp="1519852914343">
+	<packages>
+		<package name="github.com/udistrital/api_financiera/test" line-rate="0" branch-rate="0" complexity="0">
+			<classes>
+				<class name="-" filename="/home/jjvargass/go/src/github.com/udistrital/api_financiera/test/default.go" line-rate="0" branch-rate="0" complexity="0">
+					<methods>
+						<method name="init" signature="" line-rate="0" branch-rate="0">
+							<lines></lines>
+						</method>
+					</methods>
+					<lines></lines>
+				</class>
+			</classes>
+		</package>
+	</packages>
+</coverage>
