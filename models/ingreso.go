@@ -23,13 +23,13 @@ type Ingreso struct {
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
-	EstadoIngreso        *EstadoIngreso        `orm:"column(estado_ingreso);rel(fk)"`
 	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
 	Aportante            int                   `orm:"column(aportante);null"`
 	Reviso               int                   `orm:"column(reviso);null"`
 	Elaboro              int                   `orm:"column(elaboro)"`
 	MotivoRechazo        string                `orm:"column(motivo_rechazo)"`
 	IngresoConcepto      []*IngresoConcepto    `orm:"reverse(many)"`
+	IngresoEstadoIngreso      []*IngresoEstadoIngreso    `orm:"reverse(many)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -40,29 +40,74 @@ func init() {
 	orm.RegisterModel(new(Ingreso))
 }
 
-func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+func RechazoContableIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	err = formatdata.FillStruct(m, &ingreso)
-	fmt.Println(ingreso)
-	ingreso.EstadoIngreso = &EstadoIngreso{Id: 3}
-	_, err = o.Update(&ingreso, "EstadoIngreso", "MotivoRechazo")
 	if err != nil {
 		o.Rollback()
 		return
 	}
-
+	_, err = o.Update(&ingreso, "MotivoRechazo")
+	if err != nil{
+		o.Rollback()
+		return
+	}
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 3}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	o.Commit()
 	return
 }
 
-func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+func RechazoPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(m, &ingreso)
+	if err != nil {
+		beego.Info("Debug ",err)
+		o.Rollback()
+		return
+	}
+	_, err = o.Update(&ingreso, "MotivoRechazo")
+	if err != nil{
+		o.Rollback()
+		return
+	}
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 5}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+func AprobacionContableIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
 	fmt.Println(ingreso)
-	ingreso.EstadoIngreso = &EstadoIngreso{Id: 2}
-	_, err = o.Update(&ingreso, "EstadoIngreso")
+	estadoIngreso := EstadoIngreso{Id: 2}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
 	if err != nil {
 		o.Rollback()
 		return
@@ -86,13 +131,31 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	return
 }
 
+func AprobacionPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 4}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
 // AddIngreso insert a new Ingreso into database and returns
 // last inserted Id on success.
 func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var id int64
 	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
 	if err == nil {
-		ingreso.EstadoIngreso = &EstadoIngreso{Id: 1}
 		ingreso.FechaIngreso = time.Now()
 		ingreso.Vigencia = float64(time.Now().Year())
 		o := orm.NewOrm()
@@ -104,6 +167,20 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
 		beego.Info(err)
+		if err == nil {
+			ingreso.Id = int(id)
+			//crear el rompimiento para registrar el estado del ingreso.
+			estadoIngreso := EstadoIngreso{Id: 1}
+			ingresoEstadoIngreso := IngresoEstadoIngreso{}
+			ingresoEstadoIngreso.Ingreso = &ingreso
+			ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+			ingresoEstadoIngreso.FechaRegistro = time.Now()
+			_, err = o.Insert(&ingresoEstadoIngreso)
+		}else{
+			o.Rollback()
+			return
+		}
+		
 		//insert MovimientoContable
 		var mov []MovimientoContable
 		err = formatdata.FillStruct(m["Movimientos"], &mov)
@@ -125,7 +202,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			o.Rollback()
 			return
 		} else {
-			ingreso.Id = int(id)
+			
 			var ingresos float64
 			err = formatdata.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
@@ -244,6 +321,7 @@ func GetAllIngreso(query map[string]string, fields []string, sortby []string, or
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "IngresoConcepto", 5)
+				o.LoadRelated(&v, "IngresoEstadoIngreso", 5, 1, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {

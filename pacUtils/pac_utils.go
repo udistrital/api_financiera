@@ -36,5 +36,5 @@ func FunctionJobExample(parameter ...interface{}) (res interface{}) {
 
 func Init() {
 	optimize.StartDispatcher(1, 200)
-	beego.InsertFilter("/v1/ingreso/AprobarIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
+	beego.InsertFilter("/v1/ingreso/AprobacionPresupuestalIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
 }
