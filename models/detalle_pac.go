@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -156,48 +157,46 @@ func DeleteDetallePac(id int) (err error) {
 	}
 	return
 }
-
-func AddIngresoPac(parameter ...interface{}) (err interface{}) {
-
-	var IdFuente int
+func AddEgresoPac(parameter ...interface{}) (err interface{}) {
+	beego.Error("entra a egresos pac")
+	var idRubro string
+	var idFuente string
+	var vigencia string
+	var valBase string
+	var total map[string]interface{}
 	var detPac DetallePac
-	var TotalEjecutado float64
-	var codigo string
-	var errs error
 	var valoresAnt []map[string]interface{}
-	ingreso := parameter[0].(Ingreso)
-	vigencia := ingreso.Vigencia
-	mes := int(ingreso.FechaIngreso.Month())
-	beego.Error("AddingresosPac")
+	var TotalEjecutado float64
 
-	fuenteFinan := ingreso.FuenteFinanciamiento
-	if fuenteFinan != nil {
-		codigo = fuenteFinan.Codigo
-	}
+	params := parameter[0].([]interface{})
+	ordenPago := params[0].(OrdenPago)
+	nuevoEstado := params[1].(int)
+	beego.Info("nuevo estado ", nuevoEstado)
+	res, err := RubroOrdenPagoP(ordenPago.Id)
+	err = formatdata.FillStruct(res[0], &total)
+	if nuevoEstado == 4 {
+		if err == nil {
+			err = formatdata.FillStruct(total["idrubro"], &idRubro)
+			err = formatdata.FillStruct(total["idfuente"], &idFuente)
+			err = formatdata.FillStruct(total["vigencia"], &vigencia)
+			err = formatdata.FillStruct(total["valor_base"], &valBase)
+		}
+		fuenteF, _ := strconv.Atoi(idFuente)
+		rubroF, _ := strconv.Atoi(idRubro)
+		vigenciaF, _ := strconv.ParseFloat(vigencia, 64)
+		valBaseF, _ := strconv.ParseFloat(valBase, 64)
 
-	IdFuente, errs = strconv.Atoi(codigo)
+		pac, errs := GetPacByVigencia(vigenciaF)
+		o := orm.NewOrm()
+		o.Begin()
 
-	if errs != nil {
-		IdFuente = 0
-		beego.Error(errs)
-	}
-
-	pac, errs := GetPacByVigencia(vigencia, mes)
-	o := orm.NewOrm()
-	o.Begin()
-	for _, ingConcep := range ingreso.IngresoConcepto {
-
-		concepto := ingConcep.Concepto
-		rubro := concepto.Rubro
-
-		beego.Info("rubro ", rubro.Id)
-		beego.Info("valorAgregado ", ingConcep.ValorAgregado)
+		mes := int(time.Now().Month())
 
 		errs = o.QueryTable("detalle_pac").
 			Filter("mes", mes).
 			Filter("pac", pac.Id).
-			Filter("fuente_financiamiento", IdFuente).
-			Filter("rubro", rubro.Id).
+			Filter("fuente_financiamiento", idFuente).
+			Filter("rubro", idRubro).
 			One(&detPac)
 
 		if errs == orm.ErrMultiRows {
@@ -206,9 +205,9 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 		}
 		if errs == orm.ErrNoRows {
 
-			resp, errs := GetPacProjection(int(vigencia), mes,strconv.Itoa(IdFuente),strconv.Itoa(rubro.Id),3)
+			resp, errs := GetPacProjection(int(vigenciaF), mes, idFuente, idRubro, 3)
 
-			errs = formatdata.FillStruct(resp,&valoresAnt)
+			errs = formatdata.FillStruct(resp, &valoresAnt)
 
 			if errs != nil {
 				formatdata.FillStruct(errs.Error(), &err)
@@ -217,18 +216,17 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 			}
 
 			errs, vlrProyectado := LeastSquaresMethod(&valoresAnt)
-    	
+
 			if errs != nil {
 				formatdata.FillStruct(errs.Error(), &err)
 				beego.Info(err)
 				return
-			}    		
-		
+			}
 
 			detalle_pac := &DetallePac{ValorProyectadoMes: vlrProyectado,
-				ValorEjecutadoMes:    ingConcep.ValorAgregado,
-				FuenteFinanciamiento: IdFuente,
-				Rubro:                rubro.Id,
+				ValorEjecutadoMes:    valBaseF,
+				FuenteFinanciamiento: fuenteF,
+				Rubro:                rubroF,
 				Pac:                  &pac,
 				Mes:                  mes}
 
@@ -243,7 +241,7 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 
 		}
 		if errs == nil {
-			TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
+			TotalEjecutado = detPac.ValorEjecutadoMes + valBaseF
 			detPac.ValorEjecutadoMes = TotalEjecutado
 			var num int64
 			if num, errs = o.Update(&detPac); errs == nil {
@@ -252,6 +250,112 @@ func AddIngresoPac(parameter ...interface{}) (err interface{}) {
 				beego.Info(errs.Error())
 				o.Rollback()
 				return
+			}
+		}
+		o.Commit()
+	}
+	return
+}
+func AddIngresoPac(parameter ...interface{}) (err interface{}) {
+
+	var IdFuente int
+	var detPac DetallePac
+	var TotalEjecutado float64
+	var codigo string
+	var errs error
+	var valoresAnt []map[string]interface{}
+	ingreso := parameter[0].(Ingreso)
+	vigencia := ingreso.Vigencia
+
+	beego.Error("AddingresosPac")
+
+	fuenteFinan := ingreso.FuenteFinanciamiento
+	if fuenteFinan != nil {
+		codigo = fuenteFinan.Codigo
+	}
+
+	IdFuente, errs = strconv.Atoi(codigo)
+
+	if errs != nil {
+		IdFuente = 0
+		beego.Error(errs)
+	}
+
+	pac, errs := GetPacByVigencia(vigencia)
+	o := orm.NewOrm()
+	o.Begin()
+	var estadoIngreso *EstadoIngreso
+	for _, ingConcep := range ingreso.IngresoConcepto {
+
+		concepto := ingConcep.Concepto
+		rubro := concepto.Rubro
+
+		IngresoEstadoIngreso := ingreso.IngresoEstadoIngreso[0]
+		//errs = formatdata.FillStruct(IngresoEstadoIngreso, &ingresoest)
+		estadoIngreso = IngresoEstadoIngreso.EstadoIngreso
+		idEstadoIng := estadoIngreso.Id
+		mes := int(time.Now().Month())
+		beego.Info("estado ingreso ", idEstadoIng)
+		if idEstadoIng == 2 {
+			errs = o.QueryTable("detalle_pac").
+				Filter("mes", mes).
+				Filter("pac", pac.Id).
+				Filter("fuente_financiamiento", IdFuente).
+				Filter("rubro", rubro.Id).
+				One(&detPac)
+
+			if errs == orm.ErrMultiRows {
+				fmt.Println("Returned Multi Rows Not One")
+				return
+			}
+			if errs == orm.ErrNoRows {
+
+				resp, errs := GetPacProjection(int(vigencia), mes, strconv.Itoa(IdFuente), strconv.Itoa(rubro.Id), 3)
+
+				errs = formatdata.FillStruct(resp, &valoresAnt)
+
+				if errs != nil {
+					formatdata.FillStruct(errs.Error(), &err)
+					beego.Info(err)
+					return
+				}
+
+				errs, vlrProyectado := LeastSquaresMethod(&valoresAnt)
+
+				if errs != nil {
+					formatdata.FillStruct(errs.Error(), &err)
+					beego.Info(err)
+					return
+				}
+
+				detalle_pac := &DetallePac{ValorProyectadoMes: vlrProyectado,
+					ValorEjecutadoMes:    ingConcep.ValorAgregado,
+					FuenteFinanciamiento: IdFuente,
+					Rubro:                rubro.Id,
+					Pac:                  &pac,
+					Mes:                  mes}
+
+				_, errs = o.Insert(detalle_pac)
+
+				if errs != nil {
+					formatdata.FillStruct(errs.Error(), &err)
+					beego.Info(err)
+					o.Rollback()
+					return
+				}
+
+			}
+			if errs == nil {
+				TotalEjecutado = detPac.ValorEjecutadoMes + ingConcep.ValorAgregado
+				detPac.ValorEjecutadoMes = TotalEjecutado
+				var num int64
+				if num, errs = o.Update(&detPac); errs == nil {
+					fmt.Println("Number of records updated in database:", num)
+				} else {
+					beego.Info(errs.Error())
+					o.Rollback()
+					return
+				}
 			}
 		}
 	}
@@ -272,7 +376,7 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 	o := orm.NewOrm()
 	o.Begin()
 	//insert pac
-	pac, errs := GetPacByVigencia(float64(vigencia), mes)
+	pac, errs := GetPacByVigencia(float64(vigencia))
 	if errs != nil {
 		beego.Info(err.Error())
 		o.Rollback()
@@ -287,8 +391,7 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 		if err != nil {
 			beego.Info(err.Error())
 		}
-		fmt.Println("id rubro ", registroInsertar["Idrubro"])
-		fmt.Println("id rubro  en estructura ", idRubro)
+
 		proyec, err = strconv.ParseFloat(proy, 64)
 		ejecu, err = strconv.ParseFloat(ejec, 64)
 		idF, err = strconv.Atoi(idFuente)
@@ -310,7 +413,7 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 	return
 }
 
-func LeastSquaresMethod(points *[]map[string]interface{}) (err error, b float64){
+func LeastSquaresMethod(points *[]map[string]interface{}) (err error, b float64) {
 	var x float64
 	var y float64
 	var x1 string
@@ -320,33 +423,35 @@ func LeastSquaresMethod(points *[]map[string]interface{}) (err error, b float64)
 
 	b = 0.0
 
-    sumX := 0.0
-    sumY := 0.0
-    sumXY := 0.0
-    sumXX := 0.0
-    for _, p := range *points{
-    	err =formatdata.FillStruct(p["nfila"],&x1)
-    	err=formatdata.FillStruct(p["pry"],&y1)
+	sumX := 0.0
+	sumY := 0.0
+	sumXY := 0.0
+	sumXX := 0.0
+	for _, p := range *points {
+		err = formatdata.FillStruct(p["nfila"], &x1)
+		err = formatdata.FillStruct(p["pry"], &y1)
 
-    	if err!=nil{
-    		beego.Error("Error ",err.Error())
-    		return
-    	}
+		if err != nil {
+			beego.Error("Error ", err.Error())
+			return
+		}
 
-    	x,err = strconv.ParseFloat(x1,64)
-    	y,err = strconv.ParseFloat(y1,64)
-    	
-        sumX += x
-        sumY += y
-        sumXY += x * y
-        sumXX += x * x
-    }
- 	if (n>0){
-    	base :=  (n * sumXX - sumX * sumX)
-    	//a = (n * sumXY - sumX * sumY) / base
-    	b = (sumXX * sumY - sumXY * sumX) / base
- 	}
- 	
-    return
+		x, err = strconv.ParseFloat(x1, 64)
+		y, err = strconv.ParseFloat(y1, 64)
+
+		sumX += x
+		sumY += y
+		sumXY += x * y
+		sumXX += x * x
+	}
+	if n > 0 {
+		base := (n*sumXX - sumX*sumX)
+		//a = (n * sumXY - sumX * sumY) / base
+		if base > 0 {
+			b = (sumXX*sumY - sumXY*sumX) / base
+		}
+	}
+
+	return
 
 }

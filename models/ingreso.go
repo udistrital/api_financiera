@@ -13,23 +13,23 @@ import (
 )
 
 type Ingreso struct {
-	Id                   int                   `orm:"column(id);pk;auto"`
-	Consecutivo          float64               `orm:"column(consecutivo)"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaInicio          time.Time             `orm:"column(fecha_inicio);type(date)"`
-	FechaFin             time.Time             `orm:"column(fecha_fin);type(date)"`
-	Facultad             int                   `orm:"column(facultad);null"`
-	Observaciones        string                `orm:"column(observaciones);null"`
-	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
-	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	Aportante            int                   `orm:"column(aportante);null"`
-	Reviso               int                   `orm:"column(reviso);null"`
-	Elaboro              int                   `orm:"column(elaboro)"`
-	MotivoRechazo        string                `orm:"column(motivo_rechazo)"`
-	IngresoConcepto      []*IngresoConcepto    `orm:"reverse(many)"`
-	IngresoEstadoIngreso      []*IngresoEstadoIngreso    `orm:"reverse(many)"`
+	Id                   int                     `orm:"column(id);pk;auto"`
+	Consecutivo          float64                 `orm:"column(consecutivo)"`
+	Vigencia             float64                 `orm:"column(vigencia)"`
+	FechaIngreso         time.Time               `orm:"column(fecha_ingreso);type(date)"`
+	FechaInicio          time.Time               `orm:"column(fecha_inicio);type(date)"`
+	FechaFin             time.Time               `orm:"column(fecha_fin);type(date)"`
+	Facultad             int                     `orm:"column(facultad);null"`
+	Observaciones        string                  `orm:"column(observaciones);null"`
+	FuenteFinanciamiento *FuenteFinanciamiento   `orm:"column(fuente_financiamiento);rel(fk);null"`
+	FormaIngreso         *FormaIngreso           `orm:"column(forma_ingreso);rel(fk)"`
+	UnidadEjecutora      *UnidadEjecutora        `orm:"column(unidad_ejecutora);rel(fk)"`
+	Aportante            int                     `orm:"column(aportante);null"`
+	Reviso               int                     `orm:"column(reviso);null"`
+	Elaboro              int                     `orm:"column(elaboro)"`
+	MotivoRechazo        string                  `orm:"column(motivo_rechazo)"`
+	IngresoConcepto      []*IngresoConcepto      `orm:"reverse(many)"`
+	IngresoEstadoIngreso []*IngresoEstadoIngreso `orm:"reverse(many)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -49,7 +49,7 @@ func RechazoContableIngreso(m map[string]interface{}) (ingreso Ingreso, err erro
 		return
 	}
 	_, err = o.Update(&ingreso, "MotivoRechazo")
-	if err != nil{
+	if err != nil {
 		o.Rollback()
 		return
 	}
@@ -73,12 +73,12 @@ func RechazoPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, err 
 	o.Begin()
 	err = formatdata.FillStruct(m, &ingreso)
 	if err != nil {
-		beego.Info("Debug ",err)
+		beego.Info("Debug ", err)
 		o.Rollback()
 		return
 	}
 	_, err = o.Update(&ingreso, "MotivoRechazo")
-	if err != nil{
+	if err != nil {
 		o.Rollback()
 		return
 	}
@@ -120,7 +120,6 @@ func AprobacionContableIngreso(m map[string]interface{}) (ingreso Ingreso, err e
 	}
 	for _, element := range mov {
 		element.EstadoMovimientoContable.Id = 2
-		beego.Info(element)
 		_, err = o.Update(&element, "EstadoMovimientoContable")
 		if err != nil {
 			o.Rollback()
@@ -176,11 +175,11 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
 			ingresoEstadoIngreso.FechaRegistro = time.Now()
 			_, err = o.Insert(&ingresoEstadoIngreso)
-		}else{
+		} else {
 			o.Rollback()
 			return
 		}
-		
+
 		//insert MovimientoContable
 		var mov []MovimientoContable
 		err = formatdata.FillStruct(m["Movimientos"], &mov)
@@ -202,7 +201,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			o.Rollback()
 			return
 		} else {
-			
+
 			var ingresos float64
 			err = formatdata.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
