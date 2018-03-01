@@ -1,6 +1,6 @@
-projectKey=scaner:api_financiera:0.04
+projectKey=scaner:api_financiera:0.01
 serverUrl=http://localhost:9000
 serverVersion=7.0.0.36138
-dashboardUrl=http://localhost:9000/dashboard/index/scaner:api_financiera:0.04
-ceTaskId=AWHedmsVW7gS18tqcOpb
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AWHedmsVW7gS18tqcOpb
+dashboardUrl=http://localhost:9000/dashboard/index/scaner:api_financiera:0.01
+ceTaskId=AWHiSFBdvUe4Dd22jsYN
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AWHiSFBdvUe4Dd22jsYN
