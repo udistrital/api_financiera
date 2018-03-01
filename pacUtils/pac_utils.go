@@ -2,6 +2,7 @@ package pacUtils
 
 import (
 	"encoding/json"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/udistrital/api_financiera/models"
@@ -32,20 +33,42 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 
 func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 	var u map[string]interface{}
-	var u2 []map[string]interface{}
-	var u3 map[string]interface{}
+	var nuevoEstado map[string]interface{}
+	var idEstado int
 
-	beego.Error(ctx.Input.RequestBody)
+	egresoArr := make([]models.OrdenPago, 0)
+	egreso := models.OrdenPago{}
 
-	if err := json.Unmarshal(ctx.Input.RequestBody, &u3); err == nil {
-		beego.Error(u3)
+	if err := json.Unmarshal(ctx.Input.RequestBody, &u); err == nil {
+
+		if err = formatdata.FillStruct(u["NuevoEstado"], &nuevoEstado); err != nil {
+			beego.Error(err.Error())
+		} else {
+			if err = formatdata.FillStruct(nuevoEstado["Id"], &idEstado); err != nil {
+				beego.Error(err.Error())
+			}
+		}
+
+		if err = formatdata.FillStruct(u["OrdenPago"], &egresoArr); err == nil {
+			egreso = egresoArr[0]
+			beego.Info("egreso ", egreso.Vigencia)
+		} else {
+			beego.Error(err.Error())
+		}
 	} else {
-		beego.Info(err.Error())
+		beego.Error(err.Error())
 	}
+	var parameters []interface{}
+	parameters = append(parameters, egreso)
+	parameters = append(parameters, idEstado)
+	work := optimize.WorkRequest{JobParameter: parameters, Job: (models.AddEgresoPac)}
+	// Push the work onto the queue.
+	optimize.WorkQueue <- work
 
 	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u); err == nil {
-		if err = formatdata.FillStruct(u["Body"], &u2); err == nil {
-			beego.Error(u2)
+		beego.Error(u)
+		if err = formatdata.FillStruct(u["Body"], &egreso); err == nil {
+			//beego.Error("egreso", egreso.Vigencia)
 		} else {
 			beego.Info(err.Error())
 		}

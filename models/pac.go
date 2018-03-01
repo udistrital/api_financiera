@@ -154,11 +154,11 @@ func DeletePac(id int) (err error) {
 	return
 }
 
-func GetPacByVigencia(vigencia float64, mes int) (v Pac, err error) {
+func GetPacByVigencia(vigencia float64) (v Pac, err error) {
 	o := orm.NewOrm()
-	
+
 	qs := o.QueryTable("pac").
-		 Filter("vigencia", vigencia)
+		Filter("vigencia", vigencia)
 
 	err = qs.One(&v)
 	if err == orm.ErrMultiRows {
@@ -178,20 +178,20 @@ func GetPacByVigencia(vigencia float64, mes int) (v Pac, err error) {
 	return
 }
 
-func GetPacProjection(vigencia int, mes int, fuente string, rubro string,nperiodos int) (res []interface{}, err error) {
+func GetPacProjection(vigencia int, mes int, fuente string, rubro string, nperiodos int) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params
-	vigenciaInicial:=vigencia - nperiodos
+	vigenciaInicial := vigencia - nperiodos
 	_, err = o.Raw(`Select COALESCE(valor_proyectado_mes,0) as pry,
        					ROW_NUMBER () OVER (ORDER BY  pac.vigencia desc) as nfila
-					from financiera.pac pac 
+					from financiera.pac pac
 					left join financiera.detalle_pac detalle
     					on detalle.pac = pac.id
 							and detalle.mes = ?
 							and detalle.fuente_financiamiento = ?
 							and detalle.rubro = ?
-					where pac.vigencia >= ? and pac.vigencia < ?`, 
-							mes, fuente, rubro,vigenciaInicial,vigencia).Values(&m)
+					where pac.vigencia >= ? and pac.vigencia < ?`,
+		mes, fuente, rubro, vigenciaInicial, vigencia).Values(&m)
 	err = formatdata.FillStruct(m, &res)
 	return
 }
