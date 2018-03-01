@@ -33,8 +33,11 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 
 func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 	var u map[string]interface{}
+	var u2 map[string]interface{}
 	var nuevoEstado map[string]interface{}
 	var idEstado int
+	var tipo string
+	var parameters []interface{}
 
 	egresoArr := make([]models.OrdenPago, 0)
 	egreso := models.OrdenPago{}
@@ -49,35 +52,32 @@ func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 			}
 		}
 
+
 		if err = formatdata.FillStruct(u["OrdenPago"], &egresoArr); err == nil {
 			egreso = egresoArr[0]
-			beego.Info("egreso ", egreso.Vigencia)
 		} else {
 			beego.Error(err.Error())
 		}
 	} else {
 		beego.Error(err.Error())
 	}
-	var parameters []interface{}
+	
 	parameters = append(parameters, egreso)
 	parameters = append(parameters, idEstado)
+	beego.Error("valor u  ",u)
+	if (idEstado==4 && egreso.Id != 0 ){
+	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u2); err == nil {
+	if err := formatdata.FillStruct(u2["Type"], &tipo); err == nil && tipo == "success"{
 	work := optimize.WorkRequest{JobParameter: parameters, Job: (models.AddEgresoPac)}
 	// Push the work onto the queue.
 	optimize.WorkQueue <- work
-
-	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u); err == nil {
-		beego.Error(u)
-		if err = formatdata.FillStruct(u["Body"], &egreso); err == nil {
-			//beego.Error("egreso", egreso.Vigencia)
-		} else {
-			beego.Info(err.Error())
-		}
-
-	} else {
-		beego.Info(err.Error())
+	
+	}else{
+			beego.Error("Error", err.Error())
 	}
-
-	beego.Info("Work request queued")
+	}
+	beego.Error("tipo ",tipo)
+}
 }
 
 func FunctionJobExample(parameter ...interface{}) (res interface{}) {
