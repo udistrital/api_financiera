@@ -11,7 +11,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Info_disponibilidad_a_anular struct {
@@ -95,7 +95,7 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 		And("rubro.unidad_ejecutora = ?")
 	err = o.Raw(qb.String(), int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64)),
 		int(m["Disponibilidad"].(map[string]interface{})["UnidadEjecutora"].(float64))).QueryRow(&consecutivo)
-	err = utilidades.FillStruct(m["Disponibilidad"], &v)
+	err = formatdata.FillStruct(m["Disponibilidad"], &v)
 	if err != nil {
 		o.Rollback()
 		fmt.Println(m["Disponibilidad"])
@@ -108,12 +108,12 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	}
 	_, err = o.Insert(&v)
 	if err == nil {
-		err = utilidades.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
+		err = formatdata.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
 		if err == nil {
 			procesoExterno.Disponibilidad = &v
 			_, err = o.Insert(&procesoExterno)
 			if err == nil {
-				err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+				err = formatdata.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
 				if err == nil {
 					for _, row := range afectacion {
 						row.Disponibilidad = &v
@@ -369,7 +369,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
@@ -393,7 +393,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 			o.Rollback()
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 			return
 		}
@@ -409,7 +409,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}

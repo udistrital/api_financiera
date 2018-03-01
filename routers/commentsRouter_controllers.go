@@ -1015,6 +1015,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetallePacController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetallePacController"],
+		beego.ControllerComments{
+			Method: "InsertarRegistros",
+			Router: `/InsertarRegistros`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadApropiacionController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -3289,6 +3297,22 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
 		beego.ControllerComments{
+			Method: "GetIngresoCierre",
+			Router: `/GetIngresoCierre`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "GetPacValue",
+			Router: `/GetPacValue`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
 			Method: "GetRubroIngreso",
 			Router: `/GetRubroIngreso`,
 			AllowHTTPMethods: []string{"get"},
@@ -3305,6 +3329,25 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
 		beego.ControllerComments{
+<<<<<<< HEAD
+=======
+			Method: "GetRubroPac",
+			Router: `/GetRubroPac`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+			Method: "GetSumbySource",
+			Router: `/GetSumbySource`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroController"],
+		beego.ControllerComments{
+>>>>>>> master
 			Method: "ApropiacionReporte",
 			Router: `ApropiacionReporte/`,
 			AllowHTTPMethods: []string{"post"},

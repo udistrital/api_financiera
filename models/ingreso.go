@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Ingreso struct {
@@ -17,9 +17,9 @@ type Ingreso struct {
 	Consecutivo          float64               `orm:"column(consecutivo)"`
 	Vigencia             float64               `orm:"column(vigencia)"`
 	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaInicio    		 time.Time             `orm:"column(fecha_inicio);type(date)"`
-	FechaFin    		 time.Time             `orm:"column(fecha_fin);type(date)"`
-	Facultad    		 int             	   `orm:"column(facultad);null"`
+	FechaInicio          time.Time             `orm:"column(fecha_inicio);type(date)"`
+	FechaFin             time.Time             `orm:"column(fecha_fin);type(date)"`
+	Facultad             int                   `orm:"column(facultad);null"`
 	Observaciones        string                `orm:"column(observaciones);null"`
 	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
 	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
@@ -43,7 +43,7 @@ func init() {
 func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	err = utilidades.FillStruct(m, &ingreso)
+	err = formatdata.FillStruct(m, &ingreso)
 	fmt.Println(ingreso)
 	ingreso.EstadoIngreso = &EstadoIngreso{Id: 3}
 	_, err = o.Update(&ingreso, "EstadoIngreso", "MotivoRechazo")
@@ -59,7 +59,7 @@ func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
 	fmt.Println(ingreso)
 	ingreso.EstadoIngreso = &EstadoIngreso{Id: 2}
 	_, err = o.Update(&ingreso, "EstadoIngreso")
@@ -68,14 +68,15 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 		return
 	}
 	var mov []MovimientoContable
-	err = utilidades.FillStruct(m["Movimientos"], &mov)
+	err = formatdata.FillStruct(m["Movimientos"], &mov)
 	if err != nil {
 		o.Rollback()
 		return
 	}
 	for _, element := range mov {
-		element.EstadoMovimientoContable.Id = 1
-		_, err = o.Update(&element, "Aprobado")
+		element.EstadoMovimientoContable.Id = 2
+		beego.Info(element)
+		_, err = o.Update(&element, "EstadoMovimientoContable")
 		if err != nil {
 			o.Rollback()
 			return
@@ -89,7 +90,7 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 // last inserted Id on success.
 func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var id int64
-	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
 	if err == nil {
 		ingreso.EstadoIngreso = &EstadoIngreso{Id: 1}
 		ingreso.FechaIngreso = time.Now()
@@ -105,7 +106,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		beego.Info(err)
 		//insert MovimientoContable
 		var mov []MovimientoContable
-		err = utilidades.FillStruct(m["Movimientos"], &mov)
+		err = formatdata.FillStruct(m["Movimientos"], &mov)
 		for _, element := range mov {
 			element.Fecha = time.Now()
 			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
@@ -126,11 +127,11 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		} else {
 			ingreso.Id = int(id)
 			var ingresos float64
-			err = utilidades.FillStruct(m["IngresoBanco"], &ingresos)
+			err = formatdata.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
 				concepto := &Concepto{}
 				fmt.Println("concepto ", m["Concepto"])
-				err = utilidades.FillStruct(m["Concepto"], concepto)
+				err = formatdata.FillStruct(m["Concepto"], concepto)
 				if err == nil {
 					ingreso_concepto := &IngresoConcepto{ValorAgregado: ingresos,
 						Ingreso:  &ingreso,

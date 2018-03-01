@@ -132,7 +132,7 @@ func MakeTreePlanCuentas(plan int) (padres []map[string]interface{}, err error) 
 		 and id in (select cuenta_padre from financiera.estructura_cuentas where plan_cuentas= ? ) order by id;`, idplan).Values(&m)
 	if err == nil {
 		var res []interface{}
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		done := make(chan interface{})
 		defer close(done)
 		resch := utilidades.GenChanInterface(res...)
@@ -167,7 +167,7 @@ func MakeBranchesPlan(forkin interface{}, params ...interface{}) (forkout interf
 		left join financiera.estructura_cuentas b on a.id =b.cuenta_hijo
 		where b.cuenta_padre= ? and b.plan_cuentas = ? ORDER BY a.id`, fork["Id"], params).Values(&m)
 	if err == nil {
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		var hijos []map[string]interface{}
 		done := make(chan interface{})
 		defer close(done)

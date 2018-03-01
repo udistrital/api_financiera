@@ -10,7 +10,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // MovimientoApropiacionController operations for MovimientoApropiacion
@@ -69,7 +69,7 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -99,7 +99,7 @@ func (c *MovimientoApropiacionController) AprobarMovimietnoApropiacion() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			var alert []models.Alert
 			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			alert = append(alert, alt)
@@ -173,7 +173,7 @@ func (c *MovimientoApropiacionController) GetMovimientosApropiacionByApropiacion
 		beego.Info(err)
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alt
 	} else {
@@ -272,7 +272,7 @@ func (c *MovimientoApropiacionController) Put() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alt
 		}
