@@ -760,6 +760,31 @@ func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia 
 	return
 }
 
+func RubroOrdenPagoP(ordenPago int) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT rubro.id as idrubro,
+	 									COALESCE(ffa.fuente_financiamiento,0) as idfuente,
+	 									ep.vigencia,
+	 									ep.valor_base
+         					From financiera.orden_pago ep
+										LEFT JOIN financiera.concepto_orden_pago as orden_concepto
+											ON ep.id = orden_concepto.orden_de_pago
+										LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+											ON orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+										LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
+											ON rpda.disponibilidad_apropiacion = disp_apr.id
+										LEFT JOIN financiera.apropiacion as apropiacion
+											ON apropiacion.id = disp_apr.apropiacion
+										LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
+											ON apropiacion.id = ffa.apropiacion
+										LEFT JOIN financiera.rubro as rubro
+											ON apropiacion.rubro = rubro.id
+									WHERE ep.id = ?`, ordenPago).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
 func ValEjecutadoPac(vigencia int64, mes int, rubro string, fuente string) (res []interface{}, err error) {
 	o := orm.NewOrm()
 	var m []orm.Params

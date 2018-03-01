@@ -3,21 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
-// DetallePacController operations for DetallePac
-type DetallePacController struct {
+// IngresoEstadoIngresoController operations for IngresoEstadoIngreso
+type IngresoEstadoIngresoController struct {
 	beego.Controller
 }
+
 // URLMapping ...
-func (c *DetallePacController) URLMapping() {
+func (c *IngresoEstadoIngresoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -27,15 +26,15 @@ func (c *DetallePacController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create DetallePac
-// @Param	body		body 	models.DetallePac	true		"body for DetallePac content"
-// @Success 201 {int} models.DetallePac
+// @Description create IngresoEstadoIngreso
+// @Param	body		body 	models.IngresoEstadoIngreso	true		"body for IngresoEstadoIngreso content"
+// @Success 201 {int} models.IngresoEstadoIngreso
 // @Failure 403 body is empty
 // @router / [post]
-func (c *DetallePacController) Post() {
-	var v models.DetallePac
+func (c *IngresoEstadoIngresoController) Post() {
+	var v models.IngresoEstadoIngreso
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddDetallePac(&v); err == nil {
+		if _, err := models.AddIngresoEstadoIngreso(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -49,15 +48,15 @@ func (c *DetallePacController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get DetallePac by id
+// @Description get IngresoEstadoIngreso by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.DetallePac
+// @Success 200 {object} models.IngresoEstadoIngreso
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *DetallePacController) GetOne() {
+func (c *IngresoEstadoIngresoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetDetallePacById(id)
+	v, err := models.GetIngresoEstadoIngresoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -68,17 +67,17 @@ func (c *DetallePacController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get DetallePac
+// @Description get IngresoEstadoIngreso
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.DetallePac
+// @Success 200 {object} models.IngresoEstadoIngreso
 // @Failure 403
 // @router / [get]
-func (c *DetallePacController) GetAll() {
+func (c *IngresoEstadoIngresoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -120,7 +119,7 @@ func (c *DetallePacController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllDetallePac(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllIngresoEstadoIngreso(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -131,18 +130,18 @@ func (c *DetallePacController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the DetallePac
+// @Description update the IngresoEstadoIngreso
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.DetallePac	true		"body for DetallePac content"
-// @Success 200 {object} models.DetallePac
+// @Param	body		body 	models.IngresoEstadoIngreso	true		"body for IngresoEstadoIngreso content"
+// @Success 200 {object} models.IngresoEstadoIngreso
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *DetallePacController) Put() {
+func (c *IngresoEstadoIngresoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.DetallePac{Id: id}
+	v := models.IngresoEstadoIngreso{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateDetallePacById(&v); err == nil {
+		if err := models.UpdateIngresoEstadoIngresoById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -155,60 +154,18 @@ func (c *DetallePacController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the DetallePac
+// @Description delete the IngresoEstadoIngreso
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *DetallePacController) Delete() {
+func (c *IngresoEstadoIngresoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteDetallePac(id); err == nil {
+	if err := models.DeleteIngresoEstadoIngreso(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
-
-// InsertarRegistros ...
-// @Title InsertarRegistros
-// @Description funcion que recibe e inserta los registros de la generacion del cierre
-// @Param	 request   query   interface{}    true		"The list you wanna insert"
-// @Success 200 {int} models.Pac
-// @Failure 403 Interface{}
-// @router /InsertarRegistros [post]
-func (c *DetallePacController) InsertarRegistros() {
-	var request map[string]interface{}
-	var data []map[string]interface{}
-	var vigencia int
-	var mes int
-	var m string
-	defer c.ServeJSON()
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-		err = formatdata.FillStruct(request["datos"], &data)
-		err = formatdata.FillStruct(request["vigencia"], &vigencia)
-		err = formatdata.FillStruct(request["mes"], &m)
-		mes, err = strconv.Atoi(m)
-		if err != nil {
-			fmt.Println("error ", err.Error())
-			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
-		}
-		fmt.Println(mes)
-
-		beego.Error("imprime metodo insertar")
-		
-		if res, err := models.AddPacCierre(data, mes, vigencia); err != nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
-			c.Data["json"] = alert
-		} else {
-			fmt.Println("error ", err.Error())
-			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
-		}
-	} else {
-		fmt.Println("err 1", err.Error())
-		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
-	}
-
-}
-

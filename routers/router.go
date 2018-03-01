@@ -609,6 +609,11 @@ func init() {
 				&controllers.TipoMovimientoApropiacionController{},
 			),
 		),
+		beego.NSNamespace("/ingreso_estado_ingreso",
+			beego.NSInclude(
+				&controllers.IngresoEstadoIngresoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
