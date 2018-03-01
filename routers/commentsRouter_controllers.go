@@ -327,6 +327,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ApropiacionController"],
+		beego.ControllerComments{
+			Method: "VigenciaApropiaciones",
+			Router: `/VigenciaApropiaciones`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolConceptosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ArbolConceptosController"],
 		beego.ControllerComments{
 			Method: "MakeTree",
