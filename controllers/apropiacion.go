@@ -90,6 +90,7 @@ func (c *ApropiacionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
+	var exclude = make(map[string]string)
 	var query = make(map[string]string)
 	var limit int64 = 10
 	var offset int64
@@ -114,6 +115,7 @@ func (c *ApropiacionController) GetAll() {
 	if v := c.GetString("order"); v != "" {
 		order = strings.Split(v, ",")
 	}
+
 	// query: k:v,k:v
 	if v := c.GetString("query"); v != "" {
 		for _, cond := range strings.Split(v, ",") {
@@ -128,7 +130,21 @@ func (c *ApropiacionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllApropiacion(query, fields, sortby, order, offset, limit)
+	// exclude: k:v,k:v
+	if v := c.GetString("exclude"); v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid exclude key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			exclude[k] = v
+		}
+	}
+
+	l, err := models.GetAllApropiacion(query, exclude, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -329,5 +345,21 @@ func (c *ApropiacionController) AprobarPresupuesto() {
 		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 	}
 
+	c.ServeJSON()
+}
+
+// VigenciaApropiaciones ...
+// @Title VigenciaApropiaciones
+// @Description Obtiene todas las vigencias no repetidas de las apropiaciones
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /VigenciaApropiaciones [get]
+func (c *ApropiacionController) VigenciaApropiaciones() {
+	m, err := models.VigenciaApropiacion()
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_458", Body: err.Error(), Type: "error"}
+	} else {
+		c.Data["json"] = m
+	}
 	c.ServeJSON()
 }
