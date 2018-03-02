@@ -158,7 +158,7 @@ func DeleteDetallePac(id int) (err error) {
 	return
 }
 func AddEgresoPac(parameter ...interface{}) (err interface{}) {
-	beego.Error("entra a egresos pac")
+	
 	var idRubro string
 	var idFuente string
 	var vigencia string
@@ -170,11 +170,9 @@ func AddEgresoPac(parameter ...interface{}) (err interface{}) {
 
 	params := parameter[0].([]interface{})
 	ordenPago := params[0].(OrdenPago)
-	nuevoEstado := params[1].(int)
-	beego.Info("nuevo estado ", nuevoEstado)
 	res, err := RubroOrdenPagoP(ordenPago.Id)
+
 	err = formatdata.FillStruct(res[0], &total)
-	if nuevoEstado == 4 {
 		if err == nil {
 			err = formatdata.FillStruct(total["idrubro"], &idRubro)
 			err = formatdata.FillStruct(total["idfuente"], &idFuente)
@@ -253,7 +251,6 @@ func AddEgresoPac(parameter ...interface{}) (err interface{}) {
 			}
 		}
 		o.Commit()
-	}
 	return
 }
 func AddIngresoPac(parameter ...interface{}) (err interface{}) {
@@ -396,6 +393,7 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 		ejecu, err = strconv.ParseFloat(ejec, 64)
 		idF, err = strconv.Atoi(idFuente)
 		idR, err = strconv.Atoi(idRubro)
+if ejecu != 0 && proyec != 0 {
 		detalle_pac := &DetallePac{ValorProyectadoMes: proyec,
 			ValorEjecutadoMes:    ejecu,
 			FuenteFinanciamiento: idF,
@@ -403,6 +401,7 @@ func AddPacCierre(v []map[string]interface{}, mes int, vigencia int) (detPac Det
 			Pac:                  &pac,
 			Mes:                  mes}
 		_, err = o.Insert(detalle_pac)
+}
 		if err != nil {
 			beego.Info(err.Error())
 			o.Rollback()

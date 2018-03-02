@@ -684,12 +684,12 @@ func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia
 							0 as Variacion
 					FROM financiera.apropiacion as apropiacion
 					JOIN financiera.rubro as rubro ON rubro.id = apropiacion.rubro
-					LEFT JOIN financiera.estado_ingreso as estadoingreso ON estadoingreso.nombre = 'Aprobado'
 					LEFT JOIN financiera.concepto_tesoral as concepto ON concepto.rubro = rubro.id
 					LEFT JOIN financiera.ingreso_concepto as ingresoconcepto ON ingresoconcepto.concepto = concepto.id
 					LEFT JOIN financiera.ingreso as ingreso  ON ingresoconcepto.ingreso = ingreso.id
-										    AND ingreso.estado_ingreso = estadoingreso.id
-										    AND ingreso.fecha_ingreso BETWEEN ? AND ?
+					left JOIN financiera.ingreso_estado_ingreso estado_ing on estado_ing.ingreso = ingreso.id
+												AND estado_ing.fecha_registro BETWEEN ? AND ?
+												AND estado_ing.estado_ingreso = 4
 					LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa ON apropiacion.id = ffa.apropiacion
 					LEFT JOIN financiera.fuente_financiamiento as fuente ON fuente.id = ffa.fuente_financiamiento
 					LEFT JOIN financiera.forma_ingreso as formaingreso ON formaingreso.id = ingreso.forma_ingreso
