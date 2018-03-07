@@ -112,6 +112,9 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "AnulacionDisponibilidadApropiacion", 5)
+				for _, sub := range v.AnulacionDisponibilidadApropiacion {
+					o.LoadRelated(sub.DisponibilidadApropiacion.Disponibilidad, "DisponibilidadProcesoExterno", 5, 1, 0, "-Id")
+				}
 				ml = append(ml, v)
 			}
 		} else {
