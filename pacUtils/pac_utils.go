@@ -14,11 +14,13 @@ func FunctionAfterExecIngresoPac(ctx *context.Context) {
 	//beego.Info("Llamada...")
 	var u map[string]interface{}
 	ingreso := models.Ingreso{}
+	var paramsIngreso []interface{}
 	var tipo string
 	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u); err == nil {
 		if err = formatdata.FillStruct(u["Body"], &ingreso); err == nil && ingreso.Id != 0 {
 			if err = formatdata.FillStruct(u["Type"], &tipo); err == nil && tipo == "success" {
-				work := optimize.WorkRequest{JobParameter: ingreso, Job: (models.AddIngresoPac)}
+				paramsIngreso = append(paramsIngreso, ingreso)
+				work := optimize.WorkRequest{JobParameter: paramsIngreso, Job: (models.AddIngresoPac)}
 				// Push the work onto the queue.
 				optimize.WorkQueue <- work
 			}
@@ -52,7 +54,6 @@ func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 			}
 		}
 
-
 		if err = formatdata.FillStruct(u["OrdenPago"], &egresoArr); err == nil {
 			egreso = egresoArr[0]
 		} else {
@@ -61,23 +62,23 @@ func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 	} else {
 		beego.Error(err.Error())
 	}
-	
+
 	parameters = append(parameters, egreso)
 	parameters = append(parameters, idEstado)
-	beego.Error("valor u  ",u)
-	if (idEstado==4 && egreso.Id != 0 ){
-	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u2); err == nil {
-	if err := formatdata.FillStruct(u2["Type"], &tipo); err == nil && tipo == "success"{
-	work := optimize.WorkRequest{JobParameter: parameters, Job: (models.AddEgresoPac)}
-	// Push the work onto the queue.
-	optimize.WorkQueue <- work
-	
-	}else{
-			beego.Error("Error", err.Error())
+	beego.Error("valor u  ", u)
+	if idEstado == 4 && egreso.Id != 0 {
+		if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u2); err == nil {
+			if err := formatdata.FillStruct(u2["Type"], &tipo); err == nil && tipo == "success" {
+				work := optimize.WorkRequest{JobParameter: parameters, Job: (models.AddEgresoPac)}
+				// Push the work onto the queue.
+				optimize.WorkQueue <- work
+
+			} else {
+				beego.Error("Error", err.Error())
+			}
+		}
+		beego.Error("tipo ", tipo)
 	}
-	}
-	beego.Error("tipo ",tipo)
-}
 }
 
 func FunctionJobExample(parameter ...interface{}) (res interface{}) {

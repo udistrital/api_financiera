@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/plugins/cors"
 	_ "github.com/lib/pq"
+	"github.com/udistrital/api_financiera/controllers"
 	"github.com/udistrital/api_financiera/pacUtils"
 	_ "github.com/udistrital/api_financiera/routers"
 )
@@ -14,7 +15,9 @@ func init() {
 }
 
 func main() {
-	orm.Debug = true
+
+	controllers.StartListadoApropiaciones()
+	// orm.Debug = true
 	if beego.BConfig.RunMode == "dev" {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
