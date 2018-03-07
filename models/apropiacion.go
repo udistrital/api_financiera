@@ -1,8 +1,10 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
@@ -344,7 +346,9 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 					subdone := make(chan map[string]interface{}) // HLdone
 					defer close(subdone)
 					for hijo := range RamaApropiaciones(subdone, unidadEjecutora, Vigencia, resch) {
-						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+						if hijo != nil {
+							hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+						}
 					}
 					fork["Hijos"] = hijos
 					//recorrer hijos sumando apropiaciones, si las tiene.
@@ -359,8 +363,9 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 							fork["Apropiacion"] = v[0]
 							fork["Hijos"] = nil
 						} else {
-							fork["Apropiacion"] = nil
-							fork["Hijos"] = nil
+							// fork["Apropiacion"] = nil
+							// fork["Hijos"] = nil
+							fork = nil
 						}
 					} else {
 						ap := Apropiacion{}
@@ -392,6 +397,7 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 			close(out) // HL
 		}()
 	}()
+	// fmt.Println("rama generada...")
 	return out
 }
 
@@ -405,8 +411,10 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
 			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
-			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
+				AND rubro.unidad_ejecutora=?`, unidadEjecutora).Values(&m)
 	if err == nil {
+		fmt.Println("Generando arbol....")
 		var res []map[string]interface{}
 		err = formatdata.FillStruct(m, &res)
 		resch := genChanMapStr(res...)
@@ -416,7 +424,27 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
 		}
 	}
+	fmt.Println("Arbol generado...")
 	return
+}
+
+func EncapsuArbolApropiaciones(parameter ...interface{}) interface{} {
+	unidadEjecutora := parameter[0].(int)
+	vigencia := parameter[1].(int)
+
+	if v, err := ArbolApropiaciones(unidadEjecutora, vigencia); err == nil {
+		rankingsJson, _ := json.Marshal(v)
+		err = ioutil.WriteFile("apropaciones_"+strconv.Itoa(unidadEjecutora)+"_"+strconv.Itoa(vigencia)+".json", rankingsJson, 0644)
+		if err != nil {
+			fmt.Println("Error escribiendo archivo....")
+			return err
+		}
+		fmt.Println("Construyendo archivo....")
+		return err
+	} else {
+		fmt.Println("error encapsula: ", err)
+	}
+	return nil
 }
 
 //SaldoRubroPadre... Funcion para determinar el saldo de un rubro padre a partir de sus hijos.
