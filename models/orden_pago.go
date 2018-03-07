@@ -339,6 +339,7 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	orden := OrdenPago{Id: ordenPago.Id}
 	if o.Read(&orden) == nil {
 		//orden.Iva = ordenPago.Iva
+		orden.Documento = ordenPago.Documento
 		orden.SubTipoOrdenPago = ordenPago.SubTipoOrdenPago
 		orden.FormaPago = ordenPago.FormaPago
 		orden.ValorBase = ordenPago.ValorBase
