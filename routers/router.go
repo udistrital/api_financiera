@@ -15,6 +15,7 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
+
 		beego.NSNamespace("/etapa_avance",
 			beego.NSInclude(
 				&controllers.EtapaAvanceController{},
@@ -612,6 +613,42 @@ func init() {
 		beego.NSNamespace("/ingreso_estado_ingreso",
 			beego.NSInclude(
 				&controllers.IngresoEstadoIngresoController{},
+			),
+		),
+		
+		beego.NSNamespace("/estado_comprobante",
+			beego.NSInclude(
+				&controllers.EstadoComprobanteController{},
+			),
+		),
+
+		beego.NSNamespace("/tipo_movimiento_comprobante",
+			beego.NSInclude(
+				&controllers.TipoMovimientoComprobanteController{},
+			),
+		),
+
+		beego.NSNamespace("/registro_comprobantes",
+			beego.NSInclude(
+				&controllers.RegistroComprobantesController{},
+			),
+		),
+
+		beego.NSNamespace("/comprobante",
+			beego.NSInclude(
+				&controllers.ComprobanteController{},
+			),
+		),
+
+		beego.NSNamespace("/tipo_comprobante",
+			beego.NSInclude(
+				&controllers.TipoComprobanteController{},
+			),
+		),
+
+		beego.NSNamespace("/homologacion_comprobantes",
+			beego.NSInclude(
+				&controllers.HomologacionComprobantesController{},
 			),
 		),
 	)
