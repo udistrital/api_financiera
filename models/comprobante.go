@@ -20,7 +20,7 @@ type Comprobante struct {
 	FechaRegistro     time.Time          `orm:"column(fecha_registro);type(timestamp without time zone)"`
 	TipoComprobante   *TipoComprobante   `orm:"column(tipo_comprobante);rel(fk)"`
 	EstadoComprobante *EstadoComprobante `orm:"column(estado_comprobante);rel(fk)"`
-	Observaciones     string 						 `orm:"column(observaciones)"`	
+	Observaciones     string 						 `orm:"column(observaciones)"`
 }
 
 func (t *Comprobante) TableName() string {
@@ -55,7 +55,7 @@ func GetComprobanteById(id int) (v *Comprobante, err error) {
 func GetAllComprobante(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Comprobante))
+	qs := o.QueryTable(new(Comprobante)).RelatedSel(1)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
