@@ -20,6 +20,7 @@ type Comprobante struct {
 	FechaRegistro     time.Time          `orm:"column(fecha_registro);type(timestamp without time zone)"`
 	TipoComprobante   *TipoComprobante   `orm:"column(tipo_comprobante);rel(fk)"`
 	EstadoComprobante *EstadoComprobante `orm:"column(estado_comprobante);rel(fk)"`
+	Observaciones     string 						 `orm:"column(observaciones)"`	
 }
 
 func (t *Comprobante) TableName() string {
