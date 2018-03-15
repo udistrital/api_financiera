@@ -17,6 +17,7 @@ type TipoComprobante struct {
 	Activo            bool    `orm:"column(activo)"`
 	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 	UnidadEjecutora   int     `orm:"column(unidad_ejecutora)"`
+	Entidad    			  int     `orm:"column(entidad)"`
 }
 
 func (t *TipoComprobante) TableName() string {
