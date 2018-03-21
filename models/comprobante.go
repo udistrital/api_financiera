@@ -11,7 +11,7 @@ import (
 )
 
 type Comprobante struct {
-	Id                int                `orm:"column(id);pk"`
+	Id                int                `orm:"column(id);pk;auto"`
 	Secuencia         int                `orm:"column(secuencia)"`
 	NumeroItems       int                `orm:"column(numero_items)"`
 	RedondeoCifras    bool               `orm:"column(redondeo_cifras)"`
@@ -156,4 +156,15 @@ func DeleteComprobante(id int) (err error) {
 		}
 	}
 	return
+}
+
+func CrearComprobante(op OrdenPago){
+	fmt.Println("hola soy la orden de pago creada", op)
+	nuevo_comprobante := &Comprobante{Secuencia: op.Consecutivo,NumeroItems: 250,RedondeoCifras: true,	Ano: 2018,Mes: 4,FechaRegistro: time.Now(),TipoComprobante: &TipoComprobante{Id:1},	EstadoComprobante : &EstadoComprobante{Id:1},Observaciones: "Creada automáticamente para OP"}
+	id_nuevo, err := AddComprobante(nuevo_comprobante)
+	if(id_nuevo != 0 && err != nil){
+		fmt.Println("comprobante creado exitosamente")
+	}else{
+		fmt.Println("error", err)
+	}
 }
