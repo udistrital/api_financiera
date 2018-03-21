@@ -38,6 +38,7 @@ func main() {
 	}))
 
 	pacUtils.Init()
+	pacUtils.InitComprobante()
 	apistatus.Init()
 	beego.Run()
 }
