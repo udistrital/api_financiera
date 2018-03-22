@@ -30,6 +30,8 @@ type Ingreso struct {
 	MotivoRechazo        string                  `orm:"column(motivo_rechazo)"`
 	IngresoConcepto      []*IngresoConcepto      `orm:"reverse(many)"`
 	IngresoEstadoIngreso []*IngresoEstadoIngreso `orm:"reverse(many)"`
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk)"` 
+	NumCuenta			string                   `orm:"column(num_cuenta)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -153,16 +155,30 @@ func AprobacionPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, e
 // last inserted Id on success.
 func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var id int64
+	var idDocgenerador int64
+	var docGen DocumentoGenerador
+	err = formatdata.FillStruct(m["DocumentoGenerador"], &docGen)
+	o := orm.NewOrm()
+	
+	if err == nil {
+		o.Begin()
+		idDocgenerador, err = o.Insert(&docGen)
+		beego.Error("inserta doc generador")
+		if err != nil {
+			beego.Info(err)
+			o.Rollback()
+			return
+		}
+	}
 	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
 	if err == nil {
 		ingreso.FechaIngreso = time.Now()
 		ingreso.Vigencia = float64(time.Now().Year())
-		o := orm.NewOrm()
-		o.Begin()
 		var consecutivo float64
 		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
 						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
 		ingreso.Consecutivo = consecutivo
+		ingreso.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
 		beego.Info(err)
@@ -235,6 +251,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			return
 		}
 	} else {
+		beego.Info(err)
 		return
 	}
 
