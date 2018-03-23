@@ -36,5 +36,6 @@ func main() {
 		AllowCredentials: true,
 	}))
 	pacUtils.Init()
+	pacUtils.ReportesInit()
 	beego.Run()
 }
