@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 
 	"github.com/fatih/structs"
@@ -32,17 +35,35 @@ func (c *ArbolPlanCuentasController) URLMapping() {
 // @router /:id [get]
 func (c *ArbolPlanCuentasController) MakeTreeCuentas() {
 	idStr := c.Ctx.Input.Param(":id")
-	id, _ := strconv.Atoi(idStr)
-	l, err := models.MakeTreePlanCuentas(id)
-	if err != nil {
-		alertdb := structs.Map(err)
-		var code string
-		formatdata.FillStruct(alertdb["Code"], &code)
-		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
-		c.Data["json"] = alert
+	id, err := strconv.Atoi(idStr)
+    if err == nil {
+    	if _, err := os.Stat("PlanCuentasTreeId" + idStr + ".json"); os.IsNotExist(err) {
+			l, err := models.MakeTreePlanCuentas(id)
+			if err != nil {
+				alertdb := structs.Map(err)
+				var code string
+				formatdata.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+				c.Data["json"] = alert
+			} else {
+				rankingsJson, _ := json.Marshal(l)
+				err = ioutil.WriteFile("PlanCuentasTreeId" + idStr + ".json", rankingsJson, 0644)
+				fmt.Println("err ", err)	
+				c.Data["json"] = l
+			}
+		} else {
+			data, _ := ioutil.ReadFile("PlanCuentasTreeId" + idStr + ".json")
+			var l interface {}
+			err = json.Unmarshal(data, &l)
+			// fmt.Println("read from file PlanCuentas")
+			c.Data["json"] = l
+		}		
 	} else {
-		c.Data["json"] = l
-	}
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+
+	}	
+		
 	//Generera el Json con los datos obtenidos
 	c.ServeJSON()
 }
