@@ -614,6 +614,11 @@ func init() {
 				&controllers.IngresoEstadoIngresoController{},
 			),
 		),
+		beego.NSNamespace("/rep_apropiaciones",
+			beego.NSInclude(
+				&controllers.RepApropiacionesController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
