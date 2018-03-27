@@ -614,6 +614,11 @@ func init() {
 				&controllers.IngresoEstadoIngresoController{},
 			),
 		),
+		beego.NSNamespace("/tipo_anulacion_presupuestal",
+			beego.NSInclude(
+				&controllers.TipoAnulacionPresupuestalController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
