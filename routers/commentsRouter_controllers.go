@@ -3079,38 +3079,6 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"],
-		beego.ControllerComments{
-			Method: "GetAll",
-			Router: `/`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"],
-		beego.ControllerComments{
-			Method: "GetOne",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"],
-		beego.ControllerComments{
-			Method: "Put",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"put"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:Pasivos_fenecidosController"],
-		beego.ControllerComments{
-			Method: "Delete",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"delete"},
-			MethodParams: param.Make(),
-			Params: nil})
-
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:PeriodoContableController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:PeriodoContableController"],
 		beego.ControllerComments{
 			Method: "Post",

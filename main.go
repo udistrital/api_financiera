@@ -8,7 +8,7 @@ import (
 	"github.com/udistrital/api_financiera/controllers"
 	"github.com/udistrital/api_financiera/pacUtils"
 	_ "github.com/udistrital/api_financiera/routers"
-		"github.com/udistrital/utils_oas/apiStatusLib"
+	"github.com/udistrital/utils_oas/apiStatusLib"
 )
 
 func init() {
@@ -40,5 +40,6 @@ func main() {
 	pacUtils.Init()
 	pacUtils.InitComprobante()
 	apistatus.Init()
+	controllers.PFenecidosInit()
 	beego.Run()
 }
