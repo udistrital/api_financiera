@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/udistrital/api_financiera/models"
+	"strconv"
+	"time"
 )
 
 // Pasivos_fenecidosController operations for Pasivos_fenecidos
@@ -26,7 +29,21 @@ func (c *Pasivos_fenecidosController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *Pasivos_fenecidosController) Post() {
-
+	var fields []string
+	var sortby []string
+	var order []string
+	var query = make(map[string]string)
+	var limit int64 = -1
+	var offset int64
+	query["Estado.Id__in"] = "1|2"
+	query["Vigencia"] = strconv.Itoa(time.Now().Local().Year() - 2)
+	dataDisp, err := models.GetAllDisponibilidad(query, fields, sortby, order, offset, limit)
+	if err == nil {
+		c.Data["json"] = dataDisp
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+	c.ServeJSON()
 }
 
 // GetOne ...

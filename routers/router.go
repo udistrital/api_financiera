@@ -661,6 +661,11 @@ func init() {
 				&controllers.DocumentoGeneradorController{},
 			),
 		),
+		beego.NSNamespace("/pasivos_fenecidos",
+			beego.NSInclude(
+				&controllers.Pasivos_fenecidosController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
