@@ -35,6 +35,9 @@ func init() {
 // last inserted Id on success.
 func AddComprobante(m *Comprobante) (id int64, err error) {
 	o := orm.NewOrm()
+	m.FechaRegistro = time.Now()
+	m.Mes = int(time.Now().Month())
+	m.Ano  = time.Now().Year()
 	id, err = o.Insert(m)
 	return
 }
