@@ -5,59 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type AnulacionRegistroPresupuestal struct {
-	Id                   int                        `orm:"auto;column(id);pk"`
-	Consecutivo          int                        `orm:"column(consecutivo)"`
-	Motivo               string                     `orm:"column(motivo)"`
-	FechaRegistro        time.Time                  `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion        *TipoAnulacionPresupuestal `orm:"column(tipo_anulacion);rel(fk)"`
-	EstadoAnulacion      *EstadoAnulacion           `orm:"column(estado_anulacion);rel(fk)"`
-	JustificacionRechazo string                     `orm:"column(justificacion_rechazo);null"`
-	Responsable          int                        `orm:"column(responsable)"`
-	Solicitante          int                        `orm:"column(solicitante)"`
-	Expidio              int                        `orm:"column(expidio)"`
-
-	AnulacionRegistroPresupuestalDisponibilidadApropiacion []*AnulacionRegistroPresupuestalDisponibilidadApropiacion `orm:"reverse(many)"`
+type TipoAnulacionPresupuestal struct {
+	Id          int     `orm:"column(id);pk"`
+	Nombre      string  `orm:"column(nombre);null"`
+	Descripcion string  `orm:"column(descripcion);null"`
+	Activo      bool    `orm:"column(activo);null"`
+	NumeroOrden float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *AnulacionRegistroPresupuestal) TableName() string {
-	return "anulacion_registro_presupuestal"
+func (t *TipoAnulacionPresupuestal) TableName() string {
+	return "tipo_anulacion_presupuestal"
 }
 
 func init() {
-	orm.RegisterModel(new(AnulacionRegistroPresupuestal))
+	orm.RegisterModel(new(TipoAnulacionPresupuestal))
 }
 
-// AddAnulacionRegistroPresupuestal insert a new AnulacionRegistroPresupuestal into database and returns
+// AddTipoAnulacionPresupuestal insert a new TipoAnulacionPresupuestal into database and returns
 // last inserted Id on success.
-func AddAnulacionRegistroPresupuestal(m *AnulacionRegistroPresupuestal) (id int64, err error) {
+func AddTipoAnulacionPresupuestal(m *TipoAnulacionPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAnulacionRegistroPresupuestalById retrieves AnulacionRegistroPresupuestal by Id. Returns error if
+// GetTipoAnulacionPresupuestalById retrieves TipoAnulacionPresupuestal by Id. Returns error if
 // Id doesn't exist
-func GetAnulacionRegistroPresupuestalById(id int) (v *AnulacionRegistroPresupuestal, err error) {
+func GetTipoAnulacionPresupuestalById(id int) (v *TipoAnulacionPresupuestal, err error) {
 	o := orm.NewOrm()
-	v = &AnulacionRegistroPresupuestal{Id: id}
+	v = &TipoAnulacionPresupuestal{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllAnulacionRegistroPresupuestal retrieves all AnulacionRegistroPresupuestal matches certain condition. Returns empty list if
+// GetAllTipoAnulacionPresupuestal retrieves all TipoAnulacionPresupuestal matches certain condition. Returns empty list if
 // no records exist
-func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoAnulacionPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AnulacionRegistroPresupuestal))
+	qs := o.QueryTable(new(TipoAnulacionPresupuestal))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -107,12 +99,11 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 		}
 	}
 
-	var l []AnulacionRegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	var l []TipoAnulacionPresupuestal
+	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "AnulacionRegistroPresupuestalDisponibilidadApropiacion", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -131,30 +122,30 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 	return nil, err
 }
 
-// UpdateAnulacionRegistroPresupuestal updates AnulacionRegistroPresupuestal by Id and returns error if
+// UpdateTipoAnulacionPresupuestal updates TipoAnulacionPresupuestal by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAnulacionRegistroPresupuestalById(m *AnulacionRegistroPresupuestal, fields ...string) (err error) {
+func UpdateTipoAnulacionPresupuestalById(m *TipoAnulacionPresupuestal) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionRegistroPresupuestal{Id: m.Id}
+	v := TipoAnulacionPresupuestal{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m, fields...); err == nil {
+		if num, err = o.Update(m); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
 	return
 }
 
-// DeleteAnulacionRegistroPresupuestal deletes AnulacionRegistroPresupuestal by Id and returns error if
+// DeleteTipoAnulacionPresupuestal deletes TipoAnulacionPresupuestal by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAnulacionRegistroPresupuestal(id int) (err error) {
+func DeleteTipoAnulacionPresupuestal(id int) (err error) {
 	o := orm.NewOrm()
-	v := AnulacionRegistroPresupuestal{Id: id}
+	v := TipoAnulacionPresupuestal{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AnulacionRegistroPresupuestal{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoAnulacionPresupuestal{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

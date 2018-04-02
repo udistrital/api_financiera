@@ -15,7 +15,7 @@ type AnulacionDisponibilidad struct {
 	Consecutivo                        int                                   `orm:"column(consecutivo)"`
 	Motivo                             string                                `orm:"column(motivo)"`
 	FechaRegistro                      time.Time                             `orm:"column(fecha_registro);type(date)"`
-	TipoAnulacion                      string                                `orm:"column(tipo_anulacion)"`
+	TipoAnulacion                      *TipoAnulacionPresupuestal            `orm:"column(tipo_anulacion);rel(fk)"`
 	EstadoAnulacion                    *EstadoAnulacion                      `orm:"column(estado_anulacion);rel(fk)"`
 	JustificacionRechazo               string                                `orm:"column(justificacion_rechazo);null"`
 	Responsable                        int                                   `orm:"column(responsable)"`
