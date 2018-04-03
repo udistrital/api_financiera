@@ -64,10 +64,10 @@ func pasivosFenecidosProcess(parameter ...interface{}) (err interface{}) {
 	try.This(func() {
 		dataRp, _ := models.GetAllRegistroPresupuestal(query, fields, sortby, order, offset, limit)
 		beego.Info("Feneciendo CRP...")
-		optimize.ProccDigest(dataRp, fenecerCrp, nil)
+		optimize.ProccDigest(dataRp, fenecerCrp, nil,4)
 		dataCdp, _ := models.GetAllDisponibilidad(query, fields, sortby, order, offset, limit)
 		beego.Info("Feneciendo CDP...")
-		optimize.ProccDigest(dataCdp, fenecerCdp, nil)
+		optimize.ProccDigest(dataCdp, fenecerCdp, nil,4)
 		beego.Info("Proceso Finalizado... ")
 	}).Catch(func(e try.E) {
 		// Print crash
@@ -121,7 +121,7 @@ func fenecerCdp(cdpintfc interface{}, params ...interface{}) (res interface{}) {
 		datosAnulacion.Valor = 0
 		_, err := models.AnulacionTotal(&datosAnulacion)
 		if err != nil {
-			panic(err)
+			beego.Info("err ",err)
 		}
 		//beego.Info("Data anulacion: ", datosAnulacion)
 	}).Catch(func(e try.E) {
