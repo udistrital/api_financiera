@@ -615,6 +615,11 @@ func init() {
 				&controllers.IngresoEstadoIngresoController{},
 			),
 		),
+		beego.NSNamespace("/tipo_anulacion_presupuestal",
+			beego.NSInclude(
+				&controllers.TipoAnulacionPresupuestalController{},
+			),
+		),
 
 		beego.NSNamespace("/estado_comprobante",
 			beego.NSInclude(
@@ -654,6 +659,11 @@ func init() {
 		beego.NSNamespace("/documento_generador",
 			beego.NSInclude(
 				&controllers.DocumentoGeneradorController{},
+			),
+		),
+		beego.NSNamespace("/pasivos_fenecidos",
+			beego.NSInclude(
+				&controllers.Pasivos_fenecidosController{},
 			),
 		),
 	)

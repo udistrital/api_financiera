@@ -10,7 +10,7 @@ import (
 )
 
 type HomologacionComprobantes struct {
-	Id                        int                        `orm:"column(id);pk"`
+	Id                        int                        `orm:"column(id);pk;auto"`
 	TipoComprobante           *TipoComprobante           `orm:"column(tipo_comprobante);rel(fk)"`
 	TipoMovimientoComprobante *TipoMovimientoComprobante `orm:"column(tipo_movimiento_comprobante);rel(fk)"`
 }
