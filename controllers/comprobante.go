@@ -117,6 +117,7 @@ func (c *ComprobanteController) GetAll() {
 			k, v := kv[0], kv[1]
 			query[k] = v
 		}
+
 	}
 
 	l, err := models.GetAllComprobante(query, fields, sortby, order, offset, limit)

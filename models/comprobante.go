@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
 	"github.com/astaxie/beego/orm"
+	"strconv"
 )
 
 type Comprobante struct {
@@ -158,12 +158,32 @@ func DeleteComprobante(id int) (err error) {
 	return
 }
 
-func CrearComprobante(op OrdenPago){
+func CrearComprobanteOrdenPago(op OrdenPago){
 	fmt.Println("hola soy la orden de pago creada", op)
-	nuevo_comprobante := &Comprobante{Secuencia: op.Consecutivo,NumeroItems: 250,RedondeoCifras: true,	Ano: 2018,Mes: 4,FechaRegistro: time.Now(),TipoComprobante: &TipoComprobante{Id:1},	EstadoComprobante : &EstadoComprobante{Id:1},Observaciones: "Creada automáticamente para OP"}
+	var consulta_homologacion = make(map[string]string);
+	var consulta_movimiento_contable= make(map[string]string);
+	var fields []string
+	var sortby []string
+	var order []string
+	var ObjetoHomologacion HomologacionComprobantes
+
+ 	consulta_homologacion["TipoMovimientoComprobante.CodigoAbreviacion"] = "OP"
+	consulta_homologacion["TipoMovimientoComprobante.Activo"] = "true"
+
+
+	respuesta, err := GetAllHomologacionComprobantes(consulta_homologacion,fields,sortby,order,0,-1)
+	ObjetoHomologacion = respuesta[0].(HomologacionComprobantes)
+	nuevo_comprobante := &Comprobante{Secuencia: op.Consecutivo,NumeroItems: 250,RedondeoCifras: true,	Ano: time.Now().Year(),Mes: int(time.Now().Month()),FechaRegistro: time.Now(),TipoComprobante: &TipoComprobante{Id:ObjetoHomologacion.TipoComprobante.Id},	EstadoComprobante : &EstadoComprobante{Id:1},Observaciones: "Creada automáticamente para OP"}
 	id_nuevo, err := AddComprobante(nuevo_comprobante)
-	if(id_nuevo != 0 && err != nil){
-		fmt.Println("comprobante creado exitosamente")
+
+
+	if(id_nuevo != 0 && err == nil){
+		consulta_movimiento_contable["TipoDocumentoAfectante.Id"] = "1"
+		consulta_movimiento_contable["CodigoDocumentoAfectante"] = strconv.Itoa(op.Id)
+		fmt.Println("comprobante creado exitosamente", consulta_movimiento_contable)
+		respuesta, err := GetAllMovimientoContable(consulta_movimiento_contable,fields,sortby,order,0,-1)
+		fmt.Println(respuesta,err)
+
 	}else{
 		fmt.Println("error", err)
 	}

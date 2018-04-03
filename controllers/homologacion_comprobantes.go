@@ -6,7 +6,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
+	"fmt"
 	"github.com/astaxie/beego"
 )
 
@@ -116,7 +116,9 @@ func (c *HomologacionComprobantesController) GetAll() {
 			}
 			k, v := kv[0], kv[1]
 			query[k] = v
+			fmt.Println(k)
 		}
+				fmt.Println("query",query)
 	}
 
 	l, err := models.GetAllHomologacionComprobantes(query, fields, sortby, order, offset, limit)
