@@ -2,7 +2,7 @@ package pacUtils
 
 import (
 	//"encoding/json"
-	
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/udistrital/api_financiera/models"
@@ -20,7 +20,7 @@ func  FunctionAfterExecInsertarOP(ctx *context.Context) {
 	if(ctx.Input.Is("POST")){
 		if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u); err == nil {
 			if err2 := formatdata.FillStruct(u, &ordenPago); err2 == nil && ordenPago.Id != 0 {
-				models.CrearComprobante(ordenPago)
+				models.CrearComprobanteOrdenPago(ordenPago)
 				//work := optimize.WorkRequest{JobParameter: paramsIngreso, Job: (models.AddIngresoPac)}
 				//optimize.WorkQueue <- work
 			}else{
