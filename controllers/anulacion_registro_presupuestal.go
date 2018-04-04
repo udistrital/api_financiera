@@ -174,3 +174,41 @@ func (c *AnulacionRegistroPresupuestalController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+
+// TotalAnulacionRegistroPresupuestal ...
+// @Title TotalAnulacionRegistroPresupuestal
+// @Description numero de dispònibilidades segun vigencia o rango de fechas
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
+// @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de cdp"
+// @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de cdp"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalAnulacionRegistroPresupuestal/:vigencia [get]
+func (c *AnulacionRegistroPresupuestalController) TotalAnulacionRegistroPresupuestal() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	//var startrange string
+	//var endrange string
+	/*if r := c.GetString("rangoinicio"); r != "" {
+		startrange = r
+
+	}
+	if r := c.GetString("rangofin"); r != "" {
+		endrange = r
+	}*/
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalAnulacionRegistroPresupuestal(vigencia, UnidadEjecutora)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+
+	c.ServeJSON()
+}
