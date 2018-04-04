@@ -175,6 +175,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:AnulacionRegistroPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:AnulacionRegistroPresupuestalController"],
+		beego.ControllerComments{
+			Method: "TotalAnulacionRegistroPresupuestal",
+			Router: `/TotalAnulacionRegistroPresupuestal/:vigencia`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:AnulacionRegistroPresupuestalDisponibilidadApropiacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:AnulacionRegistroPresupuestalDisponibilidadApropiacionController"],
 		beego.ControllerComments{
 			Method: "Post",
