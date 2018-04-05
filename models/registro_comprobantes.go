@@ -10,7 +10,7 @@ import (
 )
 
 type RegistroComprobantes struct {
-	Id                        int                        `orm:"column(id);pk"`
+	Id                        int                        `orm:"column(id);pk;auto"`
 	Comprobante               *Comprobante               `orm:"column(comprobante);rel(fk)"`
 	Movimiento                int                        `orm:"column(movimiento)"`
 	Secuencia                 int                        `orm:"column(secuencia)"`
