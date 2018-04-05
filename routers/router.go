@@ -656,6 +656,26 @@ func init() {
 				&controllers.DocumentoGeneradorController{},
 			),
 		),
+		beego.NSNamespace("/estado_inversion",
+			beego.NSInclude(
+				&controllers.EstadoInversionController{},
+			),
+		),
+		beego.NSNamespace("/acta_inversion",
+			beego.NSInclude(
+				&controllers.ActaInversionController{},
+			),
+		),
+		beego.NSNamespace("/inversion",
+			beego.NSInclude(
+				&controllers.InversionController{},
+			),
+		),
+		beego.NSNamespace("/inversiones_acta_inversion",
+			beego.NSInclude(
+				&controllers.InversionesActaInversionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
