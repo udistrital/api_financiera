@@ -33,6 +33,37 @@ func init() {
 	orm.RegisterModel(new(AnulacionRegistroPresupuestal))
 }
 
+// totalAnulacionesDisponibilidades retorna total de disponibilidades por vigencia
+func GetTotalAnulacionRegistroPresupuestal(vigencia int, unidadEjecutora int) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COUNT(DISTINCT(financiera.anulacion_registro_presupuestal.id))").
+		From("financiera.anulacion_registro_presupuestal").
+		InnerJoin("financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion").
+		On("financiera.anulacion_registro_presupuestal.id = financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.anulacion_registro_presupuestal").
+		InnerJoin("financiera.registro_presupuestal_disponibilidad_apropiacion").
+		On("financiera.registro_presupuestal_disponibilidad_apropiacion.id = financiera.anulacion_registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal_disponibilidad_apropiacion").
+		InnerJoin("financiera.registro_presupuestal").
+		On("financiera.registro_presupuestal.id = financiera.registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal").
+		InnerJoin("financiera.disponibilidad_apropiacion").
+		On("financiera.disponibilidad_apropiacion.id = financiera.registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion").
+		InnerJoin("financiera.disponibilidad").
+		On("financiera.disponibilidad.id = financiera.disponibilidad_apropiacion.disponibilidad").
+		InnerJoin("financiera.apropiacion").
+		On("financiera.disponibilidad_apropiacion.apropiacion = financiera.apropiacion.id").
+		InnerJoin("financiera.rubro").
+		On("financiera.rubro.id = financiera.apropiacion.rubro").
+		Where("financiera.registro_presupuestal.vigencia = ? and financiera.rubro.unidad_ejecutora = ? ")
+
+
+		
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
+	return
+
+}
+
+
+
 // AddAnulacionRegistroPresupuestal insert a new AnulacionRegistroPresupuestal into database and returns
 // last inserted Id on success.
 func AddAnulacionRegistroPresupuestal(m *AnulacionRegistroPresupuestal) (id int64, err error) {
@@ -62,8 +93,16 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
+		//beego.Info(k)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
+			//beego.Info(k)
+			k = strings.Replace(k, "__not_in", "", -1)
+			qs = qs.Exclude(k, v)
 		} else {
 			qs = qs.Filter(k, v)
 		}
@@ -113,6 +152,9 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "AnulacionRegistroPresupuestalDisponibilidadApropiacion", 5)
+				for _, sub := range v.AnulacionRegistroPresupuestalDisponibilidadApropiacion {
+					o.LoadRelated(sub.RegistroPresupuestalDisponibilidadApropiacion.DisponibilidadApropiacion.Disponibilidad, "DisponibilidadProcesoExterno", 5, 1, 0, "-Id")
+				}
 				ml = append(ml, v)
 			}
 		} else {
