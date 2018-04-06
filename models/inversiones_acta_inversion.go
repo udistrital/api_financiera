@@ -7,16 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type InversionesActaInversion struct {
 	Id            int            `orm:"column(id);pk;auto"`
 	Inversion     *Inversion     `orm:"column(inversion);rel(fk)"`
 	ActaInversion *ActaInversion `orm:"column(acta_inversion);rel(fk)"`
-	FechaRegistro time.Time      `orm:"column(fecha_registro);type(date);null"`
+	FechaRegistro time.Time      `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Usuario       string         `orm:"column(usuario);null"`
-	ActaPadre     int            `orm:"column(acta_padre);null"`
+	ActaPadre     *Inversion     `orm:"column(acta_padre);rel(fk)"`
 }
 
 func (t *InversionesActaInversion) TableName() string {
@@ -149,6 +151,63 @@ func DeleteInversionesActaInversion(id int) (err error) {
 		var num int64
 		if num, err = o.Delete(&InversionesActaInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
+		}
+	}
+	return
+}
+
+// Insert an entire inversion in database returns error if record cant be inserted
+func AddInver(request map[string]interface{})(inversion Inversion, err error){
+	err = formatdata.FillStruct(request["inversion"],&inversion)
+	var idInversion int
+	var tipoInversion int
+	var usuario string
+	var actapadre int
+	var invActInv InversionesActaInversion
+	o:= orm.NewOrm()
+	if err == nil {
+		if qb, errq := orm.NewQueryBuilder("postgres");errq == nil {
+			qb.Select( "COALESCE(MAX(consecutivo), 0)+1  as consecutivo").
+				 From("inversion")
+			sql := qb.String()
+			o.Raw(sql).QueryRow(&idInversion)
+
+			inversion.Id = idInversion
+
+			_,err = o.Insert(&inversion)
+
+			if err == nil {
+				err = formatdata.FillStruct(request["tipoInversion"],&tipoInversion)
+				err = formatdata.FillStruct(request["usuario"],&usuario)
+				err = formatdata.FillStruct(request["actapadre"],&actapadre)
+
+				actaInversion := ActaInversion{Id:tipoInversion}
+
+				invActInv.Inversion = &inversion
+				invActInv.ActaInversion = &actaInversion
+				invActInv.Usuario = usuario
+
+				if actapadre!= 0{
+					inversionPadre := Inversion{Id:actapadre}
+					invActInv.ActaPadre = &inversionPadre
+				}
+				_,err = o.Insert(&invActInv)
+
+				if  err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+				o.Commit()
+				return
+
+			}else{
+				o.Rollback()
+				return
+			}
+		}else{
+			beego.Info(errq.Error())
+			return inversion,errq
 		}
 	}
 	return
