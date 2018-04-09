@@ -627,12 +627,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/tipo_movimiento_comprobante",
-			beego.NSInclude(
-				&controllers.TipoMovimientoComprobanteController{},
-			),
-		),
-
 		beego.NSNamespace("/registro_comprobantes",
 			beego.NSInclude(
 				&controllers.RegistroComprobantesController{},
