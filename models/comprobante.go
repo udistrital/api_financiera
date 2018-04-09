@@ -170,7 +170,7 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 	var order []string
 	var ObjetoHomologacion HomologacionComprobantes
 	var ObjetoMovimientoContable MovimientoContable
-
+	var valor float64
 
  	consulta_homologacion["TipoDocumentoAfectante.CodigoAbreviacion"] = "DA-OP"
 	consulta_homologacion["TipoDocumentoAfectante.Activo"] = "true"
@@ -190,7 +190,12 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 		fmt.Println(err)
 		for i, v := range respuesta {
 			 ObjetoMovimientoContable = v.(MovimientoContable)
-			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }}
+			 if(ObjetoMovimientoContable.CuentaContable.Naturaleza == "debito"){
+				 valor = float64(ObjetoMovimientoContable.Debito)
+				}else{
+				 valor = float64(ObjetoMovimientoContable.Credito)
+			 }
+			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }, Valor: valor}
 			 _, err := AddRegistroComprobantes(ObjetoRegistroComprobante)
 			 fmt.Println(err)
 		 }
