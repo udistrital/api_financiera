@@ -172,8 +172,8 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 	var ObjetoMovimientoContable MovimientoContable
 
 
- 	consulta_homologacion["TipoMovimientoComprobante.CodigoAbreviacion"] = "OP"
-	consulta_homologacion["TipoMovimientoComprobante.Activo"] = "true"
+ 	consulta_homologacion["TipoDocumentoAfectante.CodigoAbreviacion"] = "DA-OP"
+	consulta_homologacion["TipoDocumentoAfectante.Activo"] = "true"
 
 
 	respuesta, err := GetAllHomologacionComprobantes(consulta_homologacion,fields,sortby,order,0,-1)
@@ -190,7 +190,7 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 		fmt.Println(err)
 		for i, v := range respuesta {
 			 ObjetoMovimientoContable = v.(MovimientoContable)
-			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoMovimientoComprobante: &TipoMovimientoComprobante{Id:1 }}
+			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }}
 			 _, err := AddRegistroComprobantes(ObjetoRegistroComprobante)
 			 fmt.Println(err)
 		 }

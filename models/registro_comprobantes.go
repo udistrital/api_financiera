@@ -14,12 +14,13 @@ type RegistroComprobantes struct {
 	Comprobante               *Comprobante               `orm:"column(comprobante);rel(fk)"`
 	Movimiento                int                        `orm:"column(movimiento)"`
 	Secuencia                 int                        `orm:"column(secuencia)"`
+	MovimientoContable        *MovimientoContable        `orm:"column(movimiento_contable);rel(fk)"`
 	CentroCosto               int                        `orm:"column(centro_costo);null"`
 	SubcentroCosto            int                        `orm:"column(subcentro_costo);null"`
 	CuentaContable            int                        `orm:"column(cuenta_contable);null"`
 	Tercero                   int                        `orm:"column(tercero);null"`
 	Valor                     float64                    `orm:"column(valor);null"`
-	TipoMovimientoComprobante *TipoMovimientoComprobante `orm:"column(tipo_movimiento_comprobante);rel(fk)"`
+	TipoDocumentoAfectante    *TipoDocumentoAfectante    `orm:"column(tipo_documento_afectante);rel(fk)"`
 }
 
 func (t *RegistroComprobantes) TableName() string {
@@ -54,7 +55,7 @@ func GetRegistroComprobantesById(id int) (v *RegistroComprobantes, err error) {
 func GetAllRegistroComprobantes(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RegistroComprobantes))
+	qs := o.QueryTable(new(RegistroComprobantes)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
