@@ -157,18 +157,18 @@ func DeleteInversionesActaInversion(id int) (err error) {
 }
 
 // Insert an entire inversion in database returns error if record cant be inserted
-func AddInver(request map[string]interface{})(inversion Inversion, err error){
-	err = formatdata.FillStruct(request["Inversion"],&inversion)
+func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
+	err = formatdata.FillStruct(request["Inversion"], &inversion)
 	var idInversion int
 	var tipoInversion int
 	var usuario string
 	var actapadre int
 	var invActInv InversionesActaInversion
-	o:= orm.NewOrm()
+	o := orm.NewOrm()
 	if err == nil {
-		if qb, errq := orm.NewQueryBuilder("tidb");errq == nil {
-			qb.Select( "COALESCE(MAX(id), 0)+1  as consecutivo").
-				 From("inversion")
+		if qb, errq := orm.NewQueryBuilder("tidb"); errq == nil {
+			qb.Select("COALESCE(MAX(id), 0)+1  as consecutivo").
+				From("Inversion")
 			sql := qb.String()
 			o.Raw(sql).QueryRow(&idInversion)
 
@@ -177,26 +177,26 @@ func AddInver(request map[string]interface{})(inversion Inversion, err error){
 			beego.Error(sql)
 			beego.Error(idInversion)
 
-			_,err = o.Insert(&inversion)
+			_, err = o.Insert(&inversion)
 
 			if err == nil {
-				err = formatdata.FillStruct(request["tipoInversion"],&tipoInversion)
-				err = formatdata.FillStruct(request["usuario"],&usuario)
-				err = formatdata.FillStruct(request["actapadre"],&actapadre)
+				err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
+				err = formatdata.FillStruct(request["usuario"], &usuario)
+				err = formatdata.FillStruct(request["actapadre"], &actapadre)
 
-				actaInversion := ActaInversion{Id:tipoInversion}
+				actaInversion := ActaInversion{Id: tipoInversion}
 
 				invActInv.Inversion = &inversion
 				invActInv.ActaInversion = &actaInversion
 				invActInv.Usuario = usuario
 
-				if actapadre!= 0{
-					inversionPadre := Inversion{Id:actapadre}
+				if actapadre != 0 {
+					inversionPadre := Inversion{Id: actapadre}
 					invActInv.ActaPadre = &inversionPadre
 				}
-				_,err = o.Insert(&invActInv)
+				_, err = o.Insert(&invActInv)
 
-				if  err != nil {
+				if err != nil {
 					beego.Error(err.Error())
 					o.Rollback()
 					return
@@ -204,13 +204,13 @@ func AddInver(request map[string]interface{})(inversion Inversion, err error){
 				o.Commit()
 				return
 
-			}else{
+			} else {
 				o.Rollback()
 				return
 			}
-		}else{
+		} else {
 			beego.Info(errq.Error())
-			return inversion,errq
+			return inversion, errq
 		}
 	}
 	return
