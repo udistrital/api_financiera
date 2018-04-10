@@ -18,7 +18,7 @@ type InversionesActaInversion struct {
 	ActaInversion *ActaInversion `orm:"column(acta_inversion);rel(fk)"`
 	FechaRegistro time.Time      `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Usuario       string         `orm:"column(usuario);null"`
-	ActaPadre     *Inversion     `orm:"column(acta_padre);rel(fk)"`
+	ActaPadre     *Inversion     `orm:"column(acta_padre);rel(fk);null"`
 }
 
 func (t *InversionesActaInversion) TableName() string {
@@ -158,7 +158,7 @@ func DeleteInversionesActaInversion(id int) (err error) {
 
 // Insert an entire inversion in database returns error if record cant be inserted
 func AddInver(request map[string]interface{})(inversion Inversion, err error){
-	err = formatdata.FillStruct(request["inversion"],&inversion)
+	err = formatdata.FillStruct(request["Inversion"],&inversion)
 	var idInversion int
 	var tipoInversion int
 	var usuario string
@@ -166,13 +166,16 @@ func AddInver(request map[string]interface{})(inversion Inversion, err error){
 	var invActInv InversionesActaInversion
 	o:= orm.NewOrm()
 	if err == nil {
-		if qb, errq := orm.NewQueryBuilder("postgres");errq == nil {
-			qb.Select( "COALESCE(MAX(consecutivo), 0)+1  as consecutivo").
+		if qb, errq := orm.NewQueryBuilder("tidb");errq == nil {
+			qb.Select( "COALESCE(MAX(id), 0)+1  as consecutivo").
 				 From("inversion")
 			sql := qb.String()
 			o.Raw(sql).QueryRow(&idInversion)
 
 			inversion.Id = idInversion
+
+			beego.Error(sql)
+			beego.Error(idInversion)
 
 			_,err = o.Insert(&inversion)
 
