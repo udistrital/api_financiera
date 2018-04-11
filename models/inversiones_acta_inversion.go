@@ -164,6 +164,10 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 	var usuario string
 	var actapadre int
 	var invActInv InversionesActaInversion
+	var invEstadoInv InversionEstadoInversion
+	var concepto Concepto
+	var mov []MovimientoContable
+	var totalInv float64
 	o := orm.NewOrm()
 	if err == nil {
 		if qb, errq := orm.NewQueryBuilder("tidb"); errq == nil {
@@ -173,16 +177,61 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 			o.Raw(sql).QueryRow(&idInversion)
 
 			inversion.Id = idInversion
-
-			beego.Error(sql)
 			beego.Error(idInversion)
 
+			o.Begin()
+
 			_, err = o.Insert(&inversion)
+
+
+
 
 			if err == nil {
 				err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
 				err = formatdata.FillStruct(request["usuario"], &usuario)
 				err = formatdata.FillStruct(request["actapadre"], &actapadre)
+				err = formatdata.FillStruct(request["EstadoInversion"], &invEstadoInv)
+				err = formatdata.FillStruct(request["Concepto"], &concepto)
+				err = formatdata.FillStruct(request["Movimientos"], &mov)
+				err = formatdata.FillStruct(request["TotalInversion"],&totalInv)
+
+				if err != nil {
+					beego.Info(err.Error())
+					o.Rollback()
+					return
+				}
+
+				inversion_concepto := &InversionConcepto{ValorAgregado: totalInv,
+																								Inversion:  &inversion,
+																								Concepto: &concepto}
+
+				_, err = o.Insert(inversion_concepto)
+
+				if err != nil {
+					beego.Info(err.Error())
+					o.Rollback()
+					return
+				}
+
+				for _, element := range mov {
+					element.Fecha = time.Now()
+					element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 3}
+					element.CodigoDocumentoAfectante = inversion.Id
+					element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+					_, err = o.Insert(&element)
+
+					if err != nil {
+						beego.Info(err.Error())
+						o.Rollback()
+						return
+					}
+				}
+
+				if err != nil {
+					beego.Info(err.Error())
+					o.Rollback()
+					return
+				}
 
 				actaInversion := ActaInversion{Id: tipoInversion}
 
@@ -194,7 +243,16 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 					inversionPadre := Inversion{Id: actapadre}
 					invActInv.ActaPadre = &inversionPadre
 				}
+
 				_, err = o.Insert(&invActInv)
+
+				if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+				invEstadoInv.Inversion = &inversion
+				_, err = o.Insert(&invEstadoInv)
 
 				if err != nil {
 					beego.Error(err.Error())
@@ -203,7 +261,6 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				}
 				o.Commit()
 				return
-
 			} else {
 				o.Rollback()
 				return
@@ -213,5 +270,6 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 			return inversion, errq
 		}
 	}
+
 	return
 }

@@ -30,6 +30,7 @@ type Inversion struct {
 	FechaVenta          time.Time `orm:"column(fecha_venta);type(date);null"`
 	FechaPacto          time.Time `orm:"column(fecha_pacto);type(date);null"`
 	Observaciones       string    `orm:"column(observaciones);null"`
+	InversionConcepto   []*InversionConcepto `orm:"reverse(many)"`
 }
 
 func (t *Inversion) TableName() string {

@@ -5,52 +5,50 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type InversionEstadoInversion struct {
+type InversionConcepto struct {
 	Id            int              `orm:"column(id);pk;auto"`
+	ValorAgregado float64          `orm:"column(valor_agregado)"`
 	Inversion     *Inversion       `orm:"column(inversion);rel(fk)"`
-	Estado        *EstadoInversion `orm:"column(estado);rel(fk)"`
-	FechaRegistro time.Time        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Activo        bool             `orm:"column(activo)"`
+	Concepto      *Concepto					`orm:"column(concepto);rel(fk)"`
 }
 
-func (t *InversionEstadoInversion) TableName() string {
-	return "inversion_estado_inversion"
+func (t *InversionConcepto) TableName() string {
+	return "inversion_concepto"
 }
 
 func init() {
-	orm.RegisterModel(new(InversionEstadoInversion))
+	orm.RegisterModel(new(InversionConcepto))
 }
 
-// AddInversionEstadoInversion insert a new InversionEstadoInversion into database and returns
+// AddInversionConcepto insert a new InversionConcepto into database and returns
 // last inserted Id on success.
-func AddInversionEstadoInversion(m *InversionEstadoInversion) (id int64, err error) {
+func AddInversionConcepto(m *InversionConcepto) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetInversionEstadoInversionById retrieves InversionEstadoInversion by Id. Returns error if
+// GetInversionConceptoById retrieves InversionConcepto by Id. Returns error if
 // Id doesn't exist
-func GetInversionEstadoInversionById(id int) (v *InversionEstadoInversion, err error) {
+func GetInversionConceptoById(id int) (v *InversionConcepto, err error) {
 	o := orm.NewOrm()
-	v = &InversionEstadoInversion{Id: id}
+	v = &InversionConcepto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllInversionEstadoInversion retrieves all InversionEstadoInversion matches certain condition. Returns empty list if
+// GetAllInversionConcepto retrieves all InversionConcepto matches certain condition. Returns empty list if
 // no records exist
-func GetAllInversionEstadoInversion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllInversionConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(InversionEstadoInversion)).RelatedSel()
+	qs := o.QueryTable(new(InversionConcepto))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +98,7 @@ func GetAllInversionEstadoInversion(query map[string]string, fields []string, so
 		}
 	}
 
-	var l []InversionEstadoInversion
+	var l []InversionConcepto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +121,11 @@ func GetAllInversionEstadoInversion(query map[string]string, fields []string, so
 	return nil, err
 }
 
-// UpdateInversionEstadoInversion updates InversionEstadoInversion by Id and returns error if
+// UpdateInversionConcepto updates InversionConcepto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateInversionEstadoInversionById(m *InversionEstadoInversion) (err error) {
+func UpdateInversionConceptoById(m *InversionConcepto) (err error) {
 	o := orm.NewOrm()
-	v := InversionEstadoInversion{Id: m.Id}
+	v := InversionConcepto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +136,15 @@ func UpdateInversionEstadoInversionById(m *InversionEstadoInversion) (err error)
 	return
 }
 
-// DeleteInversionEstadoInversion deletes InversionEstadoInversion by Id and returns error if
+// DeleteInversionConcepto deletes InversionConcepto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteInversionEstadoInversion(id int) (err error) {
+func DeleteInversionConcepto(id int) (err error) {
 	o := orm.NewOrm()
-	v := InversionEstadoInversion{Id: id}
+	v := InversionConcepto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&InversionEstadoInversion{Id: id}); err == nil {
+		if num, err = o.Delete(&InversionConcepto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

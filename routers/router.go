@@ -681,6 +681,11 @@ func init() {
 				&controllers.InversionEstadoInversionController{},
 			),
 		),
+		beego.NSNamespace("/inversion_concepto",
+			beego.NSInclude(
+				&controllers.InversionConceptoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
