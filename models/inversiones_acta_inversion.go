@@ -177,14 +177,10 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 			o.Raw(sql).QueryRow(&idInversion)
 
 			inversion.Id = idInversion
-			beego.Error(idInversion)
 
 			o.Begin()
 
 			_, err = o.Insert(&inversion)
-
-
-
 
 			if err == nil {
 				err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
@@ -193,7 +189,7 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				err = formatdata.FillStruct(request["EstadoInversion"], &invEstadoInv)
 				err = formatdata.FillStruct(request["Concepto"], &concepto)
 				err = formatdata.FillStruct(request["Movimientos"], &mov)
-				err = formatdata.FillStruct(request["TotalInversion"],&totalInv)
+				err = formatdata.FillStruct(request["TotalInversion"], &totalInv)
 
 				if err != nil {
 					beego.Info(err.Error())
@@ -202,8 +198,8 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				}
 
 				inversion_concepto := &InversionConcepto{ValorAgregado: totalInv,
-																								Inversion:  &inversion,
-																								Concepto: &concepto}
+					Inversion: &inversion,
+					Concepto:  &concepto}
 
 				_, err = o.Insert(inversion_concepto)
 

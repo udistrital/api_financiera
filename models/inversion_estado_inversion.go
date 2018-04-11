@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type InversionEstadoInversion struct {
@@ -150,5 +152,59 @@ func DeleteInversionEstadoInversion(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionEstadoInversion, err error) {
+	var invEstado EstadoInversion
+	var invEstadoPadre EstadoInversion
+	var inversion Inversion
+	var idEstadoInv int64
+	var num int64
+
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(request["Estado"], &invEstado)
+	err = formatdata.FillStruct(request["EstadoPadre"], &invEstadoPadre)
+	err = formatdata.FillStruct(request["Inversion"], &inversion)
+	if err == nil {
+		invEstadoinversion.Activo = true
+		invEstadoinversion.Estado = &invEstado
+		invEstadoinversion.Inversion = &inversion
+
+		num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
+			"activo": "false",
+		})
+		fmt.Printf("Affected Num: %s, %s", num, err)
+
+		if invEstado.Id == 4 {
+			beego.Error("Aprobacion contable")
+			num, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 3).Filter("codigo_documento_afectante", inversion.Id).Update(orm.Params{
+				"estado_movimiento_contable": 2,
+			})
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+		}
+
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+
+		idEstadoInv, err = o.Insert(&invEstadoinversion)
+		invEstadoinversion.Id = int(idEstadoInv)
+
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		o.Commit()
+	}
+
 	return
 }

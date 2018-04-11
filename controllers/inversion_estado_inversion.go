@@ -3,11 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // InversionEstadoInversionController operations for InversionEstadoInversion
@@ -168,4 +171,34 @@ func (c *InversionEstadoInversionController) Delete() {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// Post ...
+// @Title AddEstadoInv
+// @Description Insert a record to modify status to a inversion
+//@Param	body		body 	models.InversionEstadoInversion	true		"body for InversionEstadoInversion content"
+// @Success 200 {object} models.InversionEstadoInversion
+// @Failure 403 body is empty
+// @router /AddEstadoInv [post]
+func (c *InversionEstadoInversionController) AddEstadoInv() {
+	var request map[string]interface{}
+	var code string
+	defer c.ServeJSON()
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+
+		if estado, err := models.AddEstadoInv(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: estado}
+			c.Data["json"] = alert
+		} else {
+			beego.Info(err.Error())
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		beego.Info(err.Error())
+		alert := models.Alert{Type: "error", Code: "E_0458" + code, Body: err.Error()}
+		c.Data["json"] = alert
+	}
 }
