@@ -660,6 +660,36 @@ func init() {
 				&controllers.Pasivos_fenecidosController{},
 			),
 		),
+		beego.NSNamespace("/estado_inversion",
+			beego.NSInclude(
+				&controllers.EstadoInversionController{},
+			),
+		),
+		beego.NSNamespace("/acta_inversion",
+			beego.NSInclude(
+				&controllers.ActaInversionController{},
+			),
+		),
+		beego.NSNamespace("/inversion",
+			beego.NSInclude(
+				&controllers.InversionController{},
+			),
+		),
+		beego.NSNamespace("/inversiones_acta_inversion",
+			beego.NSInclude(
+				&controllers.InversionesActaInversionController{},
+			),
+		),
+		beego.NSNamespace("/inversion_estado_inversion",
+			beego.NSInclude(
+				&controllers.InversionEstadoInversionController{},
+			),
+		),
+		beego.NSNamespace("/inversion_concepto",
+			beego.NSInclude(
+				&controllers.InversionConceptoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

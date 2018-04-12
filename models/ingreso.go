@@ -30,7 +30,7 @@ type Ingreso struct {
 	MotivoRechazo        string                  `orm:"column(motivo_rechazo)"`
 	IngresoConcepto      []*IngresoConcepto      `orm:"reverse(many)"`
 	IngresoEstadoIngreso []*IngresoEstadoIngreso `orm:"reverse(many)"`
-	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk)"` 
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk)"`
 	NumCuenta			string                   `orm:"column(num_cuenta)"`
 }
 
@@ -159,7 +159,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var docGen DocumentoGenerador
 	err = formatdata.FillStruct(m["DocumentoGenerador"], &docGen)
 	o := orm.NewOrm()
-	
+
 	if err == nil {
 		o.Begin()
 		idDocgenerador, err = o.Insert(&docGen)
