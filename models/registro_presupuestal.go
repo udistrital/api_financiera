@@ -46,7 +46,7 @@ type DatosSaldoRp struct {
 }
 type Info_rp_a_anular struct {
 	Anulacion      AnulacionRegistroPresupuestal
-	Rp_apropiacion []RegistroPresupuestalDisponibilidadApropiacion
+	Rp_apropiacion []*RegistroPresupuestalDisponibilidadApropiacion
 	Valor          float64
 }
 
@@ -158,7 +158,10 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 		k = strings.Replace(k, ".", "__", -1)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else if strings.Contains(k, "not_in") {
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
 			k = strings.Replace(k, "__not_in", "", -1)
 			qs = qs.Exclude(k, v)
 		} else {
@@ -423,7 +426,7 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		if saldoRp > 0 {
 			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
 				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				RegistroPresupuestalDisponibilidadApropiacion: m.Rp_apropiacion[i],
 				Valor: saldoRp,
 			}
 			_, err3 := o.Insert(&anulacion_apropiacion)
@@ -451,6 +454,15 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	} else {
 		o.Rollback()
 	}*/
+	if m.Anulacion.TipoAnulacion.Id == 3 {
+		args := []string{"estado"}
+		m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
+		_, err = o.Update(m.Rp_apropiacion[0].RegistroPresupuestal, args...)
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
 	o.Commit()
 	return
 }
@@ -514,7 +526,7 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		} else {
 			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
 				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				RegistroPresupuestalDisponibilidadApropiacion: m.Rp_apropiacion[i],
 				Valor: m.Valor,
 			}
 			_, err3 := o.Insert(&anulacion_apropiacion)

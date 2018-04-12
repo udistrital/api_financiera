@@ -8,11 +8,11 @@ import (
 	"github.com/udistrital/api_financiera/controllers"
 	"github.com/udistrital/api_financiera/pacUtils"
 	_ "github.com/udistrital/api_financiera/routers"
-		"github.com/udistrital/utils_oas/apiStatusLib"
+	"github.com/udistrital/utils_oas/apiStatusLib"
 )
 
 func init() {
-	orm.RegisterDataBase("default", "postgres", "postgres://"+beego.AppConfig.String("PGuser")+":"+beego.AppConfig.String("PGpass")+"@"+beego.AppConfig.String("PGurls")+"/"+beego.AppConfig.String("PGdb")+"?sslmode=disable&search_path="+beego.AppConfig.String("PGschemas")+"")
+	orm.RegisterDataBase("default", "postgres", "postgres://"+beego.AppConfig.String("PGuser")+":"+beego.AppConfig.String("PGpass")+"@"+beego.AppConfig.String("PGurls")+"/"+beego.AppConfig.String("PGdb")+"?sslmode=disable&search_path="+beego.AppConfig.String("PGschemas")+"", 4, 4)
 }
 
 func main() {
@@ -38,6 +38,8 @@ func main() {
 	}))
 
 	pacUtils.Init()
+	pacUtils.InitComprobante()
 	apistatus.Init()
+	controllers.PFenecidosInit()
 	beego.Run()
 }

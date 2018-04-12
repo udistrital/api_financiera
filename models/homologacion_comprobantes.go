@@ -10,9 +10,9 @@ import (
 )
 
 type HomologacionComprobantes struct {
-	Id                        int                        `orm:"column(id);pk"`
+	Id                        int                        `orm:"column(id);pk;auto"`
 	TipoComprobante           *TipoComprobante           `orm:"column(tipo_comprobante);rel(fk)"`
-	TipoMovimientoComprobante *TipoMovimientoComprobante `orm:"column(tipo_movimiento_comprobante);rel(fk)"`
+	TipoDocumentoAfectante 		*TipoDocumentoAfectante    `orm:"column(tipo_documento_afectante);rel(fk)"`
 }
 
 func (t *HomologacionComprobantes) TableName() string {
@@ -47,7 +47,7 @@ func GetHomologacionComprobantesById(id int) (v *HomologacionComprobantes, err e
 func GetAllHomologacionComprobantes(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(HomologacionComprobantes))
+	qs := o.QueryTable(new(HomologacionComprobantes)).RelatedSel(5)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute

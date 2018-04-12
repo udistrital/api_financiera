@@ -6,7 +6,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
+	"fmt"
 	"github.com/astaxie/beego"
 )
 
@@ -118,7 +118,7 @@ func (c *MovimientoContableController) GetAll() {
 			query[k] = v
 		}
 	}
-
+	fmt.Println("hola soy movimiento",query)
 	l, err := models.GetAllMovimientoContable(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()

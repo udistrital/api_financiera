@@ -16,7 +16,7 @@ import (
 
 type Info_disponibilidad_a_anular struct {
 	Anulacion                  AnulacionDisponibilidad
-	Disponibilidad_apropiacion []DisponibilidadApropiacion
+	Disponibilidad_apropiacion []*DisponibilidadApropiacion
 	Valor                      float64
 }
 type Disponibilidad struct {
@@ -167,14 +167,14 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
-		beego.Info(k)
+		//beego.Info(k)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
 		} else if strings.Contains(k, "__in") {
 			arr := strings.Split(v, "|")
 			qs = qs.Filter(k, arr)
 		} else if strings.Contains(k, "__not_in") {
-			beego.Info(k)
+			//beego.Info(k)
 			k = strings.Replace(k, "__not_in", "", -1)
 			qs = qs.Exclude(k, v)
 		} else {
@@ -328,7 +328,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		acumCdp = acumCdp + saldoCDP
 		if saldoCDP > 0 {
 			anulacion_apropiacion := AnulacionDisponibilidadApropiacion{
-				DisponibilidadApropiacion: &m.Disponibilidad_apropiacion[i],
+				DisponibilidadApropiacion: m.Disponibilidad_apropiacion[i],
 				Anulacion:                 &AnulacionDisponibilidad{Id: int(id_anulacion_cdp)},
 				Valor:                     saldoCDP,
 			}
@@ -346,7 +346,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		} else {
 			alerta[0] = "error"
 			alerta = append(alerta, "El CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" tiene saldo 0")
-
+			o.Rollback()
+			return
 		}
 
 	}
@@ -357,6 +358,15 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	} else {
 		o.Rollback()
 	}*/
+	if m.Anulacion.TipoAnulacion.Id == 3 {
+		args := []string{"estado"}
+		m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
+		_, err = o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad, args...)
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
 	o.Commit()
 	return
 }
@@ -472,7 +482,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 			return
 		} else {
 			anulacion_apropiacion := AnulacionDisponibilidadApropiacion{
-				DisponibilidadApropiacion: &m.Disponibilidad_apropiacion[i],
+				DisponibilidadApropiacion: m.Disponibilidad_apropiacion[i],
 				Anulacion:                 &AnulacionDisponibilidad{Id: int(id_anulacion_cdp)},
 				Valor:                     m.Valor,
 			}

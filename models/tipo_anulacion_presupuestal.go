@@ -9,48 +9,47 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoMovimientoComprobante struct {
-	Id                int     `orm:"column(id);pk"`
-	Nombre            string  `orm:"column(nombre)"`
-	Descripcion       string  `orm:"column(descripcion);null"`
-	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
-	Activo            bool    `orm:"column(activo)"`
-	NumeroOrden       float64 `orm:"column(numero_orden);null"`
+type TipoAnulacionPresupuestal struct {
+	Id          int     `orm:"column(id);pk"`
+	Nombre      string  `orm:"column(nombre);null"`
+	Descripcion string  `orm:"column(descripcion);null"`
+	Activo      bool    `orm:"column(activo);null"`
+	NumeroOrden float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *TipoMovimientoComprobante) TableName() string {
-	return "tipo_movimiento_comprobante"
+func (t *TipoAnulacionPresupuestal) TableName() string {
+	return "tipo_anulacion_presupuestal"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoMovimientoComprobante))
+	orm.RegisterModel(new(TipoAnulacionPresupuestal))
 }
 
-// AddTipoMovimientoComprobante insert a new TipoMovimientoComprobante into database and returns
+// AddTipoAnulacionPresupuestal insert a new TipoAnulacionPresupuestal into database and returns
 // last inserted Id on success.
-func AddTipoMovimientoComprobante(m *TipoMovimientoComprobante) (id int64, err error) {
+func AddTipoAnulacionPresupuestal(m *TipoAnulacionPresupuestal) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoMovimientoComprobanteById retrieves TipoMovimientoComprobante by Id. Returns error if
+// GetTipoAnulacionPresupuestalById retrieves TipoAnulacionPresupuestal by Id. Returns error if
 // Id doesn't exist
-func GetTipoMovimientoComprobanteById(id int) (v *TipoMovimientoComprobante, err error) {
+func GetTipoAnulacionPresupuestalById(id int) (v *TipoAnulacionPresupuestal, err error) {
 	o := orm.NewOrm()
-	v = &TipoMovimientoComprobante{Id: id}
+	v = &TipoAnulacionPresupuestal{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoMovimientoComprobante retrieves all TipoMovimientoComprobante matches certain condition. Returns empty list if
+// GetAllTipoAnulacionPresupuestal retrieves all TipoAnulacionPresupuestal matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTipoAnulacionPresupuestal(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoMovimientoComprobante))
+	qs := o.QueryTable(new(TipoAnulacionPresupuestal))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +99,7 @@ func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, s
 		}
 	}
 
-	var l []TipoMovimientoComprobante
+	var l []TipoAnulacionPresupuestal
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +122,11 @@ func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, s
 	return nil, err
 }
 
-// UpdateTipoMovimientoComprobante updates TipoMovimientoComprobante by Id and returns error if
+// UpdateTipoAnulacionPresupuestal updates TipoAnulacionPresupuestal by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoMovimientoComprobanteById(m *TipoMovimientoComprobante) (err error) {
+func UpdateTipoAnulacionPresupuestalById(m *TipoAnulacionPresupuestal) (err error) {
 	o := orm.NewOrm()
-	v := TipoMovimientoComprobante{Id: m.Id}
+	v := TipoAnulacionPresupuestal{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +137,15 @@ func UpdateTipoMovimientoComprobanteById(m *TipoMovimientoComprobante) (err erro
 	return
 }
 
-// DeleteTipoMovimientoComprobante deletes TipoMovimientoComprobante by Id and returns error if
+// DeleteTipoAnulacionPresupuestal deletes TipoAnulacionPresupuestal by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoMovimientoComprobante(id int) (err error) {
+func DeleteTipoAnulacionPresupuestal(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoMovimientoComprobante{Id: id}
+	v := TipoAnulacionPresupuestal{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoMovimientoComprobante{Id: id}); err == nil {
+		if num, err = o.Delete(&TipoAnulacionPresupuestal{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

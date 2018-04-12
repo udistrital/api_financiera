@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// TipoMovimientoComprobanteController operations for TipoMovimientoComprobante
-type TipoMovimientoComprobanteController struct {
+// TipoAnulacionPresupuestalController operations for TipoAnulacionPresupuestal
+type TipoAnulacionPresupuestalController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *TipoMovimientoComprobanteController) URLMapping() {
+func (c *TipoAnulacionPresupuestalController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *TipoMovimientoComprobanteController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create TipoMovimientoComprobante
-// @Param	body		body 	models.TipoMovimientoComprobante	true		"body for TipoMovimientoComprobante content"
-// @Success 201 {int} models.TipoMovimientoComprobante
+// @Description create TipoAnulacionPresupuestal
+// @Param	body		body 	models.TipoAnulacionPresupuestal	true		"body for TipoAnulacionPresupuestal content"
+// @Success 201 {int} models.TipoAnulacionPresupuestal
 // @Failure 403 body is empty
 // @router / [post]
-func (c *TipoMovimientoComprobanteController) Post() {
-	var v models.TipoMovimientoComprobante
+func (c *TipoAnulacionPresupuestalController) Post() {
+	var v models.TipoAnulacionPresupuestal
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddTipoMovimientoComprobante(&v); err == nil {
+		if _, err := models.AddTipoAnulacionPresupuestal(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *TipoMovimientoComprobanteController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get TipoMovimientoComprobante by id
+// @Description get TipoAnulacionPresupuestal by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Success 200 {object} models.TipoAnulacionPresupuestal
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *TipoMovimientoComprobanteController) GetOne() {
+func (c *TipoAnulacionPresupuestalController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetTipoMovimientoComprobanteById(id)
+	v, err := models.GetTipoAnulacionPresupuestalById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *TipoMovimientoComprobanteController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get TipoMovimientoComprobante
+// @Description get TipoAnulacionPresupuestal
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Success 200 {object} models.TipoAnulacionPresupuestal
 // @Failure 403
 // @router / [get]
-func (c *TipoMovimientoComprobanteController) GetAll() {
+func (c *TipoAnulacionPresupuestalController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *TipoMovimientoComprobanteController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllTipoMovimientoComprobante(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllTipoAnulacionPresupuestal(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *TipoMovimientoComprobanteController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the TipoMovimientoComprobante
+// @Description update the TipoAnulacionPresupuestal
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.TipoMovimientoComprobante	true		"body for TipoMovimientoComprobante content"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Param	body		body 	models.TipoAnulacionPresupuestal	true		"body for TipoAnulacionPresupuestal content"
+// @Success 200 {object} models.TipoAnulacionPresupuestal
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *TipoMovimientoComprobanteController) Put() {
+func (c *TipoAnulacionPresupuestalController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.TipoMovimientoComprobante{Id: id}
+	v := models.TipoAnulacionPresupuestal{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateTipoMovimientoComprobanteById(&v); err == nil {
+		if err := models.UpdateTipoAnulacionPresupuestalById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *TipoMovimientoComprobanteController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the TipoMovimientoComprobante
+// @Description delete the TipoAnulacionPresupuestal
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *TipoMovimientoComprobanteController) Delete() {
+func (c *TipoAnulacionPresupuestalController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteTipoMovimientoComprobante(id); err == nil {
+	if err := models.DeleteTipoAnulacionPresupuestal(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
