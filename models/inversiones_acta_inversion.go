@@ -160,9 +160,11 @@ func DeleteInversionesActaInversion(id int) (err error) {
 func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 	err = formatdata.FillStruct(request["Inversion"], &inversion)
 	var idInversion int
+	var valorHijos float64
 	var tipoInversion int
 	var usuario string
-	var actapadre int
+	var actapadre Inversion
+	var inversionCompare Inversion
 	var invActInv InversionesActaInversion
 	var invEstadoInv InversionEstadoInversion
 	var concepto Concepto
@@ -235,9 +237,24 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				invActInv.ActaInversion = &actaInversion
 				invActInv.Usuario = usuario
 
-				if actapadre != 0 {
-					inversionPadre := Inversion{Id: actapadre}
-					invActInv.ActaPadre = &inversionPadre
+				if !reflect.DeepEqual(actapadre,inversionCompare ) {
+					beego.Error("informacion acta padre")
+					invActInv.ActaPadre = &actapadre
+
+					qb.Select("coalesce(sum(ic.valor_agregado),0)").
+								From("inversion_concepto ic").
+								InnerJoin("inversiones_acta_inversion ac").On("ac.inversion = ic.inversion").
+								Where("ac.acta_padre > ?")
+
+					sql := qb.String()
+
+				  o.Raw(sql,actapadre.Id).QueryRow(&valorHijos)
+
+					if actapadre.ValorNetoGirar <= valorHijos + (totalInv) {
+
+					}else{
+						return
+					}
 				}
 
 				_, err = o.Insert(&invActInv)
