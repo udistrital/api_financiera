@@ -158,7 +158,7 @@ func DeleteInversionesActaInversion(id int) (err error) {
 
 // Insert an entire inversion in database returns error if record cant be inserted
 func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
-	err = formatdata.FillStruct(request["Inversion"], &inversion)
+
 	var idInversion int
 	var valorHijos float64
 	var tipoInversion int
@@ -171,10 +171,16 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 	var mov []MovimientoContable
 	var totalInv float64
 	o := orm.NewOrm()
+	err = formatdata.FillStruct(request["Inversion"], &inversion)
+	err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
+	err = formatdata.FillStruct(request["actapadre"], &actapadre)
+
 	if err == nil {
+
 		if qb, errq := orm.NewQueryBuilder("tidb"); errq == nil {
 			qb.Select("COALESCE(MAX(id), 0)+1  as consecutivo").
 				From("Inversion")
+
 			sql := qb.String()
 			o.Raw(sql).QueryRow(&idInversion)
 
@@ -182,12 +188,35 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 
 			o.Begin()
 
-			_, err = o.Insert(&inversion)
+			if !reflect.DeepEqual(actapadre, inversionCompare) {
+				beego.Error("informacion acta padre")
+				invActInv.ActaPadre = &actapadre
+
+				qb, _ := orm.NewQueryBuilder("tidb")
+				qb.Select("coalesce(sum(ic.valor_agregado),0)").
+					From("inversion_concepto ic").
+					InnerJoin("inversiones_acta_inversion ac").On("ac.inversion = ic.inversion").
+					Where("ac.acta_padre > ?")
+
+				sql := qb.String()
+
+				o.Raw(sql, actapadre.Id).QueryRow(&valorHijos)
+
+				if actapadre.ValorNetoGirar <= (valorHijos + totalInv) {
+					_, err = o.Insert(&inversion)
+				} else {
+					err = errors.New("Bigger value")
+					beego.Info(err.Error())
+					o.Rollback()
+					return
+				}
+			} else {
+				_, err = o.Insert(&inversion)
+			}
 
 			if err == nil {
-				err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
+
 				err = formatdata.FillStruct(request["usuario"], &usuario)
-				err = formatdata.FillStruct(request["actapadre"], &actapadre)
 				err = formatdata.FillStruct(request["EstadoInversion"], &invEstadoInv)
 				err = formatdata.FillStruct(request["Concepto"], &concepto)
 				err = formatdata.FillStruct(request["Movimientos"], &mov)
@@ -236,26 +265,6 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				invActInv.Inversion = &inversion
 				invActInv.ActaInversion = &actaInversion
 				invActInv.Usuario = usuario
-
-				if !reflect.DeepEqual(actapadre,inversionCompare ) {
-					beego.Error("informacion acta padre")
-					invActInv.ActaPadre = &actapadre
-
-					qb.Select("coalesce(sum(ic.valor_agregado),0)").
-								From("inversion_concepto ic").
-								InnerJoin("inversiones_acta_inversion ac").On("ac.inversion = ic.inversion").
-								Where("ac.acta_padre > ?")
-
-					sql := qb.String()
-
-				  o.Raw(sql,actapadre.Id).QueryRow(&valorHijos)
-
-					if actapadre.ValorNetoGirar <= valorHijos + (totalInv) {
-
-					}else{
-						return
-					}
-				}
 
 				_, err = o.Insert(&invActInv)
 

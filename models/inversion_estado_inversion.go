@@ -161,21 +161,54 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 	var inversion Inversion
 	var idEstadoInv int64
 	var num int64
+	var qscnt bool
+	var valorHijos float64
 
 	o := orm.NewOrm()
 	o.Begin()
 	err = formatdata.FillStruct(request["Estado"], &invEstado)
 	err = formatdata.FillStruct(request["EstadoPadre"], &invEstadoPadre)
 	err = formatdata.FillStruct(request["Inversion"], &inversion)
+
 	if err == nil {
 		invEstadoinversion.Activo = true
 		invEstadoinversion.Estado = &invEstado
 		invEstadoinversion.Inversion = &inversion
 
-		num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
-			"activo": "false",
-		})
+		if invEstado.Id >= 6 {
+			o := orm.NewOrm()
+
+			qb, _ := orm.NewQueryBuilder("tidb")
+			qb.Select("coalesce(sum(ic.valor_agregado),0)").
+				From("inversion_concepto ic").
+				InnerJoin("inversiones_acta_inversion ac").On("ac.inversion = ic.inversion").
+				Where("ac.acta_padre > ?")
+
+			sql := qb.String()
+
+			o.Raw(sql, inversion.Id).QueryRow(&valorHijos)
+
+			beego.Error(inversion.Id)
+			beego.Error(inversion.ValorNetoGirar)
+			beego.Error(valorHijos)
+
+			if inversion.ValorNetoGirar > valorHijos {
+				qscnt = true
+			}
+
+		}
+		if qscnt == false {
+			num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
+				"activo": "false",
+			})
+		}
 		fmt.Printf("Affected Num: %s, %s", num, err)
+
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
 
 		if invEstado.Id == 4 {
 			beego.Error("Aprobacion contable")
@@ -187,12 +220,6 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 				o.Rollback()
 				return
 			}
-		}
-
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
 		}
 
 		idEstadoInv, err = o.Insert(&invEstadoinversion)
