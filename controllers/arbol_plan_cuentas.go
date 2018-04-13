@@ -25,7 +25,14 @@ func (c *ArbolPlanCuentasController) URLMapping() {
 	c.Mapping("DeleteBranch", c.DeleteBranch)
 	c.Mapping("Post", c.Post)
 }
-
+func genTreeCuentas(id int) {
+	v, err := models.MakeTreePlanCuentas(id)
+	rankingsJson, _ := json.Marshal(v)
+	if err == nil {
+		err = ioutil.WriteFile("PlanCuentasTreeId" + strconv.Itoa(id) + ".json", rankingsJson, 0644)
+		fmt.Println("err ", err)
+	}
+}
 // MakeTreeCuentas ...
 // @Title MakeTreeCuentas
 // @Description construye y muestra la estructura de cuentas en un plan de cuentas
@@ -83,6 +90,7 @@ func (c *ArbolPlanCuentasController) DeleteBranch() {
 	idPlan, _ := strconv.Atoi(idPlanStr)
 	if err := models.DeleteBranchPlan(idCuenta, idPlan); err == nil {
 		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		go genTreeCuentas(idPlan)
 		c.Ctx.Output.SetStatus(201)
 		c.Data["json"] = alert
 	} else {
@@ -98,9 +106,9 @@ func (c *ArbolPlanCuentasController) DeleteBranch() {
 // Post ...
 // @Title Post
 // @Description create Rama arbol plan
-// @Param	body		body 	models.CategoriaIva	true		"body for CategoriaIva content"
+// @Param	body		body 	models.ArbolPlanCuentas	true		"body for ArbolPlanCuentas content"
 // @Param	idPlan		path 	string	true		"Id del plan"
-// @Success 201 {int} models.CategoriaIva
+// @Success 201 {int} models.ArbolPlanCuentas
 // @Failure 403 body is empty
 // @router /:idPlan [post]
 func (c *ArbolPlanCuentasController) Post() {
@@ -110,6 +118,7 @@ func (c *ArbolPlanCuentasController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err = models.AddBranchPlan(&v, idPlan); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			go genTreeCuentas(idPlan)
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = alert
 		} else {
