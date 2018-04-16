@@ -1,10 +1,6 @@
 package pacUtils
 
 import (
-	"fmt"
-
-	"reflect"
-
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/manucorporat/try"
@@ -15,49 +11,54 @@ import (
 
 func AddMovimientoApropiacion(parameter ...interface{}) (err interface{}) {
 	try.This(func() {
-
-		var rubroMongo []interface{}
+		var (
+			rubroMongo []interface{}
+			movimiento = make(map[string]interface{})
+			respuesta  interface{}
+		)
 		mongoApiURL := beego.AppConfig.String("MongoApi")
-		// var respuesta interface{}
 		Movimiento := parameter[0].(*models.MovimientoApropiacion)
-		beego.Info("numero: ", Movimiento.NumeroMovimiento)
-		beego.Info("estado_movimiento: apropbado")
-		beego.Info("fecha_movmieinto: ", Movimiento.FechaMovimiento)
-		beego.Info("numero_oficiio: ", Movimiento.Noficio)
-		beego.Info("fecha Oficio: ", Movimiento.Foficio)
-		beego.Info("descripcion: ", Movimiento.Descripcion)
-		beego.Info("unidad_ejecutora: ", Movimiento.UnidadEjecutora)
-		beego.Info("apropiacion_destino: ", Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo)
-		if Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito.Rubro == nil {
-			beego.Info("apropiacion_destino: ''")
-		} else {
-			beego.Info("apropiacion_origen: ", Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito.Rubro)
+
+		movimiento["numero"] = Movimiento.NumeroMovimiento
+		movimiento["estado_movimiento"] = "Aprobado"
+		movimiento["fecha_movimiento"] = Movimiento.FechaMovimiento.Format("2006-01-02")
+		movimiento["numero_oficio"] = int(Movimiento.Noficio)
+		movimiento["fecha_oficio"] = Movimiento.Foficio.Format("2006-01-02")
+		movimiento["descripcion"] = Movimiento.Descripcion
+		movimiento["unidad_ejecutora"] = Movimiento.UnidadEjecutora
+		movimiento["apropiacion_destino"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo
+		movimiento["apropiacion_origen"] = ""
+
+		if Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito != nil {
+			movimiento["apropiacion_origen"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito.Rubro.Codigo
 		}
-		beego.Info("valor: ", Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].Valor)
-		beego.Info("Tipo movimiento: ", Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].TipoMovimientoApropiacion.Nombre)
-		// beego.Info(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo)
-		// beego.Info(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Nombre)
-		// beego.Info(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Valor) // Valor de la apropiacion inicial
-		fmt.Printf("%g\n", Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Valor)
-		beego.Info(int(Movimiento.FechaMovimiento.Year()))
+
+		movimiento["valor"] = int64(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].Valor)
+		movimiento["tipo_movimiento"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].TipoMovimientoApropiacion.Nombre
+
 		request.GetJson("http://"+mongoApiURL+"rubro?query=codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo, &rubroMongo)
-		// request.GetJson("http://"+mongoApiURL+"")
-		// beego.Info("rubroMongo: ", rubroMongo)
-		// for key, value := range rubroMongo[0].(map[string]interface{}) {
-		// 	fmt.Println("key: ", key)
-		// 	fmt.Println("value: ", value)
-		// }
+
+		beego.Info(len(rubroMongo))
+		beego.Info(rubroMongo[0])
+
 		apropiaciones := rubroMongo[0].(map[string]interface{})["apropiaciones"]
-		beego.Info(apropiaciones)
-		beego.Info(reflect.TypeOf(apropiaciones))
+		rubroId := rubroMongo[0].(map[string]interface{})["_id"].(string)
+
 		for i := 0; i < len(apropiaciones.([]interface{})); i++ {
-			beego.Info(reflect.TypeOf(apropiaciones.([]interface{})[i].(map[string]interface{})["vigencia"]))
+
 			if int(apropiaciones.([]interface{})[i].(map[string]interface{})["vigencia"].(float64)) == int(Movimiento.FechaMovimiento.Year()) {
-				beego.Info(reflect.TypeOf(apropiaciones.([]interface{})[i].(map[string]interface{})["movimientos"]))
+				request.SendJson("http://"+mongoApiURL+"movimiento", "POST", &respuesta, movimiento)
+				beego.Info(respuesta)
+				if respuesta != nil {
+					movimiento["_id"] = respuesta
+					apropiaciones.([]interface{})[i].(map[string]interface{})["movimientos"] = append(apropiaciones.([]interface{})[i].(map[string]interface{})["movimientos"].([]interface{}), movimiento)
+				}
 			}
 		}
-
-		// request.SendJson(beego.AppConfig.String("MongoApi")+"/movimiento", "POST",)
+		rubroMongo[0].(map[string]interface{})["apropiaciones"] = apropiaciones
+		beego.Info("Movimiento: ", movimiento)
+		beego.Info("apropiaciones con movimiento agregada: ", rubroMongo[0])
+		request.SendJson("http://"+mongoApiURL+"rubro/"+rubroId, "PUT", &respuesta, rubroMongo[0])
 	}).Catch(func(e try.E) {
 		beego.Info(e)
 	})
@@ -75,20 +76,12 @@ func saveMovimiento(ctx *context.Context) {
 	var parameters []interface{}
 	try.This(func() {
 		if response := ctx.Input.Data()["json"].([]models.Alert)[0].Type; response == "success" {
-			// beego.Info("save movimiento: ",ctx.Input.Data()["json"].([]models.Alert)[0].Body.(map[string]interface{})["Movimiento"].(*models.MovimientoApropiacion).MovimientoApropiacionDisponibilidadApropiacion[0].Valor)
 			parameters = append(parameters, ctx.Input.Data()["json"].([]models.Alert)[0].Body.(map[string]interface{})["Movimiento"])
 
 			work := optimize.WorkRequest{JobParameter: parameters, Job: AddMovimientoApropiacion}
 			optimize.WorkQueue <- work
 		}
 
-		// 	switch response := ctx.Input.Data()["json"].([]models.Alert)[0].Type; response {
-		// 	case "darwin":
-		// 		fmt.Println("OS X.")
-		// 	case "linux":
-		// 		fmt.Println("Linux.")
-		// 	default:
-		// }
 	}).Catch(func(e try.E) { // Aquí se resuelven los errores
 		beego.Info(e)
 	})
