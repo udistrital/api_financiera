@@ -65,9 +65,19 @@ func AddMovimientoApropiacion(parameter ...interface{}) (err interface{}) {
 	return nil
 }
 
+func AddRegistroPresupuestal(parameter ...interface{}) (err interface{}) {
+	return nil
+}
+
+func AddOrdenDePago(parameter ...interface{}) (err interface{}) {
+	return nil
+}
+
 func ReportesInit() {
 	optimize.StartDispatcher(1, 200)
 	beego.InsertFilter("/v1/movimiento_apropiacion/AprobarMovimietnoApropiacion", beego.AfterExec, saveMovimiento, false)
+	beego.InsertFilter("v1/registro_presupuestal", beego.AfterExec, saveRegistroPresupuestal, false)
+	beego.InsertFilter("v1/orden_pago_estado_orden_pago/WorkFlowOrdenPago", beego.AfterExec, saveOrdenDePago, false)
 	// beego.InsertFilter("/v1/movimiento_apropiacion/AprobarMovimietnoApropiacion", beego.AfterExec, FunctionAfterExecEstadoOrdenP, false)
 	// /v1/movimiento_apropiacion/AprobarMovimietnoApropiacion
 }
@@ -85,5 +95,36 @@ func saveMovimiento(ctx *context.Context) {
 	}).Catch(func(e try.E) { // Aquí se resuelven los errores
 		beego.Info(e)
 	})
+}
 
+func saveRegistroPresupuestal(ctx *context.Context) {
+	var parameters []interface{}
+	try.This(func() {
+		if response := ctx.Input.Data()["json"].([]models.Alert)[0].Type; response == "success" {
+			// otros parámetros
+			parameters = append(parameters, ctx.Input.Data()["json"].([]models.Alert)[0].Body.(map[string]interface{})["Movimiento"])
+
+			work := optimize.WorkRequest{JobParameter: parameters, Job: AddRegistroPresupuestal}
+			optimize.WorkQueue <- work
+		}
+
+	}).Catch(func(e try.E) { // Aquí se resuelven los errores
+		beego.Info(e)
+	})
+}
+
+func saveOrdenDePago(ctx *context.Context) {
+	var parameters []interface{}
+	try.This(func() {
+		if response := ctx.Input.Data()["json"].([]models.Alert)[0].Type; response == "success" {
+			// otros parámetros
+			parameters = append(parameters, ctx.Input.Data()["json"].([]models.Alert)[0].Body.(map[string]interface{})["Movimiento"])
+
+			work := optimize.WorkRequest{JobParameter: parameters, Job: AddOrdenDePago}
+			optimize.WorkQueue <- work
+		}
+
+	}).Catch(func(e try.E) { // Aquí se resuelven los errores
+		beego.Info(e)
+	})
 }
