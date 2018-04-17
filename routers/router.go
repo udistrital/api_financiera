@@ -15,8 +15,7 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-
-		beego.NSNamespace("/etapa_avance",
+				beego.NSNamespace("/etapa_avance",
 			beego.NSInclude(
 				&controllers.EtapaAvanceController{},
 			),
@@ -664,6 +663,17 @@ func init() {
 		beego.NSNamespace("/pasivos_fenecidos",
 			beego.NSInclude(
 				&controllers.Pasivos_fenecidosController{},
+			),
+		),
+		beego.NSNamespace("/producto",
+			beego.NSInclude(
+				&controllers.ProductoController{},
+			),
+		),
+
+		beego.NSNamespace("/producto_rubro",
+			beego.NSInclude(
+				&controllers.ProductoRubroController{},
 			),
 		),
 	)
