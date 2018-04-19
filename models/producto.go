@@ -26,6 +26,18 @@ func init() {
 	orm.RegisterModel(new(Producto))
 }
 
+// GetTotalProductos get number of Producto into database and returns
+// integer number.
+func GetTotalProductos() (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COUNT(id)").
+	   From("financiera.producto")
+	err = o.Raw(qb.String()).QueryRow(&total)
+	return
+}
+
+
 // AddProducto insert a new Producto into database and returns
 // last inserted Id on success.
 func AddProducto(m *Producto) (id int64, err error) {

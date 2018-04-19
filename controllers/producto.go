@@ -176,3 +176,23 @@ func (c *ProductoController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+// TotalProductos ...
+// @Title TotalProductos
+// @Description numero de Productos
+// @Success 201 {int} total
+// @Failure 403 internal error
+// @router /TotalProductos/ [get]
+func (c *ProductoController) TotalProductos() {
+	
+	total, err := models.GetTotalProductos()
+	if err == nil {
+		c.Data["json"] = total
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+
+
+	c.ServeJSON()
+}
+
