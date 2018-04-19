@@ -14,6 +14,7 @@ type ProductoRubro struct {
 	Rubro             *Rubro    `orm:"column(rubro);rel(fk)"`
 	Producto          *Producto `orm:"column(producto);rel(fk)"`
 	ValorDistribucion float64   `orm:"column(valor_distribucion)"`
+	Activo            *bool     `orm:"column(activo),default(true)"`
 }
 
 func (t *ProductoRubro) TableName() string {

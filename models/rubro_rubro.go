@@ -29,13 +29,31 @@ func AddRubroRubro(m *RubroRubro) (id int64, err error) {
 	o := orm.NewOrm()
 	o.Begin()
 	id_hijo, err := o.Insert(m.RubroHijo)
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	m.RubroHijo.Id = int(id_hijo)
 	id, err = o.Insert(m)
 	if err != nil {
 		o.Rollback()
-	} else {
-		o.Commit()
+		return
 	}
+
+	for _, producto := range m.RubroHijo.ProductoRubro {
+		producto.Rubro = m.RubroHijo
+		producto.ValorDistribucion = producto.ValorDistribucion / 100
+		activo := true
+		producto.Activo = &activo
+		_, err = o.Insert(producto)
+		if err != nil {
+			fmt.Println("err ", err.Error())
+			o.Rollback()
+			return
+		}
+	}
+	o.Commit()
+	m.RubroHijo.ProductoRubro = nil
 	return
 }
 

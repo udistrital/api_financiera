@@ -14,13 +14,14 @@ import (
 )
 
 type Rubro struct {
-	Id              int         `orm:"auto;column(id);pk"`
-	Entidad         int         `orm:"column(entidad)"`
-	Codigo          string      `orm:"column(codigo)"`
-	Descripcion     string      `orm:"column(descripcion);null"`
-	UnidadEjecutora int16       `orm:"column(unidad_ejecutora)"`
-	Nombre          string      `orm:"column(nombre);null"`
-	Concepto        []*Concepto `orm:"reverse(many)"`
+	Id              int              `orm:"auto;column(id);pk"`
+	Entidad         int              `orm:"column(entidad)"`
+	Codigo          string           `orm:"column(codigo)"`
+	Descripcion     string           `orm:"column(descripcion);null"`
+	UnidadEjecutora int16            `orm:"column(unidad_ejecutora)"`
+	Nombre          string           `orm:"column(nombre);null"`
+	Concepto        []*Concepto      `orm:"reverse(many)"`
+	ProductoRubro   []*ProductoRubro `orm:"reverse(many)"`
 }
 
 func (t *Rubro) TableName() string {
@@ -112,6 +113,7 @@ func GetAllRubro(query map[string]string, group []string, fields []string, sortb
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "Concepto", 5)
+				o.LoadRelated(&v, "ProductoRubro", 5, 0, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {
