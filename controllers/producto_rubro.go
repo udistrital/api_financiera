@@ -3,9 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -166,6 +169,80 @@ func (c *ProductoRubroController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// SetVariacionProducto ...
+// @Title SetVariacionProducto
+// @Description set new product variation
+// @Param	body		body 	models.ProductoRubro	true		"body for ProductoRubro content"
+// @Success 201 {int} models.Alert
+// @Failure 403 body is empty
+// @router /SetVariacionProducto/ [post]
+func (c *ProductoRubroController) SetVariacionProducto() {
+	var v models.ProductoRubro
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if total, err := models.SetVariacionProducto(&v); err == nil && total <= 1 {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
+		} else {
+			if err != nil {
+				alertdb := structs.Map(err)
+				var code string
+				formatdata.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+			} else if total > 1 {
+				alert := models.Alert{Type: "error", Code: "E_RB006", Body: v}
+				c.Data["json"] = alert
+			} else {
+				alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+				c.Data["json"] = alert
+			}
+
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}
+
+// AddProductoRubrotr ...
+// @Title AddProductoRubrotr
+// @Description set new product for rubro producto relation
+// @Param	body		body 	models.ProductoRubro	true		"body for ProductoRubro content"
+// @Success 201 {int} models.Alert
+// @Failure 403 body is empty
+// @router /AddProductoRubrotr/ [post]
+func (c *ProductoRubroController) AddProductoRubrotr() {
+	var v models.ProductoRubro
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if total, err := models.AddProductoRubrotr(&v); err == nil && total <= 1 {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
+		} else {
+			if err != nil {
+				alertdb := structs.Map(err)
+				var code string
+				formatdata.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+			} else if total > 1 {
+				alert := models.Alert{Type: "error", Code: "E_RB006", Body: v}
+				c.Data["json"] = alert
+			} else {
+				alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+				c.Data["json"] = alert
+			}
+
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }

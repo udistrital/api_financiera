@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
@@ -14,7 +15,8 @@ type ProductoRubro struct {
 	Rubro             *Rubro    `orm:"column(rubro);rel(fk)"`
 	Producto          *Producto `orm:"column(producto);rel(fk)"`
 	ValorDistribucion float64   `orm:"column(valor_distribucion)"`
-	Activo            *bool     `orm:"column(activo),default(true)"`
+	Activo            bool      `orm:"column(activo),default(true)"`
+	FechaRegistro     time.Time `orm:"column(fecha_registro),auto_now_add"`
 }
 
 func (t *ProductoRubro) TableName() string {
@@ -100,7 +102,7 @@ func GetAllProductoRubro(query map[string]string, fields []string, sortby []stri
 	}
 
 	var l []ProductoRubro
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -130,7 +132,7 @@ func UpdateProductoRubroById(m *ProductoRubro) (err error) {
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Update(m); err == nil {
+		if num, err = o.Update(m, "Activo"); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
@@ -150,4 +152,86 @@ func DeleteProductoRubro(id int) (err error) {
 		}
 	}
 	return
+}
+
+// SetVariacionProducto set a new record in the database
+// with a new variation for the rubro
+func SetVariacionProducto(m *ProductoRubro) (total float64, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	o.Begin()
+	qb.Select("SUM(valor_distribucion) as total").
+		From("financiera.producto_rubro").
+		Where("rubro = ?").
+		And("activo = true").
+		And("id NOT IN (?)")
+	err = o.Raw(qb.String(), m.Rubro.Id, m.Id).QueryRow(&total)
+
+	if err != nil {
+		o.Rollback()
+		return
+	}
+
+	total = total + m.ValorDistribucion
+
+	if total > 1 {
+		o.Rollback()
+		return
+	}
+
+	m.Activo = false
+	_, err = o.Update(m, "Activo")
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	m.Id = 0
+	m.Activo = true
+	m.FechaRegistro = time.Now().Local()
+	_, err = o.Insert(m)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+
+	o.Commit()
+
+	return
+}
+
+//AddProductoRubrotr Add ProductoRubro Realiton to Rubro
+func AddProductoRubrotr(m *ProductoRubro) (total float64, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	o.Begin()
+	qb.Select("SUM(valor_distribucion) as total").
+		From("financiera.producto_rubro").
+		Where("rubro = ?").
+		And("activo = true")
+	err = o.Raw(qb.String(), m.Rubro.Id).QueryRow(&total)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	m.ValorDistribucion = m.ValorDistribucion / 100
+	m.FechaRegistro = time.Now().Local()
+	total = total + (m.ValorDistribucion)
+	if total > 1 {
+		o.Rollback()
+		return
+	}
+	if m.ValorDistribucion <= 0 {
+		o.Rollback()
+		total = 2
+		return
+	}
+	m.Activo = true
+	_, err = o.Insert(m)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
@@ -43,8 +44,8 @@ func AddRubroRubro(m *RubroRubro) (id int64, err error) {
 	for _, producto := range m.RubroHijo.ProductoRubro {
 		producto.Rubro = m.RubroHijo
 		producto.ValorDistribucion = producto.ValorDistribucion / 100
-		activo := true
-		producto.Activo = &activo
+		producto.Activo = true
+		producto.FechaRegistro = time.Now().Local()
 		_, err = o.Insert(producto)
 		if err != nil {
 			fmt.Println("err ", err.Error())

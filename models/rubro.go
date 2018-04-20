@@ -113,7 +113,7 @@ func GetAllRubro(query map[string]string, group []string, fields []string, sortb
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "Concepto", 5)
-				o.LoadRelated(&v, "ProductoRubro", 5, 0, 0, "-Id")
+				//o.LoadRelated(&v, "ProductoRubro", 5, 0, 0, "-Activo")
 				ml = append(ml, v)
 			}
 		} else {
