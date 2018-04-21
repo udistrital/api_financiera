@@ -5,52 +5,67 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoMovimientoComprobante struct {
-	Id                int     `orm:"column(id);pk"`
-	Nombre            string  `orm:"column(nombre)"`
-	Descripcion       string  `orm:"column(descripcion);null"`
-	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
-	Activo            bool    `orm:"column(activo)"`
-	NumeroOrden       float64 `orm:"column(numero_orden);null"`
+type Inversion struct {
+	Id                  int       `orm:"column(id);pk"`
+	Vendedor            string    `orm:"column(vendedor)"`
+	Emisor              string    `orm:"column(emisor)"`
+	NumOperacion        int       `orm:"column(num_operacion)"`
+	Trm                 float64   `orm:"column(trm)"`
+	TasaNominal         float64   `orm:"column(tasa_nominal);null"`
+	ValorNomSaldo       float64   `orm:"column(valor_nom_saldo);null"`
+	ValorNomSaldoMonNal float64   `orm:"column(valor_nom_saldo_mon_nal);null"`
+	ValorActual         float64   `orm:"column(valor_actual);null"`
+	ValorNetoGirar      float64   `orm:"column(valor_neto_girar);null"`
+	FechaCompra         time.Time `orm:"column(fecha_compra);type(date);null"`
+	FechaRedencion      time.Time `orm:"column(fecha_redencion);type(date);null"`
+	FechaVencimiento    time.Time `orm:"column(fecha_vencimiento);type(date);null"`
+	FechaEmision        time.Time `orm:"column(fecha_emision);type(date);null"`
+	Comprador           string    `orm:"column(comprador);null"`
+	ValorRecompra       float64   `orm:"column(valor_recompra);null"`
+	FechaVenta          time.Time `orm:"column(fecha_venta);type(date);null"`
+	FechaPacto          time.Time `orm:"column(fecha_pacto);type(date);null"`
+	Observaciones       string    `orm:"column(observaciones);null"`
+	InversionConcepto   []*InversionConcepto `orm:"reverse(many)"`
 }
 
-func (t *TipoMovimientoComprobante) TableName() string {
-	return "tipo_movimiento_comprobante"
+func (t *Inversion) TableName() string {
+	return "inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoMovimientoComprobante))
+	orm.RegisterModel(new(Inversion))
 }
 
-// AddTipoMovimientoComprobante insert a new TipoMovimientoComprobante into database and returns
+// AddInversion insert a new Inversion into database and returns
 // last inserted Id on success.
-func AddTipoMovimientoComprobante(m *TipoMovimientoComprobante) (id int64, err error) {
+func AddInversion(m *Inversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoMovimientoComprobanteById retrieves TipoMovimientoComprobante by Id. Returns error if
+// GetInversionById retrieves Inversion by Id. Returns error if
 // Id doesn't exist
-func GetTipoMovimientoComprobanteById(id int) (v *TipoMovimientoComprobante, err error) {
+func GetInversionById(id int) (v *Inversion, err error) {
 	o := orm.NewOrm()
-	v = &TipoMovimientoComprobante{Id: id}
+	v = &Inversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoMovimientoComprobante retrieves all TipoMovimientoComprobante matches certain condition. Returns empty list if
+// GetAllInversion retrieves all Inversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoMovimientoComprobante))
+	qs := o.QueryTable(new(Inversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +115,7 @@ func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, s
 		}
 	}
 
-	var l []TipoMovimientoComprobante
+	var l []Inversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +138,11 @@ func GetAllTipoMovimientoComprobante(query map[string]string, fields []string, s
 	return nil, err
 }
 
-// UpdateTipoMovimientoComprobante updates TipoMovimientoComprobante by Id and returns error if
+// UpdateInversion updates Inversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoMovimientoComprobanteById(m *TipoMovimientoComprobante) (err error) {
+func UpdateInversionById(m *Inversion) (err error) {
 	o := orm.NewOrm()
-	v := TipoMovimientoComprobante{Id: m.Id}
+	v := Inversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +153,15 @@ func UpdateTipoMovimientoComprobanteById(m *TipoMovimientoComprobante) (err erro
 	return
 }
 
-// DeleteTipoMovimientoComprobante deletes TipoMovimientoComprobante by Id and returns error if
+// DeleteInversion deletes Inversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoMovimientoComprobante(id int) (err error) {
+func DeleteInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoMovimientoComprobante{Id: id}
+	v := Inversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoMovimientoComprobante{Id: id}); err == nil {
+		if num, err = o.Delete(&Inversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

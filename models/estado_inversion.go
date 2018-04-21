@@ -9,45 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type HomologacionComprobantes struct {
-	Id                        int                        `orm:"column(id);pk;auto"`
-	TipoComprobante           *TipoComprobante           `orm:"column(tipo_comprobante);rel(fk)"`
-	TipoDocumentoAfectante 		*TipoDocumentoAfectante    `orm:"column(tipo_documento_afectante);rel(fk)"`
+type EstadoInversion struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion)"`
+	Activo            bool    `orm:"column(activo)"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *HomologacionComprobantes) TableName() string {
-	return "homologacion_comprobantes"
+func (t *EstadoInversion) TableName() string {
+	return "estado_inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(HomologacionComprobantes))
+	orm.RegisterModel(new(EstadoInversion))
 }
 
-// AddHomologacionComprobantes insert a new HomologacionComprobantes into database and returns
+// AddEstadoInversion insert a new EstadoInversion into database and returns
 // last inserted Id on success.
-func AddHomologacionComprobantes(m *HomologacionComprobantes) (id int64, err error) {
+func AddEstadoInversion(m *EstadoInversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetHomologacionComprobantesById retrieves HomologacionComprobantes by Id. Returns error if
+// GetEstadoInversionById retrieves EstadoInversion by Id. Returns error if
 // Id doesn't exist
-func GetHomologacionComprobantesById(id int) (v *HomologacionComprobantes, err error) {
+func GetEstadoInversionById(id int) (v *EstadoInversion, err error) {
 	o := orm.NewOrm()
-	v = &HomologacionComprobantes{Id: id}
+	v = &EstadoInversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllHomologacionComprobantes retrieves all HomologacionComprobantes matches certain condition. Returns empty list if
+// GetAllEstadoInversion retrieves all EstadoInversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllHomologacionComprobantes(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(HomologacionComprobantes)).RelatedSel(5)
+	qs := o.QueryTable(new(EstadoInversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,7 +100,7 @@ func GetAllHomologacionComprobantes(query map[string]string, fields []string, so
 		}
 	}
 
-	var l []HomologacionComprobantes
+	var l []EstadoInversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -120,11 +123,11 @@ func GetAllHomologacionComprobantes(query map[string]string, fields []string, so
 	return nil, err
 }
 
-// UpdateHomologacionComprobantes updates HomologacionComprobantes by Id and returns error if
+// UpdateEstadoInversion updates EstadoInversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateHomologacionComprobantesById(m *HomologacionComprobantes) (err error) {
+func UpdateEstadoInversionById(m *EstadoInversion) (err error) {
 	o := orm.NewOrm()
-	v := HomologacionComprobantes{Id: m.Id}
+	v := EstadoInversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,15 +138,15 @@ func UpdateHomologacionComprobantesById(m *HomologacionComprobantes) (err error)
 	return
 }
 
-// DeleteHomologacionComprobantes deletes HomologacionComprobantes by Id and returns error if
+// DeleteEstadoInversion deletes EstadoInversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteHomologacionComprobantes(id int) (err error) {
+func DeleteEstadoInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := HomologacionComprobantes{Id: id}
+	v := EstadoInversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&HomologacionComprobantes{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

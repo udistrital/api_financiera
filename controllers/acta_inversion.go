@@ -6,17 +6,17 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-	"fmt"
+
 	"github.com/astaxie/beego"
 )
 
-// MovimientoContableController operations for MovimientoContable
-type MovimientoContableController struct {
+// ActaInversionController operations for ActaInversion
+type ActaInversionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *MovimientoContableController) URLMapping() {
+func (c *ActaInversionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *MovimientoContableController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create MovimientoContable
-// @Param	body		body 	models.MovimientoContable	true		"body for MovimientoContable content"
-// @Success 201 {int} models.MovimientoContable
+// @Description create ActaInversion
+// @Param	body		body 	models.ActaInversion	true		"body for ActaInversion content"
+// @Success 201 {int} models.ActaInversion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *MovimientoContableController) Post() {
-	var v models.MovimientoContable
+func (c *ActaInversionController) Post() {
+	var v models.ActaInversion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddMovimientoContable(&v); err == nil {
+		if _, err := models.AddActaInversion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *MovimientoContableController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get MovimientoContable by id
+// @Description get ActaInversion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.MovimientoContable
+// @Success 200 {object} models.ActaInversion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *MovimientoContableController) GetOne() {
+func (c *ActaInversionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetMovimientoContableById(id)
+	v, err := models.GetActaInversionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *MovimientoContableController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get MovimientoContable
+// @Description get ActaInversion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.MovimientoContable
+// @Success 200 {object} models.ActaInversion
 // @Failure 403
 // @router / [get]
-func (c *MovimientoContableController) GetAll() {
+func (c *ActaInversionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -118,8 +118,8 @@ func (c *MovimientoContableController) GetAll() {
 			query[k] = v
 		}
 	}
-	fmt.Println("hola soy movimiento",query)
-	l, err := models.GetAllMovimientoContable(query, fields, sortby, order, offset, limit)
+
+	l, err := models.GetAllActaInversion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *MovimientoContableController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the MovimientoContable
+// @Description update the ActaInversion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.MovimientoContable	true		"body for MovimientoContable content"
-// @Success 200 {object} models.MovimientoContable
+// @Param	body		body 	models.ActaInversion	true		"body for ActaInversion content"
+// @Success 200 {object} models.ActaInversion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *MovimientoContableController) Put() {
+func (c *ActaInversionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.MovimientoContable{Id: id}
+	v := models.ActaInversion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateMovimientoContableById(&v); err == nil {
+		if err := models.UpdateActaInversionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *MovimientoContableController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the MovimientoContable
+// @Description delete the ActaInversion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *MovimientoContableController) Delete() {
+func (c *ActaInversionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteMovimientoContable(id); err == nil {
+	if err := models.DeleteActaInversion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

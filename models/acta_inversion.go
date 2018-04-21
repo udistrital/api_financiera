@@ -9,45 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type HomologacionComprobantes struct {
-	Id                        int                        `orm:"column(id);pk;auto"`
-	TipoComprobante           *TipoComprobante           `orm:"column(tipo_comprobante);rel(fk)"`
-	TipoDocumentoAfectante 		*TipoDocumentoAfectante    `orm:"column(tipo_documento_afectante);rel(fk)"`
+type ActaInversion struct {
+	Id          int    `orm:"column(id);pk;auto"`
+	Nombre      string `orm:"column(nombre)"`
+	Descripcion string `orm:"column(descripcion)"`
 }
 
-func (t *HomologacionComprobantes) TableName() string {
-	return "homologacion_comprobantes"
+func (t *ActaInversion) TableName() string {
+	return "acta_inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(HomologacionComprobantes))
+	orm.RegisterModel(new(ActaInversion))
 }
 
-// AddHomologacionComprobantes insert a new HomologacionComprobantes into database and returns
+// AddActaInversion insert a new ActaInversion into database and returns
 // last inserted Id on success.
-func AddHomologacionComprobantes(m *HomologacionComprobantes) (id int64, err error) {
+func AddActaInversion(m *ActaInversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetHomologacionComprobantesById retrieves HomologacionComprobantes by Id. Returns error if
+// GetActaInversionById retrieves ActaInversion by Id. Returns error if
 // Id doesn't exist
-func GetHomologacionComprobantesById(id int) (v *HomologacionComprobantes, err error) {
+func GetActaInversionById(id int) (v *ActaInversion, err error) {
 	o := orm.NewOrm()
-	v = &HomologacionComprobantes{Id: id}
+	v = &ActaInversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllHomologacionComprobantes retrieves all HomologacionComprobantes matches certain condition. Returns empty list if
+// GetAllActaInversion retrieves all ActaInversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllHomologacionComprobantes(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllActaInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(HomologacionComprobantes)).RelatedSel(5)
+	qs := o.QueryTable(new(ActaInversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,7 +97,7 @@ func GetAllHomologacionComprobantes(query map[string]string, fields []string, so
 		}
 	}
 
-	var l []HomologacionComprobantes
+	var l []ActaInversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -120,11 +120,11 @@ func GetAllHomologacionComprobantes(query map[string]string, fields []string, so
 	return nil, err
 }
 
-// UpdateHomologacionComprobantes updates HomologacionComprobantes by Id and returns error if
+// UpdateActaInversion updates ActaInversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateHomologacionComprobantesById(m *HomologacionComprobantes) (err error) {
+func UpdateActaInversionById(m *ActaInversion) (err error) {
 	o := orm.NewOrm()
-	v := HomologacionComprobantes{Id: m.Id}
+	v := ActaInversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,15 +135,15 @@ func UpdateHomologacionComprobantesById(m *HomologacionComprobantes) (err error)
 	return
 }
 
-// DeleteHomologacionComprobantes deletes HomologacionComprobantes by Id and returns error if
+// DeleteActaInversion deletes ActaInversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteHomologacionComprobantes(id int) (err error) {
+func DeleteActaInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := HomologacionComprobantes{Id: id}
+	v := ActaInversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&HomologacionComprobantes{Id: id}); err == nil {
+		if num, err = o.Delete(&ActaInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

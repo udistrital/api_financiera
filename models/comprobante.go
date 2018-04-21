@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
 	"github.com/astaxie/beego/orm"
+	"strconv"
 )
 
 type Comprobante struct {
@@ -35,6 +35,9 @@ func init() {
 // last inserted Id on success.
 func AddComprobante(m *Comprobante) (id int64, err error) {
 	o := orm.NewOrm()
+	m.FechaRegistro = time.Now()
+	m.Mes = int(time.Now().Month())
+	m.Ano  = time.Now().Year()
 	id, err = o.Insert(m)
 	return
 }
@@ -158,12 +161,51 @@ func DeleteComprobante(id int) (err error) {
 	return
 }
 
-func CrearComprobante(op OrdenPago){
+func CrearComprobanteOrdenPago(op OrdenPago){
 	fmt.Println("hola soy la orden de pago creada", op)
-	nuevo_comprobante := &Comprobante{Secuencia: op.Consecutivo,NumeroItems: 250,RedondeoCifras: true,	Ano: 2018,Mes: 4,FechaRegistro: time.Now(),TipoComprobante: &TipoComprobante{Id:1},	EstadoComprobante : &EstadoComprobante{Id:1},Observaciones: "Creada automáticamente para OP"}
+	var consulta_homologacion = make(map[string]string);
+	var consulta_movimiento_contable = make(map[string]string);
+	var consulta_rp *RegistroPresupuestal
+	var fields []string
+	var sortby []string
+	var order []string
+	var ObjetoHomologacion HomologacionComprobantes
+	var ObjetoMovimientoContable MovimientoContable
+	var valor float64
+
+ 	consulta_homologacion["TipoDocumentoAfectante.CodigoAbreviacion"] = "DA-OP"
+	consulta_homologacion["TipoDocumentoAfectante.Activo"] = "true"
+
+	//Buscar el tipo de comprobante por documento OP
+	respuesta, err := GetAllHomologacionComprobantes(consulta_homologacion,fields,sortby,order,0,-1)
+	ObjetoHomologacion = respuesta[0].(HomologacionComprobantes)
+
+	//CREAR NUEVO COMPROBANTE
+	nuevo_comprobante := &Comprobante{Secuencia: op.Consecutivo,NumeroItems: 250,RedondeoCifras: true,	Ano: time.Now().Year(),Mes: int(time.Now().Month()),FechaRegistro: time.Now(),TipoComprobante: &TipoComprobante{Id:ObjetoHomologacion.TipoComprobante.Id},	EstadoComprobante : &EstadoComprobante{Id:1},Observaciones: "Creada automáticamente para OP"}
 	id_nuevo, err := AddComprobante(nuevo_comprobante)
-	if(id_nuevo != 0 && err != nil){
-		fmt.Println("comprobante creado exitosamente")
+
+  //BUSCAR TERCERO
+
+	consulta_rp, _ = GetRegistroPresupuestalById(op.RegistroPresupuestal.Id)
+	fmt.Println("rp de esa OP", consulta_rp)
+
+	if(id_nuevo != 0 && err == nil){
+		consulta_movimiento_contable["TipoDocumentoAfectante.Id"] = "1"
+		consulta_movimiento_contable["CodigoDocumentoAfectante"] = strconv.Itoa(op.Id)
+		fmt.Println("comprobante creado exitosamente", consulta_movimiento_contable)
+		respuesta, err := GetAllMovimientoContable(consulta_movimiento_contable,fields,sortby,order,0,-1)
+		fmt.Println(err)
+		for i, v := range respuesta {
+			 ObjetoMovimientoContable = v.(MovimientoContable)
+			 if(ObjetoMovimientoContable.CuentaContable.Naturaleza == "debito"){
+				 valor = float64(ObjetoMovimientoContable.Debito)
+				}else{
+				 valor = float64(ObjetoMovimientoContable.Credito)
+			 }
+			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }, Valor: valor , Tercero: consulta_rp.Beneficiario}
+			 _, err := AddRegistroComprobantes(ObjetoRegistroComprobante)
+			 fmt.Println(err)
+		 }
 	}else{
 		fmt.Println("error", err)
 	}

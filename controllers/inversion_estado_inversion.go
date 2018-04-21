@@ -3,20 +3,23 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
-// TipoMovimientoComprobanteController operations for TipoMovimientoComprobante
-type TipoMovimientoComprobanteController struct {
+// InversionEstadoInversionController operations for InversionEstadoInversion
+type InversionEstadoInversionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *TipoMovimientoComprobanteController) URLMapping() {
+func (c *InversionEstadoInversionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +29,15 @@ func (c *TipoMovimientoComprobanteController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create TipoMovimientoComprobante
-// @Param	body		body 	models.TipoMovimientoComprobante	true		"body for TipoMovimientoComprobante content"
-// @Success 201 {int} models.TipoMovimientoComprobante
+// @Description create InversionEstadoInversion
+// @Param	body		body 	models.InversionEstadoInversion	true		"body for InversionEstadoInversion content"
+// @Success 201 {int} models.InversionEstadoInversion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *TipoMovimientoComprobanteController) Post() {
-	var v models.TipoMovimientoComprobante
+func (c *InversionEstadoInversionController) Post() {
+	var v models.InversionEstadoInversion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddTipoMovimientoComprobante(&v); err == nil {
+		if _, err := models.AddInversionEstadoInversion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +51,15 @@ func (c *TipoMovimientoComprobanteController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get TipoMovimientoComprobante by id
+// @Description get InversionEstadoInversion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Success 200 {object} models.InversionEstadoInversion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *TipoMovimientoComprobanteController) GetOne() {
+func (c *InversionEstadoInversionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetTipoMovimientoComprobanteById(id)
+	v, err := models.GetInversionEstadoInversionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +70,17 @@ func (c *TipoMovimientoComprobanteController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get TipoMovimientoComprobante
+// @Description get InversionEstadoInversion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Success 200 {object} models.InversionEstadoInversion
 // @Failure 403
 // @router / [get]
-func (c *TipoMovimientoComprobanteController) GetAll() {
+func (c *InversionEstadoInversionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +122,7 @@ func (c *TipoMovimientoComprobanteController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllTipoMovimientoComprobante(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllInversionEstadoInversion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +133,18 @@ func (c *TipoMovimientoComprobanteController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the TipoMovimientoComprobante
+// @Description update the InversionEstadoInversion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.TipoMovimientoComprobante	true		"body for TipoMovimientoComprobante content"
-// @Success 200 {object} models.TipoMovimientoComprobante
+// @Param	body		body 	models.InversionEstadoInversion	true		"body for InversionEstadoInversion content"
+// @Success 200 {object} models.InversionEstadoInversion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *TipoMovimientoComprobanteController) Put() {
+func (c *InversionEstadoInversionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.TipoMovimientoComprobante{Id: id}
+	v := models.InversionEstadoInversion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateTipoMovimientoComprobanteById(&v); err == nil {
+		if err := models.UpdateInversionEstadoInversionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,18 +157,48 @@ func (c *TipoMovimientoComprobanteController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the TipoMovimientoComprobante
+// @Description delete the InversionEstadoInversion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *TipoMovimientoComprobanteController) Delete() {
+func (c *InversionEstadoInversionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteTipoMovimientoComprobante(id); err == nil {
+	if err := models.DeleteInversionEstadoInversion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// Post ...
+// @Title AddEstadoInv
+// @Description Insert a record to modify status to a inversion
+//@Param	body		body 	models.InversionEstadoInversion	true		"body for InversionEstadoInversion content"
+// @Success 200 {object} models.InversionEstadoInversion
+// @Failure 403 body is empty
+// @router /AddEstadoInv [post]
+func (c *InversionEstadoInversionController) AddEstadoInv() {
+	var request map[string]interface{}
+	var code string
+	defer c.ServeJSON()
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+
+		if estado, err := models.AddEstadoInv(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: estado}
+			c.Data["json"] = alert
+		} else {
+			beego.Info(err.Error())
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		beego.Info(err.Error())
+		alert := models.Alert{Type: "error", Code: "E_0458" + code, Body: err.Error()}
+		c.Data["json"] = alert
+	}
 }
