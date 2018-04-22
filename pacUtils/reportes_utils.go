@@ -1,6 +1,7 @@
 package pacUtils
 
 import (
+	"strconv"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
 	"github.com/manucorporat/try"
@@ -12,53 +13,37 @@ import (
 func AddMovimientoApropiacion(parameter ...interface{}) (err interface{}) {
 	try.This(func() {
 		var (
-			rubroMongo []interface{}
-			movimiento = make(map[string]interface{})
+			apropiacionMongo []models.MongoApropiacion
+			movimientoMongo models.MongoMovimiento
 			respuesta  interface{}
 		)
 		mongoApiURL := beego.AppConfig.String("MongoApi")
 		Movimiento := parameter[0].(*models.MovimientoApropiacion)
 
-		movimiento["numero"] = Movimiento.NumeroMovimiento
-		movimiento["estado_movimiento"] = "Aprobado"
-		movimiento["fecha_movimiento"] = Movimiento.FechaMovimiento.Format("2006-01-02")
-		movimiento["numero_oficio"] = int(Movimiento.Noficio)
-		movimiento["fecha_oficio"] = Movimiento.Foficio.Format("2006-01-02")
-		movimiento["descripcion"] = Movimiento.Descripcion
-		movimiento["unidad_ejecutora"] = Movimiento.UnidadEjecutora
-		movimiento["apropiacion_destino"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo
-		movimiento["apropiacion_origen"] = ""
 
+		request.GetJson("http://"+mongoApiURL+"apropiacion?query=rubro.codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo+",vigencia:"+strconv.Itoa(Movimiento.Vigencia), &apropiacionMongo)
+		beego.Info("http://"+mongoApiURL+"apropiacion?query=rubro.codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo+",vigencia:"+strconv.Itoa(Movimiento.Vigencia))
+		beego.Info(len(apropiacionMongo))
+		beego.Info(apropiacionMongo[0])
+
+		movimientoMongo.Numero = strconv.Itoa(Movimiento.NumeroMovimiento)
+		movimientoMongo.Estado_movimiento = "Aprobado"
+		movimientoMongo.Fecha_movimiento = Movimiento.FechaMovimiento.Format("2006-01-02")
+		movimientoMongo.Numero_oficio = strconv.Itoa(Movimiento.Noficio)
+		movimientoMongo.Fecha_oficio = Movimiento.Foficio.Format("2006-01-02")
+		movimientoMongo.Descripcion = Movimiento.Descripcion
+		movimientoMongo.RubroDestino = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo
+		movimientoMongo.RubroOrigen = ""
 		if Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito != nil {
-			movimiento["apropiacion_origen"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito.Rubro.Codigo
+			movimientoMongo.RubroOrigen = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaContraCredito.Rubro.Codigo
 		}
-
-		movimiento["valor"] = int64(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].Valor)
-		movimiento["tipo_movimiento"] = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].TipoMovimientoApropiacion.Nombre
-
-		request.GetJson("http://"+mongoApiURL+"rubro?query=codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo, &rubroMongo)
-
-		beego.Info(len(rubroMongo))
-		beego.Info(rubroMongo[0])
-
-		apropiaciones := rubroMongo[0].(map[string]interface{})["apropiaciones"]
-		rubroId := rubroMongo[0].(map[string]interface{})["_id"].(string)
-
-		for i := 0; i < len(apropiaciones.([]interface{})); i++ {
-
-			if int(apropiaciones.([]interface{})[i].(map[string]interface{})["vigencia"].(float64)) == int(Movimiento.FechaMovimiento.Year()) {
-				request.SendJson("http://"+mongoApiURL+"movimiento", "POST", &respuesta, movimiento)
-				beego.Info(respuesta)
-				if respuesta != nil {
-					movimiento["_id"] = respuesta
-					apropiaciones.([]interface{})[i].(map[string]interface{})["movimientos"] = append(apropiaciones.([]interface{})[i].(map[string]interface{})["movimientos"].([]interface{}), movimiento)
-				}
-			}
+		movimientoMongo.Valor = int64(Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].Valor)
+		movimientoMongo.Tipo_movimiento = Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].TipoMovimientoApropiacion.Nombre
+		movimientoMongo.Apropiacion = apropiacionMongo[0]
+		request.SendJson("http://"+mongoApiURL+"movimiento", "POST", &respuesta, movimientoMongo)
+		if respuesta.(string) != "" {
+			beego.Info("registrado movimiento en mongo")
 		}
-		rubroMongo[0].(map[string]interface{})["apropiaciones"] = apropiaciones
-		beego.Info("Movimiento: ", movimiento)
-		beego.Info("apropiaciones con movimiento agregada: ", rubroMongo[0])
-		request.SendJson("http://"+mongoApiURL+"rubro/"+rubroId, "PUT", &respuesta, rubroMongo[0])
 	}).Catch(func(e try.E) {
 		beego.Info(e)
 	})
