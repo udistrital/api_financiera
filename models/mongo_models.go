@@ -6,14 +6,14 @@ type MongoApropiacion struct {
 	Id            bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Vigencia      int           `json:"vigencia"`
 	Valor_inicial int           `json:"valor_inicial"`
-	Rubro         MongoRubro       `json:"rubro"`
+	Rubro         MongoRubro       	`json:"rubro"`
 }
 
 type MongoDisponibilidadApropiacion struct {
-	Id bson.ObjectId `json:"_id" bson:"_id,omitempty"`
-  Valor int `json:"valor"`
+	Id bson.ObjectId 					`json:"_id" bson:"_id,omitempty"`
+	Valor int 								`json:"valor"`
   Fuente_financiamiento int `json:"fuente_financiamiento"`
-  Apropiacion MongoApropiacion `json:"apropiacions"`
+  Apropiacion MongoApropiacion 	`json:"apropiacion"`
 }
 
 type MongoMovimiento struct {
@@ -34,13 +34,26 @@ type MongoMovimiento struct {
 
 type MongoRegistroPresupuestal struct {
 	Id bson.ObjectId `json:"_id" bson:"_id,omitempty"`
-  Disponibilidad_apropiacion []MongoDisponibilidadApropiacion `json:"disponibilidad_apropiacions"`
-  Valor int `json:"valor"`
+	Vigencia int `json:"vigencia"`
+  FechaRegistro string `json:"fecha_registro"`
+  Estado string `json:"estado"`
+  Numero_Registro_Presupuestal int `json:"numero_registro_presupuestal"`
+  Solicitud int`json:"solicitud"`
+	Disponibilidad_apropiacion MongoDisponibilidadApropiacion `json:"disponibilidad_apropiacion"`
+}
+
+type MongoOrdenPago struct {
+	Id bson.ObjectId `json:"_id" bson:"_id,omitempty"`
+  Vigencia int `json:"vigencia"`
+  Valor_base int `json:"valor_base"`
+  Unidad_ejecutora int `json:"unidad_ejecutora"`
+  Forma_pago int `json:"forma_pago"`
+  Registro_presupuestal MongoRegistroPresupuestal `json:"registro_presupuestals"`
 }
 
 type MongoRubro struct {
 	Id bson.ObjectId `json:"_id" bson:"_id,omitempty"`
-  Codigo string `json:"codigo"`
+	Codigo string `json:"codigo"`
   Nombre string `json:"nombre"`
   Entidad string `json:"entidad"`
   Descripcion string `json:"descripcion"`

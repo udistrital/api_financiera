@@ -1,6 +1,7 @@
 package pacUtils
 
 import (
+	"encoding/json"
 	"strconv"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
@@ -17,9 +18,8 @@ func AddMovimientoApropiacion(parameter ...interface{}) (err interface{}) {
 			movimientoMongo models.MongoMovimiento
 			respuesta  interface{}
 		)
-		mongoApiURL := beego.AppConfig.String("MongoApi")
 		Movimiento := parameter[0].(*models.MovimientoApropiacion)
-
+		mongoApiURL := beego.AppConfig.String("MongoApi")
 
 		request.GetJson("http://"+mongoApiURL+"apropiacion?query=rubro.codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo+",vigencia:"+strconv.Itoa(Movimiento.Vigencia), &apropiacionMongo)
 		beego.Info("http://"+mongoApiURL+"apropiacion?query=rubro.codigo:"+Movimiento.MovimientoApropiacionDisponibilidadApropiacion[0].CuentaCredito.Rubro.Codigo+",vigencia:"+strconv.Itoa(Movimiento.Vigencia))
@@ -55,7 +55,36 @@ func AddRegistroPresupuestal(parameter ...interface{}) (err interface{}) {
 }
 
 func AddOrdenDePago(parameter ...interface{}) (err interface{}) {
-	return nil
+try.This( func() {
+	var (
+		respuesta interface{}
+		ordenPagoMongo models.MongoOrdenPago
+		rpMongo []models.MongoRegistroPresupuestal
+	)
+	mongoApiURL := beego.AppConfig.String("MongoApi")
+	ordenPago := parameter[0].(map[string]interface{})["OrdenPago"].([]interface{})[0].(map[string]interface{})
+	estadoOp := ordenPago["OrdenPagoEstadoOrdenPago"].([]interface{})[0].(map[string]interface{})["EstadoOrdenPago"].(map[string]interface{})["Nombre"]
+	if estadoOp == "Enviada" {
+		numeroRegistroPresupuestal := strconv.Itoa(int(ordenPago["RegistroPresupuestal"].(map[string]interface{})["NumeroRegistroPresupuestal"].(float64)))
+		vigenciaRegistroPresupuestal := strconv.Itoa(int(ordenPago["RegistroPresupuestal"].(map[string]interface{})["Vigencia"].(float64)))
+		request.GetJson("http://"+mongoApiURL+"registropresupuestal?query=numero_registro_presupuestal:"+numeroRegistroPresupuestal+",vigencia:"+vigenciaRegistroPresupuestal, &rpMongo)
+
+		ordenPagoMongo.Vigencia  = int(ordenPago["Vigencia"].(float64))
+		ordenPagoMongo.Valor_base = int(ordenPago["ValorBase"].(float64))
+		ordenPagoMongo.Unidad_ejecutora = int(ordenPago["UnidadEjecutora"].(map[string]interface{})["Id"].(float64))
+		ordenPagoMongo.Forma_pago = int(ordenPago["FormaPago"].(map[string]interface{})["Id"].(float64))
+		ordenPagoMongo.Registro_presupuestal = rpMongo[0]
+
+
+		request.SendJson("http://"+mongoApiURL+"ordenpago", "POST", &respuesta, ordenPagoMongo)
+		if respuesta.(string) != "" {
+			beego.Info("registrada orden de pago en mongo")
+		}
+	}
+}).Catch(func(e try.E) {
+	beego.Error(e)
+})
+		return nil
 }
 
 func ReportesInit() {
@@ -100,14 +129,12 @@ func saveRegistroPresupuestal(ctx *context.Context) {
 
 func saveOrdenDePago(ctx *context.Context) {
 	var parameters []interface{}
+	var v map[string]interface{}
 	try.This(func() {
-		if response := ctx.Input.Data()["json"].([]models.Alert)[0].Type; response == "success" {
-			// otros parámetros
-			parameters = append(parameters, ctx.Input.Data()["json"].([]models.Alert)[0].Body.(map[string]interface{})["Movimiento"])
-
-			work := optimize.WorkRequest{JobParameter: parameters, Job: AddOrdenDePago}
-			optimize.WorkQueue <- work
-		}
+		json.Unmarshal(ctx.Input.RequestBody, &v)
+		parameters = append(parameters, v)
+		work := optimize.WorkRequest{JobParameter: parameters, Job: AddOrdenDePago}
+		optimize.WorkQueue <- work
 
 	}).Catch(func(e try.E) { // Aquí se resuelven los errores
 		beego.Info(e)
