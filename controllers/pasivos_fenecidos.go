@@ -64,10 +64,10 @@ func pasivosFenecidosProcess(parameter ...interface{}) (err interface{}) {
 	try.This(func() {
 		dataRp, _ := models.GetAllRegistroPresupuestal(query, fields, sortby, order, offset, limit)
 		beego.Info("Feneciendo CRP...")
-		optimize.ProccDigest(dataRp, fenecerCrp, nil, 4)
+		optimize.ProccDigest(dataRp, fenecerCrp, nil, 1)
 		dataCdp, _ := models.GetAllDisponibilidad(query, fields, sortby, order, offset, limit)
 		beego.Info("Feneciendo CDP...")
-		optimize.ProccDigest(dataCdp, fenecerCdp, nil, 4)
+		optimize.ProccDigest(dataCdp, fenecerCdp, nil, 1)
 		beego.Info("Proceso Finalizado... ")
 	}).Catch(func(e try.E) {
 		// Print crash

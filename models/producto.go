@@ -10,71 +10,60 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type RubroRubro struct {
-	Id         int    `orm:"auto;column(id);pk"`
-	RubroPadre *Rubro `orm:"column(rubro_padre);rel(fk)"`
-	RubroHijo  *Rubro `orm:"column(rubro_hijo);rel(fk)"`
+type Producto struct {
+	Id            int       `orm:"column(id);pk;auto"`
+	Nombre        string    `orm:"column(nombre)"`
+	Descripcion   string    `orm:"column(descripcion);null"`
+	FechaRegistro time.Time `orm:"column(fecha_registro);type(date)"`
+	ProductoRubro []*ProductoRubro `orm:"reverse(many)"`
 }
 
-func (t *RubroRubro) TableName() string {
-	return "rubro_rubro"
+func (t *Producto) TableName() string {
+	return "producto"
 }
 
 func init() {
-	orm.RegisterModel(new(RubroRubro))
+	orm.RegisterModel(new(Producto))
 }
 
-// AddRubroRubro insert a new RubroRubro into database and returns
-// last inserted Id on success.
-func AddRubroRubro(m *RubroRubro) (id int64, err error) {
+// GetTotalProductos get number of Producto into database and returns
+// integer number.
+func GetTotalProductos() (total int, err error) {
 	o := orm.NewOrm()
-	o.Begin()
-	id_hijo, err := o.Insert(m.RubroHijo)
-	if err != nil {
-		o.Rollback()
-		return
-	}
-	m.RubroHijo.Id = int(id_hijo)
-	id, err = o.Insert(m)
-	if err != nil {
-		o.Rollback()
-		return
-	}
-
-	for _, producto := range m.RubroHijo.ProductoRubro {
-		producto.Rubro = m.RubroHijo
-		producto.ValorDistribucion = producto.ValorDistribucion / 100
-		producto.Activo = true
-		producto.FechaRegistro = time.Now().Local()
-		_, err = o.Insert(producto)
-		if err != nil {
-			fmt.Println("err ", err.Error())
-			o.Rollback()
-			return
-		}
-	}
-	o.Commit()
-	m.RubroHijo.ProductoRubro = nil
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COUNT(id)").
+	   From("financiera.producto")
+	err = o.Raw(qb.String()).QueryRow(&total)
 	return
 }
 
-// GetRubroRubroById retrieves RubroRubro by Id. Returns error if
-// Id doesn't exist
-func GetRubroRubroById(id int) (v *RubroRubro, err error) {
+
+// AddProducto insert a new Producto into database and returns
+// last inserted Id on success.
+func AddProducto(m *Producto) (id int64, err error) {
 	o := orm.NewOrm()
-	v = &RubroRubro{Id: id}
+	m.FechaRegistro = time.Now().Local()
+	id, err = o.Insert(m)
+	return
+}
+
+// GetProductoById retrieves Producto by Id. Returns error if
+// Id doesn't exist
+func GetProductoById(id int) (v *Producto, err error) {
+	o := orm.NewOrm()
+	v = &Producto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllRubroRubro retrieves all RubroRubro matches certain condition. Returns empty list if
+// GetAllProducto retrieves all Producto matches certain condition. Returns empty list if
 // no records exist
-func GetAllRubroRubro(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllProducto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RubroRubro))
+	qs := o.QueryTable(new(Producto))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -124,11 +113,15 @@ func GetAllRubroRubro(query map[string]string, fields []string, sortby []string,
 		}
 	}
 
-	var l []RubroRubro
+	var l []Producto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "ProductoRubro", 5, 1, 0, "-Id")
+				/*for _, sub := range v.RegistroPresupuestalDisponibilidadApropiacion {
+					o.LoadRelated(sub.DisponibilidadApropiacion.Disponibilidad, "DisponibilidadProcesoExterno", 5, 1, 0, "-Id")
+				}*/
 				ml = append(ml, v)
 			}
 		} else {
@@ -147,11 +140,11 @@ func GetAllRubroRubro(query map[string]string, fields []string, sortby []string,
 	return nil, err
 }
 
-// UpdateRubroRubro updates RubroRubro by Id and returns error if
+// UpdateProducto updates Producto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateRubroRubroById(m *RubroRubro) (err error) {
+func UpdateProductoById(m *Producto) (err error) {
 	o := orm.NewOrm()
-	v := RubroRubro{Id: m.Id}
+	v := Producto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -162,15 +155,15 @@ func UpdateRubroRubroById(m *RubroRubro) (err error) {
 	return
 }
 
-// DeleteRubroRubro deletes RubroRubro by Id and returns error if
+// DeleteProducto deletes Producto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteRubroRubro(id int) (err error) {
+func DeleteProducto(id int) (err error) {
 	o := orm.NewOrm()
-	v := RubroRubro{Id: id}
+	v := Producto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&RubroRubro{Id: id}); err == nil {
+		if num, err = o.Delete(&Producto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
