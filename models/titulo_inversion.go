@@ -5,53 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type InversionesActaInversion struct {
-	Id            int            `orm:"column(id);pk;auto"`
-	Inversion     *Inversion     `orm:"column(inversion);rel(fk)"`
-	ActaInversion *ActaInversion `orm:"column(acta_inversion);rel(fk)"`
-	FechaRegistro time.Time      `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Usuario       string         `orm:"column(usuario);null"`
-	ActaPadre     *Inversion     `orm:"column(acta_padre);rel(fk);null"`
+type TituloInversion struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion)"`
+	Activo            bool    `orm:"column(activo)"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden);null"`
 }
 
-func (t *InversionesActaInversion) TableName() string {
-	return "inversiones_acta_inversion"
+func (t *TituloInversion) TableName() string {
+	return "titulo_inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(InversionesActaInversion))
+	orm.RegisterModel(new(TituloInversion))
 }
 
-// AddInversionesActaInversion insert a new InversionesActaInversion into database and returns
+// AddTituloInversion insert a new TituloInversion into database and returns
 // last inserted Id on success.
-func AddInversionesActaInversion(m *InversionesActaInversion) (id int64, err error) {
+func AddTituloInversion(m *TituloInversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetInversionesActaInversionById retrieves InversionesActaInversion by Id. Returns error if
+// GetTituloInversionById retrieves TituloInversion by Id. Returns error if
 // Id doesn't exist
-func GetInversionesActaInversionById(id int) (v *InversionesActaInversion, err error) {
+func GetTituloInversionById(id int) (v *TituloInversion, err error) {
 	o := orm.NewOrm()
-	v = &InversionesActaInversion{Id: id}
+	v = &TituloInversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllInversionesActaInversion retrieves all InversionesActaInversion matches certain condition. Returns empty list if
+// GetAllTituloInversion retrieves all TituloInversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllInversionesActaInversion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllTituloInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(InversionesActaInversion))
+	qs := o.QueryTable(new(TituloInversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -101,7 +100,7 @@ func GetAllInversionesActaInversion(query map[string]string, fields []string, so
 		}
 	}
 
-	var l []InversionesActaInversion
+	var l []TituloInversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -124,11 +123,11 @@ func GetAllInversionesActaInversion(query map[string]string, fields []string, so
 	return nil, err
 }
 
-// UpdateInversionesActaInversion updates InversionesActaInversion by Id and returns error if
+// UpdateTituloInversion updates TituloInversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateInversionesActaInversionById(m *InversionesActaInversion) (err error) {
+func UpdateTituloInversionById(m *TituloInversion) (err error) {
 	o := orm.NewOrm()
-	v := InversionesActaInversion{Id: m.Id}
+	v := TituloInversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -139,15 +138,15 @@ func UpdateInversionesActaInversionById(m *InversionesActaInversion) (err error)
 	return
 }
 
-// DeleteInversionesActaInversion deletes InversionesActaInversion by Id and returns error if
+// DeleteTituloInversion deletes TituloInversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteInversionesActaInversion(id int) (err error) {
+func DeleteTituloInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := InversionesActaInversion{Id: id}
+	v := TituloInversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&InversionesActaInversion{Id: id}); err == nil {
+		if num, err = o.Delete(&TituloInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

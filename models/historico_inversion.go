@@ -5,53 +5,49 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type InversionesActaInversion struct {
-	Id            int            `orm:"column(id);pk;auto"`
-	Inversion     *Inversion     `orm:"column(inversion);rel(fk)"`
-	ActaInversion *ActaInversion `orm:"column(acta_inversion);rel(fk)"`
-	FechaRegistro time.Time      `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Usuario       string         `orm:"column(usuario);null"`
-	ActaPadre     *Inversion     `orm:"column(acta_padre);rel(fk);null"`
+type HistoricoInversion struct {
+	Id               int        `orm:"column(id);pk;auto"`
+	InversionAntigua *Inversion `orm:"column(inversion_antigua);rel(fk)"`
+	InversionNueva   *Inversion `orm:"column(inversion_nueva);rel(fk)"`
 }
 
-func (t *InversionesActaInversion) TableName() string {
-	return "inversiones_acta_inversion"
+func (t *HistoricoInversion) TableName() string {
+	return "historico_inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(InversionesActaInversion))
+	orm.RegisterModel(new(HistoricoInversion))
 }
 
-// AddInversionesActaInversion insert a new InversionesActaInversion into database and returns
+// AddHistoricoInversion insert a new HistoricoInversion into database and returns
 // last inserted Id on success.
-func AddInversionesActaInversion(m *InversionesActaInversion) (id int64, err error) {
+func AddHistoricoInversion(m *HistoricoInversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetInversionesActaInversionById retrieves InversionesActaInversion by Id. Returns error if
+// GetHistoricoInversionById retrieves HistoricoInversion by Id. Returns error if
 // Id doesn't exist
-func GetInversionesActaInversionById(id int) (v *InversionesActaInversion, err error) {
+func GetHistoricoInversionById(id int) (v *HistoricoInversion, err error) {
 	o := orm.NewOrm()
-	v = &InversionesActaInversion{Id: id}
+	v = &HistoricoInversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllInversionesActaInversion retrieves all InversionesActaInversion matches certain condition. Returns empty list if
+// GetAllHistoricoInversion retrieves all HistoricoInversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllInversionesActaInversion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllHistoricoInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(InversionesActaInversion))
+	qs := o.QueryTable(new(HistoricoInversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -101,7 +97,7 @@ func GetAllInversionesActaInversion(query map[string]string, fields []string, so
 		}
 	}
 
-	var l []InversionesActaInversion
+	var l []HistoricoInversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -124,11 +120,11 @@ func GetAllInversionesActaInversion(query map[string]string, fields []string, so
 	return nil, err
 }
 
-// UpdateInversionesActaInversion updates InversionesActaInversion by Id and returns error if
+// UpdateHistoricoInversion updates HistoricoInversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateInversionesActaInversionById(m *InversionesActaInversion) (err error) {
+func UpdateHistoricoInversionById(m *HistoricoInversion) (err error) {
 	o := orm.NewOrm()
-	v := InversionesActaInversion{Id: m.Id}
+	v := HistoricoInversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -139,15 +135,15 @@ func UpdateInversionesActaInversionById(m *InversionesActaInversion) (err error)
 	return
 }
 
-// DeleteInversionesActaInversion deletes InversionesActaInversion by Id and returns error if
+// DeleteHistoricoInversion deletes HistoricoInversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteInversionesActaInversion(id int) (err error) {
+func DeleteHistoricoInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := InversionesActaInversion{Id: id}
+	v := HistoricoInversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&InversionesActaInversion{Id: id}); err == nil {
+		if num, err = o.Delete(&HistoricoInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

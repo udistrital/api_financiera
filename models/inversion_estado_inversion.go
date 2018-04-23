@@ -17,6 +17,7 @@ type InversionEstadoInversion struct {
 	Inversion     *Inversion       `orm:"column(inversion);rel(fk)"`
 	Estado        *EstadoInversion `orm:"column(estado);rel(fk)"`
 	FechaRegistro time.Time        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Usuario       string           `orm:"column(usuario)"`
 	Activo        bool             `orm:"column(activo)"`
 }
 
@@ -161,47 +162,25 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 	var inversion Inversion
 	var idEstadoInv int64
 	var num int64
-	var qscnt bool
-	var valorHijos float64
+	var usuario string
 
 	o := orm.NewOrm()
 	o.Begin()
 	err = formatdata.FillStruct(request["Estado"], &invEstado)
 	err = formatdata.FillStruct(request["EstadoPadre"], &invEstadoPadre)
 	err = formatdata.FillStruct(request["Inversion"], &inversion)
+	err = formatdata.FillStruct(request["Usuario"], &usuario)
 
 	if err == nil {
 		invEstadoinversion.Activo = true
 		invEstadoinversion.Estado = &invEstado
 		invEstadoinversion.Inversion = &inversion
+		invEstadoinversion.Usuario = usuario
 
-		if invEstado.Id >= 6 {
-			o := orm.NewOrm()
+		num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
+			"activo": "false",
+		})
 
-			qb, _ := orm.NewQueryBuilder("tidb")
-			qb.Select("coalesce(sum(ic.valor_agregado),0)").
-				From("inversion_concepto ic").
-				InnerJoin("inversiones_acta_inversion ac").On("ac.inversion = ic.inversion").
-				Where("ac.acta_padre > ?")
-
-			sql := qb.String()
-
-			o.Raw(sql, inversion.Id).QueryRow(&valorHijos)
-
-			beego.Error(inversion.Id)
-			beego.Error(inversion.ValorNetoGirar)
-			beego.Error(valorHijos)
-
-			if inversion.ValorNetoGirar > valorHijos {
-				qscnt = true
-			}
-
-		}
-		if qscnt == false {
-			num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
-				"activo": "false",
-			})
-		}
 		fmt.Printf("Affected Num: %s, %s", num, err)
 
 		if err != nil {
