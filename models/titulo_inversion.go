@@ -10,7 +10,7 @@ import (
 )
 
 type TituloInversion struct {
-	Id                int     `orm:"column(id);pk"`
+	Id                int     `orm:"column(id);pk;auto"`
 	Nombre            string  `orm:"column(nombre)"`
 	Descripcion       string  `orm:"column(descripcion)"`
 	Activo            bool    `orm:"column(activo)"`
