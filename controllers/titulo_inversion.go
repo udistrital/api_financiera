@@ -3,11 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // TituloInversionController operations for TituloInversion
@@ -33,17 +36,24 @@ func (c *TituloInversionController) URLMapping() {
 // @router / [post]
 func (c *TituloInversionController) Post() {
 	var v models.TituloInversion
+	defer c.ServeJSON()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddTituloInversion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			var code string
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
-	c.ServeJSON()
+
 }
 
 // GetOne ...
