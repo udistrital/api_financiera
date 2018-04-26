@@ -17,7 +17,7 @@ type InversionEstadoInversion struct {
 	Inversion     *Inversion       `orm:"column(inversion);rel(fk)"`
 	Estado        *EstadoInversion `orm:"column(estado);rel(fk)"`
 	FechaRegistro time.Time        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Usuario       string           `orm:"column(usuario)"`
+	Usuario       int           		`orm:"column(usuario)"`
 	Activo        bool             `orm:"column(activo)"`
 }
 
@@ -162,7 +162,7 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 	var inversion Inversion
 	var idEstadoInv int64
 	var num int64
-	var usuario string
+	var usuario int
 
 	o := orm.NewOrm()
 	o.Begin()
