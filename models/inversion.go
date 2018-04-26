@@ -176,7 +176,7 @@ func DeleteInversion(id int) (err error) {
 func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 
 	var tipoInversion int
-	var usuario string
+	var usuario int
 	var actapadre Inversion
 	var inversionCompare Inversion
 	var invEstadoInv InversionEstadoInversion
@@ -189,7 +189,7 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 	err = formatdata.FillStruct(request["Inversion"], &inversion)
 	err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
 	err = formatdata.FillStruct(request["actapadre"], &actapadre)
-
+	beego.Error(request)
 	if err == nil {
 
 		o.Begin()
@@ -254,20 +254,16 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 					return
 				}
 			}
-
-			if err != nil {
-				beego.Info(err.Error())
-				o.Rollback()
-				return
-			}
-
-			if err != nil {
+		if err != nil {
 				beego.Error(err.Error())
 				o.Rollback()
 				return
 			}
+			beego.Error("inserta estado inversion")
+			beego.Error(usuario)
 			invEstadoInv.Inversion = &inversion
 			invEstadoInv.Usuario = usuario
+			beego.Error(invEstadoInv)
 			_, err = o.Insert(&invEstadoInv)
 
 			if err != nil {
