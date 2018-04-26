@@ -189,7 +189,7 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 	err = formatdata.FillStruct(request["Inversion"], &inversion)
 	err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
 	err = formatdata.FillStruct(request["actapadre"], &actapadre)
-	beego.Error(request)
+
 	if err == nil {
 
 		o.Begin()
@@ -259,8 +259,6 @@ func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
 				o.Rollback()
 				return
 			}
-			beego.Error("inserta estado inversion")
-			beego.Error(usuario)
 			invEstadoInv.Inversion = &inversion
 			invEstadoInv.Usuario = usuario
 			beego.Error(invEstadoInv)
