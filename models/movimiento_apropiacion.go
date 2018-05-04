@@ -119,11 +119,9 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 	alert.Type = "success"
 	return
 }
-func aprobacionMovimientoPresupuestalDispatcher(tipo int) (f func(data *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error)) {
-	switch os := tipo; os {
-	case 1:
-		return registroModificacionPresupuestalCDP
-	case 2:
+func aprobacionMovimientoPresupuestalDispatcher(tipo *TipoMovimientoApropiacion) (f func(data *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error)) {
+	switch os := tipo.Disponibilidad; os {
+	case true:
 		return registroModificacionPresupuestalCDP
 	default:
 		return nil
@@ -206,7 +204,7 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 	o := orm.NewOrm()
 	o.Begin()
 	for _, desgrMov := range movimiento.MovimientoApropiacionDisponibilidadApropiacion {
-		f := aprobacionMovimientoPresupuestalDispatcher(desgrMov.TipoMovimientoApropiacion.Id)
+		f := aprobacionMovimientoPresupuestalDispatcher(desgrMov.TipoMovimientoApropiacion)
 		if f != nil {
 			alt, err1 := f(desgrMov, &o)
 			fmt.Println("err ", err1)
