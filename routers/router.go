@@ -710,6 +710,42 @@ func init() {
 				&controllers.HistoricoInversionController{},
 			),
 		),
+		beego.NSNamespace("/orden_devolucion",
+			beego.NSInclude(
+				&controllers.OrdenDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/documento_devolucion",
+			beego.NSInclude(
+				&controllers.DocumentoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/cuenta_devolucion",
+			beego.NSInclude(
+				&controllers.CuentaDevolucionController{},
+			),
+		),
+
+		beego.NSNamespace("/acta_devolucion",
+			beego.NSInclude(
+				&controllers.ActaDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_devolucion",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/devolucion_estado_devolucion",
+			beego.NSInclude(
+				&controllers.DevolucionEstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/razon_devolucion",
+			beego.NSInclude(
+				&controllers.RazonDevolucionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
