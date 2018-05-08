@@ -17,7 +17,7 @@ type InversionEstadoInversion struct {
 	Inversion     *Inversion       `orm:"column(inversion);rel(fk)"`
 	Estado        *EstadoInversion `orm:"column(estado);rel(fk)"`
 	FechaRegistro time.Time        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Usuario       int           		`orm:"column(usuario)"`
+	Usuario       int           	 `orm:"column(usuario)"`
 	Activo        bool             `orm:"column(activo)"`
 }
 
