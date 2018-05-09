@@ -3,13 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // SolicitudDevolucionController operations for SolicitudDevolucion
@@ -184,9 +185,8 @@ func (c *SolicitudDevolucionController) AddDevolution() {
 	var code string
 	defer c.ServeJSON()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-
-		if inversion, err := models.AddInver(request); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: inversion}
+		if err := models.AddDevolution(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: "devolucion creada"}
 			c.Data["json"] = alert
 		} else {
 			beego.Info(err.Error())

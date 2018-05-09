@@ -11,11 +11,11 @@ import (
 )
 
 type DevolucionEstadoDevolucion struct {
-	Id               int                         `orm:"column(id);pk"`
-	Devolucion       int                         `orm:"column(devolucion)"`
-	Activo           bool                        `orm:"column(activo)"`
-	FechaRegistro    time.Time                   `orm:"column(fecha_registro);type(timestamp without time zone)"`
-	EstadoDevolucion *DevolucionEstadoDevolucion `orm:"column(estado_devolucion);rel(fk)"`
+	Id               int               `orm:"column(id);pk;auto"`
+	Devolucion       int               `orm:"column(devolucion)"`
+	Activo           bool              `orm:"column(activo)"`
+	FechaRegistro    time.Time         `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	EstadoDevolucion *EstadoDevolucion `orm:"column(estado_devolucion);rel(fk)"`
 }
 
 func (t *DevolucionEstadoDevolucion) TableName() string {

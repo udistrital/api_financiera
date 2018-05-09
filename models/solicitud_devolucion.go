@@ -13,18 +13,17 @@ import (
 )
 
 type SolicitudDevolucion struct {
-	Id               int                         `orm:"column(id);pk"`
-	Solicitante      *DocumentoDevolucion        `orm:"column(solicitante);rel(fk)"`
-	Beneficiario     *DocumentoDevolucion        `orm:"column(beneficiario);rel(fk)"`
-	FormaPago        *FormaPago                  `orm:"column(forma_pago);rel(fk)"`
-	RazonDevolucion  *RazonDevolucion            `orm:"column(razon_devolucion);rel(fk)"`
-	Vigencia         float64                     `orm:"column(vigencia)"`
-	UnidadEjecutora  *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	CuentaDevolucion *CuentaDevolucion           `orm:"column(cuenta_devolucion);rel(fk)"`
-	Observaciones    string                      `orm:"column(observaciones)"`
-	FechaRegistro    time.Time                   `orm:"column(fecha_registro);type(timestamp without time zone);null"`
-	Soporte          *ActaDevolucion             `orm:"column(soporte);rel(fk)"`
-	Estado           *DevolucionEstadoDevolucion `orm:"column(estado);rel(fk)"`
+	Id               int                  `orm:"column(id);pk;auto"`
+	Solicitante      *DocumentoDevolucion `orm:"column(solicitante);rel(fk)"`
+	Beneficiario     *DocumentoDevolucion `orm:"column(beneficiario);rel(fk)"`
+	FormaPago        *FormaPago           `orm:"column(forma_pago);rel(fk)"`
+	RazonDevolucion  *RazonDevolucion     `orm:"column(razon_devolucion);rel(fk)"`
+	Vigencia         float64              `orm:"column(vigencia)"`
+	UnidadEjecutora  *UnidadEjecutora     `orm:"column(unidad_ejecutora);rel(fk)"`
+	CuentaDevolucion *CuentaDevolucion    `orm:"column(cuenta_devolucion);rel(fk)"`
+	Observaciones    string               `orm:"column(observaciones)"`
+	FechaRegistro    time.Time            `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Soporte          *ActaDevolucion      `orm:"column(soporte);rel(fk)"`
 }
 
 func (t *SolicitudDevolucion) TableName() string {
@@ -162,77 +161,122 @@ func DeleteSolicitudDevolucion(id int) (err error) {
 	return
 }
 
-
 // add a devolution, state,a id type returns error
 //if any insert fails
-func AddDevolution(request map[string]interface{})(err error){
+func AddDevolution(request map[string]interface{}) (err error) {
 
 	var solicitudDevol SolicitudDevolucion
 	var documentoSol *DocumentoDevolucion
 	var documentoBen *DocumentoDevolucion
 	var documentoBusqeda DocumentoDevolucion
 	var Id int64
+	var idDevol int64
+	var estadoDevol *EstadoDevolucion
+	var solicitudEstado SolicitudDevolucionEstadoDevolucion
+	var cuentaDevol CuentaDevolucion
 	o := orm.NewOrm()
 
+	err = formatdata.FillStruct(request["SolicitudDevolucion"], &solicitudDevol)
+	err = formatdata.FillStruct(request["EstadoDevolucion"], &estadoDevol)
 
-
-	if err = formatdata.FillStruct(request["SolicitudDevolucion"], &solicitudDevol);err==nil{
+	if err == nil {
 		o.Begin()
 
+		solicitudEstado.EstadoDevolucion = estadoDevol
+		solicitudEstado.Activo = true
 		documentoBen = solicitudDevol.Beneficiario
 		documentoSol = solicitudDevol.Solicitante
 
+		err = o.QueryTable("cuenta_devolucion").
+			Filter("banco", solicitudDevol.CuentaDevolucion.Banco).
+			Filter("tipo_cuenta", solicitudDevol.CuentaDevolucion.TipoCuenta).
+			Filter("numero_cuenta", solicitudDevol.CuentaDevolucion.NumeroCuenta).
+			One(&cuentaDevol)
+		beego.Error(err)
+		if err == orm.ErrMultiRows {
+			beego.Error("Returned Multi Rows Not One")
+			return
+		}
+
+		if err == orm.ErrNoRows {
+			Id, err = o.Insert(solicitudDevol.CuentaDevolucion)
+			beego.Error("id", Id, "error", err)
+			if err != nil {
+				beego.Error(err)
+				o.Rollback()
+				return
+			} else {
+				solicitudDevol.CuentaDevolucion.Id = int(Id)
+			}
+		}
+		if err == nil {
+			solicitudDevol.CuentaDevolucion.Id = cuentaDevol.Id
+		}
 
 		err = o.QueryTable("documento_devolucion").
-							Filter("Origen", documentoBen.Origen).
-							Filter("tipo_identificacion", documentoBen.TipoIdentificacion).
-							Filter("identificacion", documentoBen.Identificacion).
-							One(&documentoBusqeda)
+			Filter("Origen", documentoBen.Origen).
+			Filter("tipo_identificacion", documentoBen.TipoIdentificacion).
+			Filter("identificacion", documentoBen.Identificacion).
+			One(&documentoBusqeda)
 
 		if err == orm.ErrMultiRows {
-				beego.Error("Returned Multi Rows Not One")
+			beego.Error("Returned Multi Rows Not One")
+			return
+		}
+		if err == orm.ErrNoRows {
+
+			Id, err = o.Insert(documentoBen)
+			documentoBen.Id = int(Id)
+			if err != nil {
+				o.Rollback()
 				return
 			}
-	if err == orm.ErrNoRows {
-		Id, err = o.Insert(documentoBen)
-		documentoBen.Id = int(Id)
+		}
+
+		if err == nil {
+			documentoBen.Id = documentoBusqeda.Id
+		}
+
+		err = o.QueryTable("documento_devolucion").
+			Filter("Origen", documentoSol.Origen).
+			Filter("tipo_identificacion", documentoSol.TipoIdentificacion).
+			Filter("identificacion", documentoSol.Identificacion).
+			One(&documentoBusqeda)
+
+		if err == orm.ErrMultiRows {
+			beego.Error("Error consultado documento solicitante")
+			return
+		}
+
+		if err == orm.ErrNoRows {
+			Id, err = o.Insert(documentoSol)
+			documentoSol.Id = int(Id)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		}
+		if err == nil {
+			documentoSol.Id = documentoBusqeda.Id
+		}
+
+		idDevol, err = o.Insert(&solicitudDevol)
 		if err != nil {
 			o.Rollback()
 			return
 		}
-	}else{
-		documentoBen.Id=documentoBusqeda.Id
-	}
-
-	 err = o.QueryTable("documento_devolucion").
-							Filter("Origen", documentoSol.Origen).
-							Filter("tipo_identificacion", documentoSol.TipoIdentificacion).
-							Filter("identificacion", documentoSol.Identificacion).
-							One(&documentoBusqeda)
-
-		if err == orm.ErrMultiRows {
-				beego.Error("Error consultado documento solicitante")
-				return
-			}
-
-	if err == orm.ErrNoRows {
-		Id, err = o.Insert(documentoSol)
-		documentoSol.Id = int(Id)
+		beego.Error("id devolucion", idDevol)
+		beego.Error("Solicitud estado", solicitudEstado)
+		solicitudDevol.Id = int(idDevol)
+		solicitudEstado.Devolucion = &solicitudDevol
+		_, err = o.Insert(&solicitudEstado)
 		if err != nil {
 			o.Rollback()
 			return
 		}
-	}else{
-		documentoSol.Id=documentoBusqeda.Id
-	}
-		if _, err = o.Insert(solicitudDevol);err!=nil{
-			o.Rollback()
-			return
-		}
-	}else{
+	} else {
 		return
 	}
-		o.Commit()
-		return
-
+	o.Commit()
+	return
 }

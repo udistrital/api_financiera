@@ -746,6 +746,22 @@ func init() {
 				&controllers.RazonDevolucionController{},
 			),
 		),
+        beego.NSNamespace("/tipo_devolucion",
+			beego.NSInclude(
+				&controllers.TipoDevolucionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_devolucion",
+			beego.NSInclude(
+				&controllers.EstadoDevolucionController{},
+			),
+		),
+        beego.NSNamespace("/solicitud_devolucion_estado_devolucion",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionEstadoDevolucionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

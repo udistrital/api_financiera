@@ -10,7 +10,7 @@ import (
 )
 
 type CuentaDevolucion struct {
-	Id           int    `orm:"column(id);pk"`
+	Id           int    `orm:"column(id);pk;auto"`
 	Banco        int    `orm:"column(banco)"`
 	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
 	NumeroCuenta string `orm:"column(numero_cuenta)"`
