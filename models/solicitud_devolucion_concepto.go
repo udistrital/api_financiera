@@ -5,56 +5,50 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type OrdenDevolucion struct {
-	Id              int                         `orm:"column(id);pk"`
-	Observaciones   string                      `orm:"column(observaciones)"`
-	ValorTotal      float64                     `orm:"column(valor_total)"`
-	UnidadEjecutora *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	FechaRegistro   time.Time                   `orm:"column(fecha_registro);type(timestamp without time zone);null"`
-	Vigencia        float64                     `orm:"column(vigencia)"`
-	Estado          *DevolucionEstadoDevolucion `orm:"column(estado);rel(fk)"`
+type SolicitudDevolucionConcepto struct {
+	Id                  int                  `orm:"column(id);pk;auto"`
+	ValorDevolucion     float64              `orm:"column(valor_devolucion);null"`
+	SolicitudDevolucion *SolicitudDevolucion `orm:"column(solicitud_devolucion);rel(fk)"`
+	Concepto            *Concepto     `orm:"column(concepto);rel(fk)"`
 }
 
-func (t *OrdenDevolucion) TableName() string {
-	return "orden_devolucion"
+func (t *SolicitudDevolucionConcepto) TableName() string {
+	return "solicitud_devolucion_concepto"
 }
 
 func init() {
-	orm.RegisterModel(new(OrdenDevolucion))
+	orm.RegisterModel(new(SolicitudDevolucionConcepto))
 }
 
-// AddOrdenDevolucion insert a new OrdenDevolucion into database and returns
+// AddSolicitudDevolucionConcepto insert a new SolicitudDevolucionConcepto into database and returns
 // last inserted Id on success.
-func AddOrdenDevolucion(m *OrdenDevolucion) (id int64, err error) {
+func AddSolicitudDevolucionConcepto(m *SolicitudDevolucionConcepto) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetOrdenDevolucionById retrieves OrdenDevolucion by Id. Returns error if
+// GetSolicitudDevolucionConceptoById retrieves SolicitudDevolucionConcepto by Id. Returns error if
 // Id doesn't exist
-func GetOrdenDevolucionById(id int) (v *OrdenDevolucion, err error) {
+func GetSolicitudDevolucionConceptoById(id int) (v *SolicitudDevolucionConcepto, err error) {
 	o := orm.NewOrm()
-	v = &OrdenDevolucion{Id: id}
+	v = &SolicitudDevolucionConcepto{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllOrdenDevolucion retrieves all OrdenDevolucion matches certain condition. Returns empty list if
+// GetAllSolicitudDevolucionConcepto retrieves all SolicitudDevolucionConcepto matches certain condition. Returns empty list if
 // no records exist
-func GetAllOrdenDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllSolicitudDevolucionConcepto(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenDevolucion))
+	qs := o.QueryTable(new(SolicitudDevolucionConcepto))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -104,7 +98,7 @@ func GetAllOrdenDevolucion(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []OrdenDevolucion
+	var l []SolicitudDevolucionConcepto
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -127,11 +121,11 @@ func GetAllOrdenDevolucion(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateOrdenDevolucion updates OrdenDevolucion by Id and returns error if
+// UpdateSolicitudDevolucionConcepto updates SolicitudDevolucionConcepto by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateOrdenDevolucionById(m *OrdenDevolucion) (err error) {
+func UpdateSolicitudDevolucionConceptoById(m *SolicitudDevolucionConcepto) (err error) {
 	o := orm.NewOrm()
-	v := OrdenDevolucion{Id: m.Id}
+	v := SolicitudDevolucionConcepto{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -142,30 +136,17 @@ func UpdateOrdenDevolucionById(m *OrdenDevolucion) (err error) {
 	return
 }
 
-// DeleteOrdenDevolucion deletes OrdenDevolucion by Id and returns error if
+// DeleteSolicitudDevolucionConcepto deletes SolicitudDevolucionConcepto by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteOrdenDevolucion(id int) (err error) {
+func DeleteSolicitudDevolucionConcepto(id int) (err error) {
 	o := orm.NewOrm()
-	v := OrdenDevolucion{Id: id}
+	v := SolicitudDevolucionConcepto{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&OrdenDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&SolicitudDevolucionConcepto{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
-	}
-	return
-}
-//Add devolution order if fails returns error
-func AddDevolutionOrder(request map[string]interface{})(err error){
-	var ordenSolicitudes []OrdenDevolucionSolicitudDevolucion
-	err = formatdata.FillStruct(request["ordenSolicitud"],&ordenSolicitudes)
-	if err!=nil {
-			beego.Error(err)
-			return
-	}
-	for _, v:=range ordenSolicitudes {
-		beego.Error(v)
 	}
 	return
 }

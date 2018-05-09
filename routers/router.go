@@ -15,7 +15,7 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-				beego.NSNamespace("/etapa_avance",
+		beego.NSNamespace("/etapa_avance",
 			beego.NSInclude(
 				&controllers.EtapaAvanceController{},
 			),
@@ -746,20 +746,29 @@ func init() {
 				&controllers.RazonDevolucionController{},
 			),
 		),
-        beego.NSNamespace("/tipo_devolucion",
+		beego.NSNamespace("/tipo_devolucion",
 			beego.NSInclude(
 				&controllers.TipoDevolucionController{},
 			),
 		),
-
 		beego.NSNamespace("/estado_devolucion",
 			beego.NSInclude(
 				&controllers.EstadoDevolucionController{},
 			),
 		),
-        beego.NSNamespace("/solicitud_devolucion_estado_devolucion",
+		beego.NSNamespace("/solicitud_devolucion_estado_devolucion",
 			beego.NSInclude(
 				&controllers.SolicitudDevolucionEstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_devolucion_concepto",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionConceptoController{},
+			),
+		),
+		beego.NSNamespace("/orden_devolucion_solicitud_devolucion",
+			beego.NSInclude(
+				&controllers.OrdenDevolucionSolicitudDevolucionController{},
 			),
 		),
 	)
