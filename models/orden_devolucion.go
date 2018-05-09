@@ -10,16 +10,16 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
+	"encoding/json"
 )
 
 type OrdenDevolucion struct {
-	Id              int                         `orm:"column(id);pk"`
+	Id              int                         `orm:"column(id);pk;auto"`
 	Observaciones   string                      `orm:"column(observaciones)"`
 	ValorTotal      float64                     `orm:"column(valor_total)"`
 	UnidadEjecutora *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	FechaRegistro   time.Time                   `orm:"column(fecha_registro);type(timestamp without time zone);null"`
+	FechaRegistro   time.Time                   `orm:"column(fecha_registro);;auto_now_add;type(datetime)"`
 	Vigencia        float64                     `orm:"column(vigencia)"`
-	Estado          *DevolucionEstadoDevolucion `orm:"column(estado);rel(fk)"`
 }
 
 func (t *OrdenDevolucion) TableName() string {
@@ -54,7 +54,7 @@ func GetOrdenDevolucionById(id int) (v *OrdenDevolucion, err error) {
 func GetAllOrdenDevolucion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenDevolucion))
+	qs := o.QueryTable(new(OrdenDevolucion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -156,16 +156,84 @@ func DeleteOrdenDevolucion(id int) (err error) {
 	}
 	return
 }
+
 //Add devolution order if fails returns error
 func AddDevolutionOrder(request map[string]interface{})(err error){
-	var ordenSolicitudes []OrdenDevolucionSolicitudDevolucion
+	var ordenSolicitudes []*OrdenDevolucionSolicitudDevolucion
+	var orden OrdenDevolucion
+	var Id int64
+	var ordenestado OrdenDevolucionEstadoDevolucion
+	var estado EstadoDevolucion
+	var solicitudEstado SolicitudDevolucionEstadoDevolucion
+	var estadoSolicitud EstadoDevolucion
+
+	o := orm.NewOrm()
+
 	err = formatdata.FillStruct(request["ordenSolicitud"],&ordenSolicitudes)
 	if err!=nil {
+	    beego.Error(err)
+	    return
+	}
+	err = formatdata.FillStruct(request["ordenDevolucion"],&orden)
+	if err!=nil {
+	    beego.Error(err)
+	    return
+	}
+	err = formatdata.FillStruct(request["estadoOrdenDevol"],&estado)
+
+	if err!=nil {
+	    beego.Error(err)
+	    return
+	}else{
+	  ordenestado.EstadoDevolucion = &estado
+	}
+	o.Begin()
+	Id, err = o.Insert(&orden)
+	beego.Error(Id)
+	if err != nil {
+	    o.Rollback()
+	    beego.Error(err)
+	    return
+	}else{
+	  orden.Id = int(Id)
+	}
+	ordenestado.Devolucion = &orden
+	for _, v:=range ordenSolicitudes {
+	  v.OrdenDevolucion=&orden
+
+		_, err = o.QueryTable("solicitud_devolucion_estado_devolucion").
+						Filter("devolucion", v.SolicitudDevolucion.Id).
+						Filter("activo", true).
+						Update(orm.Params{
+										"activo": "false",
+										})
+
+		if err != nil {
+			o.Rollback()
 			beego.Error(err)
 			return
+		}
+		solicitudEstado.Devolucion = v.SolicitudDevolucion
+		estadoSolicitud.Id = 7
+		solicitudEstado.EstadoDevolucion = &estadoSolicitud
+		solicitudEstado.Activo = true
+		_,err = o.Insert(&solicitudEstado)
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+
+	  r1,_ := json.Marshal(v)
+	  beego.Error(string(r1))
+	  //ordenSolicitudes[i]=v
 	}
-	for _, v:=range ordenSolicitudes {
-		beego.Error(v)
+	_, err = o.InsertMulti(10, ordenSolicitudes)
+	if err != nil {
+	  o.Rollback()
+	  beego.Error(err)
+	  return
 	}
+	o.Commit()
 	return
 }

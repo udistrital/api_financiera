@@ -58,7 +58,7 @@ func GetSolicitudDevolucionById(id int) (v *SolicitudDevolucion, err error) {
 func GetAllSolicitudDevolucion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(SolicitudDevolucion))
+	qs := o.QueryTable(new(SolicitudDevolucion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -130,7 +130,6 @@ func GetAllSolicitudDevolucion(query map[string]string, fields []string, sortby 
 	}
 	return nil, err
 }
-
 // UpdateSolicitudDevolucion updates SolicitudDevolucion by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateSolicitudDevolucionById(m *SolicitudDevolucion) (err error) {

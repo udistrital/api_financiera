@@ -178,8 +178,8 @@ func (c *OrdenDevolucionController) Delete() {
 // @Param	body		body 	models.OrdenDevolucion	true		"body for OrdenDevolucion content"
 // @Success 201 {int} models.OrdenDevolucion
 // @Failure 403 body is empty
-// @router /AddDevoluctionOrder [post]
-func (c *SolicitudDevolucionController) AddDevolutionOrder() {
+// @router /AddDevolutionOrder [post]
+func (c *OrdenDevolucionController) AddDevolutionOrder() {
 	var request map[string]interface{}
 	var code string
 	defer c.ServeJSON()
