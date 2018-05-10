@@ -10,7 +10,7 @@ import (
 )
 
 type DocumentoDevolucion struct {
-	Id                 int `orm:"column(id);pk"`
+	Id                 int `orm:"column(id);pk;auto"`
 	TipoIdentificacion int `orm:"column(tipo_identificacion);null"`
 	Identificacion     int `orm:"column(identificacion);null"`
 	Origen             int `orm:"column(origen);null"`

@@ -3,23 +3,20 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
-	"github.com/udistrital/api_financiera/models"
-
 	"github.com/astaxie/beego"
-	"github.com/fatih/structs"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
-// SolicitudDevolucionController operations for SolicitudDevolucion
-type SolicitudDevolucionController struct {
+// SolicitudDevolucionEstadoDevolucionController operations for SolicitudDevolucionEstadoDevolucion
+type SolicitudDevolucionEstadoDevolucionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *SolicitudDevolucionController) URLMapping() {
+func (c *SolicitudDevolucionEstadoDevolucionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -29,15 +26,15 @@ func (c *SolicitudDevolucionController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create SolicitudDevolucion
-// @Param	body		body 	models.SolicitudDevolucion	true		"body for SolicitudDevolucion content"
-// @Success 201 {int} models.SolicitudDevolucion
+// @Description create SolicitudDevolucionEstadoDevolucion
+// @Param	body		body 	models.SolicitudDevolucionEstadoDevolucion	true		"body for SolicitudDevolucionEstadoDevolucion content"
+// @Success 201 {int} models.SolicitudDevolucionEstadoDevolucion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *SolicitudDevolucionController) Post() {
-	var v models.SolicitudDevolucion
+func (c *SolicitudDevolucionEstadoDevolucionController) Post() {
+	var v models.SolicitudDevolucionEstadoDevolucion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddSolicitudDevolucion(&v); err == nil {
+		if _, err := models.AddSolicitudDevolucionEstadoDevolucion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -51,15 +48,15 @@ func (c *SolicitudDevolucionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get SolicitudDevolucion by id
+// @Description get SolicitudDevolucionEstadoDevolucion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.SolicitudDevolucion
+// @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *SolicitudDevolucionController) GetOne() {
+func (c *SolicitudDevolucionEstadoDevolucionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetSolicitudDevolucionById(id)
+	v, err := models.GetSolicitudDevolucionEstadoDevolucionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -70,17 +67,17 @@ func (c *SolicitudDevolucionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get SolicitudDevolucion
+// @Description get SolicitudDevolucionEstadoDevolucion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.SolicitudDevolucion
+// @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
 // @Failure 403
 // @router / [get]
-func (c *SolicitudDevolucionController) GetAll() {
+func (c *SolicitudDevolucionEstadoDevolucionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -122,7 +119,7 @@ func (c *SolicitudDevolucionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllSolicitudDevolucion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllSolicitudDevolucionEstadoDevolucion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,20 +127,21 @@ func (c *SolicitudDevolucionController) GetAll() {
 	}
 	c.ServeJSON()
 }
+
 // Put ...
 // @Title Put
-// @Description update the SolicitudDevolucion
+// @Description update the SolicitudDevolucionEstadoDevolucion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.SolicitudDevolucion	true		"body for SolicitudDevolucion content"
-// @Success 200 {object} models.SolicitudDevolucion
+// @Param	body		body 	models.SolicitudDevolucionEstadoDevolucion	true		"body for SolicitudDevolucionEstadoDevolucion content"
+// @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *SolicitudDevolucionController) Put() {
+func (c *SolicitudDevolucionEstadoDevolucionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.SolicitudDevolucion{Id: id}
+	v := models.SolicitudDevolucionEstadoDevolucion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateSolicitudDevolucionById(&v); err == nil {
+		if err := models.UpdateSolicitudDevolucionEstadoDevolucionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -156,48 +154,18 @@ func (c *SolicitudDevolucionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the SolicitudDevolucion
+// @Description delete the SolicitudDevolucionEstadoDevolucion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *SolicitudDevolucionController) Delete() {
+func (c *SolicitudDevolucionEstadoDevolucionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteSolicitudDevolucion(id); err == nil {
+	if err := models.DeleteSolicitudDevolucionEstadoDevolucion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
-}
-
-//AddDevolution
-//@Title AddDevolution
-//@Description add a entire DevolucionEstadoDevolucion
-//@Param body		body 	models.SolicitudDevolucion	true		"body for SolicitudDevolucion content"
-// @Success 201 {int} models.SolicitudDevolucion
-// @Failure 403 bad devolution info
-// @router /AddDevolution [post]
-func (c *SolicitudDevolucionController) AddDevolution() {
-	var request map[string]interface{}
-	var code string
-	defer c.ServeJSON()
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-		if err := models.AddDevolution(request); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: "devolucion creada"}
-			c.Data["json"] = alert
-		} else {
-			beego.Info(err.Error())
-			alertdb := structs.Map(err)
-			formatdata.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
-			c.Data["json"] = alert
-		}
-	} else {
-		beego.Info(err.Error())
-		alert := models.Alert{Type: "error", Code: "E_0458" + code, Body: err.Error()}
-		c.Data["json"] = alert
-	}
-
 }
