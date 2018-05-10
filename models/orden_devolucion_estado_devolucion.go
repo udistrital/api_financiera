@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type OrdenDevolucionEstadoDevolucion struct {
@@ -149,6 +151,58 @@ func DeleteOrdenDevolucionEstadoDevolucion(id int) (err error) {
 		if num, err = o.Delete(&OrdenDevolucionEstadoDevolucion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
+	}
+	return
+}
+
+func AddEstadoOrden(request map[string]interface{}) (ordenEstado OrdenDevolucionEstadoDevolucion, err error) {
+	var orden OrdenDevolucion
+	var solicitudesOrden []*OrdenDevolucionSolicitudDevolucion
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(request["estadoOrdenDevol"], &ordenEstado)
+	err = formatdata.FillStruct(request["ordenDevolucion"], &orden)
+	if err == nil {
+		_, err = o.QueryTable("orden_devolucion_estado_devolucion").
+			Filter("devolucion", orden.Id).
+			Filter("activo", true).
+			Update(orm.Params{
+				"activo": "false",
+			})
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+		ordenEstado.Devolucion = &orden
+		ordenEstado.Activo = true
+		_, err = o.Insert(&ordenEstado)
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+
+		if ordenEstado.EstadoDevolucion.Id == 4 {
+			beego.Info("Aprobacion contable")
+			_, err = o.QueryTable(new(OrdenDevolucionSolicitudDevolucion)).
+				Filter("OrdenDevolucion", orden.Id).
+				All(&solicitudesOrden)
+			for _, v := range solicitudesOrden {
+				_, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 5).Filter("codigo_documento_afectante", v.SolicitudDevolucion.Id).Update(orm.Params{
+					"estado_movimiento_contable": 2,
+				})
+				if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+			}
+
+		}
+		o.Commit()
+	} else {
+		beego.Error(err)
 	}
 	return
 }

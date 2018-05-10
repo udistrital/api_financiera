@@ -3,11 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // OrdenDevolucionEstadoDevolucionController operations for OrdenDevolucionEstadoDevolucion
@@ -168,4 +171,34 @@ func (c *OrdenDevolucionEstadoDevolucionController) Delete() {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// Post ...
+// @Title AddEstadoOrdenDevol
+// @Description Insert a record to modify status to a devolution
+//@Param	body		body 	models.OrdenDevolucionEstadoDevolucion	true		"body for OrdenDevolucionEstadoDevolucion content"
+// @Success 200 {object} models.OrdenDevolucionEstadoDevolucion
+// @Failure 403 body is empty
+// @router /AddEstadoOrdenDevol [post]
+func (c *OrdenDevolucionEstadoDevolucionController) AddEstadoOrdenDevol() {
+	var request map[string]interface{}
+	var code string
+	defer c.ServeJSON()
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+
+		if estado, err := models.AddEstadoOrden(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: estado}
+			c.Data["json"] = alert
+		} else {
+			beego.Info(err.Error())
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		beego.Info(err.Error())
+		alert := models.Alert{Type: "error", Code: "E_0458" + code, Body: err.Error()}
+		c.Data["json"] = alert
+	}
 }

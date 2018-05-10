@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
@@ -130,6 +132,7 @@ func GetAllSolicitudDevolucion(query map[string]string, fields []string, sortby 
 	}
 	return nil, err
 }
+
 // UpdateSolicitudDevolucion updates SolicitudDevolucion by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateSolicitudDevolucionById(m *SolicitudDevolucion) (err error) {
@@ -173,10 +176,18 @@ func AddDevolution(request map[string]interface{}) (err error) {
 	var estadoDevol *EstadoDevolucion
 	var solicitudEstado SolicitudDevolucionEstadoDevolucion
 	var cuentaDevol CuentaDevolucion
+
+	var concepto Concepto
+	var mov []MovimientoContable
+	var totalInv float64
+
 	o := orm.NewOrm()
 
 	err = formatdata.FillStruct(request["SolicitudDevolucion"], &solicitudDevol)
 	err = formatdata.FillStruct(request["EstadoDevolucion"], &estadoDevol)
+	err = formatdata.FillStruct(request["Movimientos"], &mov)
+	err = formatdata.FillStruct(request["TotalInversion"], &totalInv)
+	err = formatdata.FillStruct(request["Concepto"], &concepto)
 
 	if err == nil {
 		o.Begin()
@@ -227,6 +238,7 @@ func AddDevolution(request map[string]interface{}) (err error) {
 			Id, err = o.Insert(documentoBen)
 			documentoBen.Id = int(Id)
 			if err != nil {
+				beego.Error(err)
 				o.Rollback()
 				return
 			}
@@ -251,6 +263,7 @@ func AddDevolution(request map[string]interface{}) (err error) {
 			Id, err = o.Insert(documentoSol)
 			documentoSol.Id = int(Id)
 			if err != nil {
+				beego.Error(err)
 				o.Rollback()
 				return
 			}
@@ -258,9 +271,11 @@ func AddDevolution(request map[string]interface{}) (err error) {
 		if err == nil {
 			documentoSol.Id = documentoBusqeda.Id
 		}
-
+		lll, _ := json.Marshal(&solicitudDevol)
+		beego.Info(string(lll))
 		idDevol, err = o.Insert(&solicitudDevol)
 		if err != nil {
+			beego.Error(err)
 			o.Rollback()
 			return
 		}
@@ -273,6 +288,33 @@ func AddDevolution(request map[string]interface{}) (err error) {
 			o.Rollback()
 			return
 		}
+
+		devolucion_concepto := &SolicitudDevolucionConcepto{ValorDevolucion: totalInv,
+			SolicitudDevolucion: &solicitudDevol,
+			Concepto:            &concepto}
+
+		_, err = o.Insert(devolucion_concepto)
+
+		if err != nil {
+			beego.Info(err.Error())
+			o.Rollback()
+			return
+		}
+
+		for _, element := range mov {
+			element.Fecha = time.Now()
+			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 5}
+			element.CodigoDocumentoAfectante = solicitudDevol.Id
+			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+			_, err = o.Insert(&element)
+
+			if err != nil {
+				beego.Info(err.Error())
+				o.Rollback()
+				return
+			}
+		}
+
 	} else {
 		return
 	}

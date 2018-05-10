@@ -11,7 +11,7 @@ import (
 )
 
 type SolicitudDevolucionEstadoDevolucion struct {
-	Id               int                  `orm:"column(id);pk"`
+	Id               int                  `orm:"column(id);pk;auto"`
 	Devolucion       *SolicitudDevolucion `orm:"column(devolucion);rel(fk)"`
 	Activo           bool                 `orm:"column(activo)"`
 	FechaRegistro    time.Time            `orm:"column(fecha_registro);auto_now_add;type(datetime)"`

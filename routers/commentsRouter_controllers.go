@@ -3503,6 +3503,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenDevolucionEstadoDevolucionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenDevolucionEstadoDevolucionController"],
+		beego.ControllerComments{
+			Method: "AddEstadoOrdenDevol",
+			Router: `/AddEstadoOrdenDevol`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenDevolucionSolicitudDevolucionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:OrdenDevolucionSolicitudDevolucionController"],
 		beego.ControllerComments{
 			Method: "Post",
