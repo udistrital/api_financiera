@@ -8,13 +8,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	// "path/filepath"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/utils_oas/formatdata"
-
-	"github.com/astaxie/beego"
+	"gopkg.in/mgo.v2"
 )
 
 // RubroController operations for Rubro
@@ -398,7 +399,7 @@ func (c *RubroController) GetIngresoCierre() {
 		c.ServeJSON()
 	}
 
-	mes,err := c.GetInt("mes")
+	mes, err := c.GetInt("mes")
 
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
@@ -406,9 +407,9 @@ func (c *RubroController) GetIngresoCierre() {
 		c.ServeJSON()
 	}
 
-	finicioStr := time.Date(int(vigencia),time.Month(mes),1,0,0,0,0,time.UTC).Format("2006-01-02")
+	finicioStr := time.Date(int(vigencia), time.Month(mes), 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
-	ffinStr := time.Date(int(vigencia),time.Month(mes) + 1 ,0,0,0,0,0,time.UTC).Format("2006-01-02")
+	ffinStr := time.Date(int(vigencia), time.Month(mes)+1, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
 	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
 	if err != nil {
@@ -525,5 +526,60 @@ func (c *RubroController) GetRubroPac() {
 	fuente := c.GetString("idFuente")
 	res, err := models.GetRubroPac(vigencia, mes, fuente, rubro)
 	c.Data["json"] = res
+	c.ServeJSON()
+}
+
+// GetArbolMigracion ...
+// @Title Get Arbol Migracion
+// @Description get arbol migracion
+// @Success 200 {object} models.Rubro
+// @Failure 403 :id is empty
+// @router /GetArbolMigracion/ [get]
+func (c *RubroController) GetArbolMigracion() {
+	v, err := models.ArbolRubrosMigracion()
+
+	// absPath, _ := filepath.Abs("file.txt")
+	//
+	// // d1 := []byte(v)
+	// d1, _ := json.Marshal(v)
+
+	info := &mgo.DialInfo{
+		Addrs:    []string{"127.0.0.1:27016"},
+		Timeout:  60 * time.Second,
+		Database: "admin",
+		Username: "admin",
+		Password: "admin",
+	}
+
+	session, err := mgo.DialWithInfo(info)
+
+	// session, err := mgo.Dial("127.0.0.1:27016")
+	session.SetMode(mgo.Monotonic, true)
+	w := session.DB("admin").C("arbol_rubro")
+
+	// err = ioutil.WriteFile(absPath, d1, 0644)
+	// f, err := os.Create(absPath)
+	for _, v1 := range v {
+		//beego.Info(v1)
+		err = w.Insert(v1)
+		if err != nil {
+			panic(err)
+		} else {
+			fmt.Println(err)
+		}
+	}
+
+	// n3, err := f.WriteString(string(d1))
+	//
+	//   fmt.Printf("wrote %d bytes\n", n3)
+	// if err == nil {
+	// 	defer f.Close()
+	// }
+
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
+	}
 	c.ServeJSON()
 }

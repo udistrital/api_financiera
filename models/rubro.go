@@ -1044,3 +1044,56 @@ func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]inte
 	}
 	return
 }
+
+// Generar arbol de rubros.
+func ArbolRubrosMigracion() (rubros []map[string]interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	//funcion para conseguir los rubros padre. OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
+	_, err = o.Raw(`
+		SELECT DISTINCT ON (rubro.codigo) rubro.id as "idInterno", rubro.codigo as "_id",rubro.nombre as "nombre" , rubro.descripcion as "descripcion"
+		FROM financiera.rubro `).Values(&m)
+	if err == nil {
+		var res []interface{}
+		err = formatdata.FillStruct(m, &res)
+		done := make(chan interface{})
+		defer close(done)
+		resch := optimize.GenChanInterface(res...)
+
+		charbolrubros := optimize.Digest(done, RamaRubrosMigracion, resch, nil)
+		for data := range charbolrubros {
+			if data != nil {
+				rubros = append(rubros, data.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
+			}
+		}
+	}
+	return
+}
+
+func RamaRubrosMigracion(forkin interface{}, params ...interface{}) (forkout interface{}) {
+	fork := forkin.(map[string]interface{})
+	o := orm.NewOrm()
+	var m []orm.Params
+	var res []interface{}
+	//funcion para conseguir los hijos de los rubros padre.
+	_, err := o.Raw(`SELECT rubro.codigo as "Codigo"
+	  from financiera.rubro
+	  join financiera.rubro_rubro
+		on  rubro_rubro.rubro_hijo = rubro.id
+	  WHERE rubro_rubro.rubro_padre = ?`, fork["idInterno"]).Values(&m)
+	if err == nil {
+		var arr []interface{}
+		var x map[string]interface{}
+		for i := 0; i < len(m); i++ {
+			if err = formatdata.FillStruct(m[i], &x); err == nil && x != nil {
+				arr = append(arr, x["Codigo"])
+			}
+
+		}
+
+		err = formatdata.FillStruct(arr, &res)
+		fork["hijos"] = arr
+		return fork
+	}
+	return
+}
