@@ -776,6 +776,35 @@ func init() {
 				&controllers.OrdenDevolucionEstadoDevolucionController{},
 			),
 		),
+		beego.NSNamespace("/devolucion_tributaria_movimiento",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaMovimientoController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_estado_devolucion",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaEstadoDevolucionController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_concepto",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaConceptoController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_orden_pago",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaOrdenPagoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
