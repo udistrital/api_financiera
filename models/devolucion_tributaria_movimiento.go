@@ -9,48 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type ActaDevolucion struct {
-	Id                int     `orm:"column(id);pk"`
-	Nombre            string  `orm:"column(nombre)"`
-	Descripcion       string  `orm:"column(descripcion);null"`
-	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
-	Activo            bool    `orm:"column(activo)"`
-	NumeroOrden       float64 `orm:"column(numero_orden);null"`
+type DevolucionTributariaMovimiento struct {
+	Id                 int                   `orm:"column(id);pk;auto"`
+	MovimientoContable *MovimientoContable   `orm:"column(movimiento_contable);rel(fk)"`
+	Devolucion         *DevolucionTributaria `orm:"column(devolucion);rel(fk)"`
 }
 
-func (t *ActaDevolucion) TableName() string {
-	return "acta_devolucion"
+func (t *DevolucionTributariaMovimiento) TableName() string {
+	return "devolucion_tributaria_movimiento"
 }
 
 func init() {
-	orm.RegisterModel(new(ActaDevolucion))
+	orm.RegisterModel(new(DevolucionTributariaMovimiento))
 }
 
-// AddActaDevolucion insert a new ActaDevolucion into database and returns
+// AddDevolucionTributariaMovimiento insert a new DevolucionTributariaMovimiento into database and returns
 // last inserted Id on success.
-func AddActaDevolucion(m *ActaDevolucion) (id int64, err error) {
+func AddDevolucionTributariaMovimiento(m *DevolucionTributariaMovimiento) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetActaDevolucionById retrieves ActaDevolucion by Id. Returns error if
+// GetDevolucionTributariaMovimientoById retrieves DevolucionTributariaMovimiento by Id. Returns error if
 // Id doesn't exist
-func GetActaDevolucionById(id int) (v *ActaDevolucion, err error) {
+func GetDevolucionTributariaMovimientoById(id int) (v *DevolucionTributariaMovimiento, err error) {
 	o := orm.NewOrm()
-	v = &ActaDevolucion{Id: id}
+	v = &DevolucionTributariaMovimiento{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllActaDevolucion retrieves all ActaDevolucion matches certain condition. Returns empty list if
+// GetAllDevolucionTributariaMovimiento retrieves all DevolucionTributariaMovimiento matches certain condition. Returns empty list if
 // no records exist
-func GetAllActaDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDevolucionTributariaMovimiento(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ActaDevolucion)).RelatedSel()
+	qs := o.QueryTable(new(DevolucionTributariaMovimiento))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +97,7 @@ func GetAllActaDevolucion(query map[string]string, fields []string, sortby []str
 		}
 	}
 
-	var l []ActaDevolucion
+	var l []DevolucionTributariaMovimiento
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +120,11 @@ func GetAllActaDevolucion(query map[string]string, fields []string, sortby []str
 	return nil, err
 }
 
-// UpdateActaDevolucion updates ActaDevolucion by Id and returns error if
+// UpdateDevolucionTributariaMovimiento updates DevolucionTributariaMovimiento by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateActaDevolucionById(m *ActaDevolucion) (err error) {
+func UpdateDevolucionTributariaMovimientoById(m *DevolucionTributariaMovimiento) (err error) {
 	o := orm.NewOrm()
-	v := ActaDevolucion{Id: m.Id}
+	v := DevolucionTributariaMovimiento{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +135,15 @@ func UpdateActaDevolucionById(m *ActaDevolucion) (err error) {
 	return
 }
 
-// DeleteActaDevolucion deletes ActaDevolucion by Id and returns error if
+// DeleteDevolucionTributariaMovimiento deletes DevolucionTributariaMovimiento by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteActaDevolucion(id int) (err error) {
+func DeleteDevolucionTributariaMovimiento(id int) (err error) {
 	o := orm.NewOrm()
-	v := ActaDevolucion{Id: id}
+	v := DevolucionTributariaMovimiento{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ActaDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&DevolucionTributariaMovimiento{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
