@@ -218,8 +218,7 @@ func AddDevolution(request map[string]interface{}) (err error) {
 			} else {
 				solicitudDevol.CuentaDevolucion.Id = int(Id)
 			}
-		}
-		if err == nil {
+		}else {
 			solicitudDevol.CuentaDevolucion.Id = cuentaDevol.Id
 		}
 
@@ -237,17 +236,17 @@ func AddDevolution(request map[string]interface{}) (err error) {
 
 			Id, err = o.Insert(documentoBen)
 			documentoBen.Id = int(Id)
+			beego.Error("Id Documento beneficiario",documentoBen.Id )
 			if err != nil {
 				beego.Error(err)
 				o.Rollback()
 				return
 			}
-		}
-
-		if err == nil {
+		}else {
 			documentoBen.Id = documentoBusqeda.Id
 		}
 
+		beego.Error("Documento beneficiario",documentoBen.Id )
 		err = o.QueryTable("documento_devolucion").
 			Filter("Origen", documentoSol.Origen).
 			Filter("tipo_identificacion", documentoSol.TipoIdentificacion).
@@ -267,8 +266,7 @@ func AddDevolution(request map[string]interface{}) (err error) {
 				o.Rollback()
 				return
 			}
-		}
-		if err == nil {
+		}else {
 			documentoSol.Id = documentoBusqeda.Id
 		}
 		lll, _ := json.Marshal(&solicitudDevol)
