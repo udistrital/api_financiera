@@ -11,7 +11,7 @@ import (
 
 type RubroHomologado struct {
 	Id                int      `orm:"column(id);pk"`
-	Rubro             *Rubro   `orm:"column(rubro);rel(fk)"`
+	Rubro             int   `orm:"column(rubro)"`
 	CodigoHomologado  string   `orm:"column(codigo_homologado)"`
 	NombreHomologado  string   `orm:"column(nombre_homologado)"`
 	EntidadHomologado *Entidad `orm:"column(entidad_homologado);rel(fk)"`
