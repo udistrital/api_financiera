@@ -178,3 +178,24 @@ func (c *RubroRubroController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+// DeleteRubroRelation ...
+// @Title DeleteRubroRelation
+// @Description delete the RubroRubro
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteRubroRelation/:id/:ue [delete]
+func (c *RubroRubroController) DeleteRubroRelation() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	ueStr := c.Ctx.Input.Param(":ue")
+	ue, _ := strconv.Atoi(ueStr)
+	if err := models.DeleteRubroRelation(id); err == nil {
+		go genRubrosTreeFile(int(ue))
+		c.Data["json"] = "OK"
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
