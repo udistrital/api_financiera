@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type SolicitudRequisitoTipoAvance struct {
@@ -41,8 +41,8 @@ func AddSolicitudRequisitoTipoAvance(m *SolicitudRequisitoTipoAvance) (id int64,
 func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) {
 	solicitudRequisitoTipoAvance := []SolicitudRequisitoTipoAvance{}
 	solicitud := SolicitudAvance{}
-	err = utilidades.FillStruct(m["Requisitos"], &solicitudRequisitoTipoAvance)
-	err = utilidades.FillStruct(m["Solicitud"], &solicitud)
+	err = formatdata.FillStruct(m["Requisitos"], &solicitudRequisitoTipoAvance)
+	err = formatdata.FillStruct(m["Solicitud"], &solicitud)
 	o := orm.NewOrm()
 	o.Begin()
 	if err == nil {

@@ -3,11 +3,12 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type MovimientoApropiacion struct {
@@ -20,6 +21,7 @@ type MovimientoApropiacion struct {
 	Descripcion                                    string                                            `orm:"column(descripcion);null"`
 	MovimientoApropiacionDisponibilidadApropiacion []*MovimientoApropiacionDisponibilidadApropiacion `orm:"reverse(many)"`
 	EstadoMovimientoApropiacion                    *EstadoMovimientoApropiacion                      `orm:"column(estado_movimiento_apropiacion);rel(fk)"`
+	UnidadEjecutora                                int                                               `orm:"column(unidad_ejecutora)"`
 }
 
 type MovimientosPorApropiacion struct {
@@ -49,13 +51,27 @@ func AddMovimientoApropiacion(m *MovimientoApropiacion) (id int64, err error) {
 	return
 }
 
+// totalMovimientos retorna total de movimientos por vigencia
+func GetTotalMovimientosApropiacion(vigencia int, unidadEjecutora int) (total int, err error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	qb.Select("COUNT(DISTINCT(movimiento_apropiacion))").
+		From("financiera.movimiento_apropiacion").
+		Where("movimiento_apropiacion.vigencia = ?").
+		And("unidad_ejecutora = ?")
+	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
+	return
+
+}
+
 // Registra un MovimientoApropiacion
 // retorna structura de alerta
 func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert Alert, err error) {
 	var movimientoapr MovimientoApropiacion
 	var desgrMovimientoApr []MovimientoApropiacionDisponibilidadApropiacion
-	if err = utilidades.FillStruct(movimiento["MovimientoApropiacion"], &movimientoapr); err == nil {
-		if err = utilidades.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
+	if err = formatdata.FillStruct(movimiento["MovimientoApropiacion"], &movimientoapr); err == nil {
+		if err = formatdata.FillStruct(movimiento["MovimientoApropiacionDisponibilidadApropiacion"], &desgrMovimientoApr); err == nil {
 			o := orm.NewOrm()
 			o.Begin()
 			var consecutivo int
@@ -103,11 +119,9 @@ func RegistrarMovimietnoApropiaciontr(movimiento map[string]interface{}) (alert 
 	alert.Type = "success"
 	return
 }
-func aprobacionMovimientoPresupuestalDispatcher(tipo int) (f func(data *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error)) {
-	switch os := tipo; os {
-	case 1:
-		return registroModificacionPresupuestalCDP
-	case 2:
+func aprobacionMovimientoPresupuestalDispatcher(tipo *TipoMovimientoApropiacion) (f func(data *MovimientoApropiacionDisponibilidadApropiacion, o *orm.Ormer) (alert Alert, err error)) {
+	switch os := tipo.Disponibilidad; os {
+	case true:
 		return registroModificacionPresupuestalCDP
 	default:
 		return nil
@@ -190,7 +204,7 @@ func AprobarMovimietnoApropiaciontr(movimiento *MovimientoApropiacion) (alert []
 	o := orm.NewOrm()
 	o.Begin()
 	for _, desgrMov := range movimiento.MovimientoApropiacionDisponibilidadApropiacion {
-		f := aprobacionMovimientoPresupuestalDispatcher(desgrMov.TipoMovimientoApropiacion.Id)
+		f := aprobacionMovimientoPresupuestalDispatcher(desgrMov.TipoMovimientoApropiacion)
 		if f != nil {
 			alt, err1 := f(desgrMov, &o)
 			fmt.Println("err ", err1)

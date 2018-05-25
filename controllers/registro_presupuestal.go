@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 	"strconv"
 	"strings"
 )
@@ -219,14 +219,14 @@ func (c *RegistroPresupuestalController) SaldoRp() {
 func (c *RegistroPresupuestalController) Anular() {
 	var v models.Info_rp_a_anular
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if v.Anulacion.TipoAnulacion == "T" {
+		if v.Anulacion.TipoAnulacion.Id == 2 || v.Anulacion.TipoAnulacion.Id == 3 {
 			alertas, err := models.AnulacionTotalRp(&v)
 			if err != nil {
 				c.Data["json"] = err
 			} else {
 				c.Data["json"] = alertas
 			}
-		} else if v.Anulacion.TipoAnulacion == "P" {
+		} else if v.Anulacion.TipoAnulacion.Id == 1 {
 			alertas, err := models.AnulacionParcialRp(&v)
 			if err != nil {
 				c.Data["json"] = err
@@ -278,7 +278,7 @@ func (c *RegistroPresupuestalController) ValorActualRp() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {

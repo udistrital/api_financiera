@@ -7,29 +7,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Ingreso struct {
-	Id                   int                   `orm:"column(id);pk;auto"`
-	Consecutivo          float64               `orm:"column(consecutivo)"`
-	Vigencia             float64               `orm:"column(vigencia)"`
-	FechaIngreso         time.Time             `orm:"column(fecha_ingreso);type(date)"`
-	FechaInicio    		 time.Time             `orm:"column(fecha_inicio);type(date)"`
-	FechaFin    		 time.Time             `orm:"column(fecha_fin);type(date)"`
-	Facultad    		 int             	   `orm:"column(facultad);null"`
-	Observaciones        string                `orm:"column(observaciones);null"`
-	FuenteFinanciamiento *FuenteFinanciamiento `orm:"column(fuente_financiamiento);rel(fk);null"`
-	FormaIngreso         *FormaIngreso         `orm:"column(forma_ingreso);rel(fk)"`
-	EstadoIngreso        *EstadoIngreso        `orm:"column(estado_ingreso);rel(fk)"`
-	UnidadEjecutora      *UnidadEjecutora      `orm:"column(unidad_ejecutora);rel(fk)"`
-	Aportante            int                   `orm:"column(aportante);null"`
-	Reviso               int                   `orm:"column(reviso);null"`
-	Elaboro              int                   `orm:"column(elaboro)"`
-	MotivoRechazo        string                `orm:"column(motivo_rechazo)"`
-	IngresoConcepto      []*IngresoConcepto    `orm:"reverse(many)"`
+	Id                   int                     `orm:"column(id);pk;auto"`
+	Consecutivo          float64                 `orm:"column(consecutivo)"`
+	Vigencia             float64                 `orm:"column(vigencia)"`
+	FechaIngreso         time.Time               `orm:"column(fecha_ingreso);type(date)"`
+	FechaInicio          time.Time               `orm:"column(fecha_inicio);type(date)"`
+	FechaFin             time.Time               `orm:"column(fecha_fin);type(date)"`
+	Facultad             int                     `orm:"column(facultad);null"`
+	Observaciones        string                  `orm:"column(observaciones);null"`
+	FuenteFinanciamiento *FuenteFinanciamiento   `orm:"column(fuente_financiamiento);rel(fk);null"`
+	FormaIngreso         *FormaIngreso           `orm:"column(forma_ingreso);rel(fk)"`
+	UnidadEjecutora      *UnidadEjecutora        `orm:"column(unidad_ejecutora);rel(fk)"`
+	Aportante            int                     `orm:"column(aportante);null"`
+	Reviso               int                     `orm:"column(reviso);null"`
+	Elaboro              int                     `orm:"column(elaboro)"`
+	MotivoRechazo        string                  `orm:"column(motivo_rechazo)"`
+	IngresoConcepto      []*IngresoConcepto      `orm:"reverse(many)"`
+	IngresoEstadoIngreso []*IngresoEstadoIngreso `orm:"reverse(many)"`
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk)"`
+	NumCuenta			string                   `orm:"column(num_cuenta)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -40,42 +42,87 @@ func init() {
 	orm.RegisterModel(new(Ingreso))
 }
 
-func RechazarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+func RechazoContableIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	err = utilidades.FillStruct(m, &ingreso)
-	fmt.Println(ingreso)
-	ingreso.EstadoIngreso = &EstadoIngreso{Id: 3}
-	_, err = o.Update(&ingreso, "EstadoIngreso", "MotivoRechazo")
+	err = formatdata.FillStruct(m, &ingreso)
 	if err != nil {
 		o.Rollback()
 		return
 	}
-
+	_, err = o.Update(&ingreso, "MotivoRechazo")
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 3}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	o.Commit()
 	return
 }
 
-func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+func RechazoPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	o := orm.NewOrm()
 	o.Begin()
-	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	err = formatdata.FillStruct(m, &ingreso)
+	if err != nil {
+		beego.Info("Debug ", err)
+		o.Rollback()
+		return
+	}
+	_, err = o.Update(&ingreso, "MotivoRechazo")
+	if err != nil {
+		o.Rollback()
+		return
+	}
 	fmt.Println(ingreso)
-	ingreso.EstadoIngreso = &EstadoIngreso{Id: 2}
-	_, err = o.Update(&ingreso, "EstadoIngreso")
+	estadoIngreso := EstadoIngreso{Id: 5}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+func AprobacionContableIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 2}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
 	if err != nil {
 		o.Rollback()
 		return
 	}
 	var mov []MovimientoContable
-	err = utilidades.FillStruct(m["Movimientos"], &mov)
+	err = formatdata.FillStruct(m["Movimientos"], &mov)
 	if err != nil {
 		o.Rollback()
 		return
 	}
 	for _, element := range mov {
-		element.EstadoMovimientoContable.Id = 1
-		_, err = o.Update(&element, "Aprobado")
+		element.EstadoMovimientoContable.Id = 2
+		_, err = o.Update(&element, "EstadoMovimientoContable")
 		if err != nil {
 			o.Rollback()
 			return
@@ -85,27 +132,73 @@ func AprobarIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
 	return
 }
 
+func AprobacionPresupuestalIngreso(m map[string]interface{}) (ingreso Ingreso, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
+	fmt.Println(ingreso)
+	estadoIngreso := EstadoIngreso{Id: 4}
+	ingresoEstadoIngreso := IngresoEstadoIngreso{}
+	ingresoEstadoIngreso.Ingreso = &ingreso
+	ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+	ingresoEstadoIngreso.FechaRegistro = time.Now()
+	_, err = o.Insert(&ingresoEstadoIngreso)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
 // AddIngreso insert a new Ingreso into database and returns
 // last inserted Id on success.
 func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var id int64
-	err = utilidades.FillStruct(m["Ingreso"], &ingreso)
+	var idDocgenerador int64
+	var docGen DocumentoGenerador
+	err = formatdata.FillStruct(m["DocumentoGenerador"], &docGen)
+	o := orm.NewOrm()
+
 	if err == nil {
-		ingreso.EstadoIngreso = &EstadoIngreso{Id: 1}
+		o.Begin()
+		idDocgenerador, err = o.Insert(&docGen)
+		beego.Error("inserta doc generador")
+		if err != nil {
+			beego.Info(err)
+			o.Rollback()
+			return
+		}
+	}
+	err = formatdata.FillStruct(m["Ingreso"], &ingreso)
+	if err == nil {
 		ingreso.FechaIngreso = time.Now()
 		ingreso.Vigencia = float64(time.Now().Year())
-		o := orm.NewOrm()
-		o.Begin()
 		var consecutivo float64
 		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
 						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
 		ingreso.Consecutivo = consecutivo
+		ingreso.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
 		beego.Info(err)
+		if err == nil {
+			ingreso.Id = int(id)
+			//crear el rompimiento para registrar el estado del ingreso.
+			estadoIngreso := EstadoIngreso{Id: 1}
+			ingresoEstadoIngreso := IngresoEstadoIngreso{}
+			ingresoEstadoIngreso.Ingreso = &ingreso
+			ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
+			ingresoEstadoIngreso.FechaRegistro = time.Now()
+			_, err = o.Insert(&ingresoEstadoIngreso)
+		} else {
+			o.Rollback()
+			return
+		}
+
 		//insert MovimientoContable
 		var mov []MovimientoContable
-		err = utilidades.FillStruct(m["Movimientos"], &mov)
+		err = formatdata.FillStruct(m["Movimientos"], &mov)
 		for _, element := range mov {
 			element.Fecha = time.Now()
 			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
@@ -124,13 +217,13 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			o.Rollback()
 			return
 		} else {
-			ingreso.Id = int(id)
+
 			var ingresos float64
-			err = utilidades.FillStruct(m["IngresoBanco"], &ingresos)
+			err = formatdata.FillStruct(m["IngresoBanco"], &ingresos)
 			if err == nil {
 				concepto := &Concepto{}
 				fmt.Println("concepto ", m["Concepto"])
-				err = utilidades.FillStruct(m["Concepto"], concepto)
+				err = formatdata.FillStruct(m["Concepto"], concepto)
 				if err == nil {
 					ingreso_concepto := &IngresoConcepto{ValorAgregado: ingresos,
 						Ingreso:  &ingreso,
@@ -158,6 +251,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			return
 		}
 	} else {
+		beego.Info(err)
 		return
 	}
 
@@ -243,6 +337,7 @@ func GetAllIngreso(query map[string]string, fields []string, sortby []string, or
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "IngresoConcepto", 5)
+				o.LoadRelated(&v, "IngresoEstadoIngreso", 5, 1, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {

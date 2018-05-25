@@ -8,7 +8,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -155,7 +155,7 @@ func (c *AnulacionDisponibilidadController) Put() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -181,5 +181,43 @@ func (c *AnulacionDisponibilidadController) Delete() {
 	} else {
 		c.Data["json"] = err.Error()
 	}
+	c.ServeJSON()
+}
+
+
+// TotalAnulacionDisponibilidad ...
+// @Title TotalAnulacionDisponibilidad
+// @Description numero de dispònibilidades segun vigencia o rango de fechas
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
+// @Param	rangoinicio		query 	string	true		"opcional, fecha inicio de consulta de cdp"
+// @Param	rangofin		query 	string	true		"opcional, fecha fin de consulta de cdp"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalAnulacionDisponibilidad/:vigencia [get]
+func (c *AnulacionDisponibilidadController) TotalAnulacionDisponibilidad() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	//var startrange string
+	//var endrange string
+	/*if r := c.GetString("rangoinicio"); r != "" {
+		startrange = r
+
+	}
+	if r := c.GetString("rangofin"); r != "" {
+		endrange = r
+	}*/
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalAnulacionDisponibilidades(vigencia, UnidadEjecutora)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+
 	c.ServeJSON()
 }

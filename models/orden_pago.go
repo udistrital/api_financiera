@@ -4,11 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Usuario struct {
@@ -26,6 +27,7 @@ type OrdenPago struct {
 	Liquidacion              int                         `orm:"column(liquidacion);null"`
 	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
 	Consecutivo              int                         `orm:"column(consecutivo)"`
+	Documento                int                         `orm:"column(documento)"`
 	FormaPago                *FormaPago                  `orm:"column(forma_pago);rel(fk);null"`
 	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
 }
@@ -166,13 +168,12 @@ func DeleteOrdenPago(id int) (err error) {
 	return
 }
 
-func ConsecutivoOrdnePago(tipoCodigo string) (StringConsecutivo string, outputError map[string]interface{}) {
-	if tipoCodigo != "" {
+func ConsecutivoOrdnePago(grupoSecuencia string) (StringConsecutivo string, outputError map[string]interface{}) {
+	if grupoSecuencia != "" {
 		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
 				FROM financiera.orden_pago as op
 				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
-				INNER JOIN financiera.tipo_orden_pago as tipo on tipo.id = sub.tipo_orden_pago
-				and tipo.codigo_abreviacion = '` + tipoCodigo + `'`
+				and sub.grupo_secuencia = '` + grupoSecuencia + `';`
 		return StringConsecutivo, nil
 	}
 	outputError = map[string]interface{}{"Code": "E_0458", "Body": "Not enough parameter in ConsecutivoOrdnePago", "Type": "error"}
@@ -193,10 +194,10 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
-	err1 := utilidades.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
-	err2 := utilidades.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err3 := utilidades.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
-	err4 := utilidades.FillStruct(DataOpProveedor["Usuario"], &usuario)
+	err1 := formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
+	err2 := formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err3 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
+	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
@@ -206,41 +207,13 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 
 	// Consecutivo
-	if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PROV" {
-		//secuencia proveedor y las dos de planta
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-SS" {
-		// secuencia de las dos de planta y las dos de ss
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PROV"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else if ordenPago.SubTipoOrdenPago.TipoOrdenPago.CodigoAbreviacion == "OP-PLAN" {
-		// secuencia de las dos de planta y las dos de ss
-		if sqlSecuencia, controlErro = ConsecutivoOrdnePago("OP-PLAN"); controlErro != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_01"
-			alerta.Body = controlErro["Body"]
-			o.Rollback()
-			return
-		}
-	} else {
+	if sqlSecuencia, controlErro = ConsecutivoOrdnePago(ordenPago.SubTipoOrdenPago.GrupoSecuencia); controlErro != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
-		alerta.Body = "No se ha definido control para generar secuencia a este tipo de Orden de pago"
+		alerta.Body = controlErro["Body"]
 		o.Rollback()
 		return
 	}
-
 	o.Raw(sqlSecuencia).QueryRow(&consecutivoOp)
 	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
@@ -350,10 +323,10 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
-	err = utilidades.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
-	err = utilidades.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_UPD_01" //error en parametros de entrada
@@ -366,6 +339,7 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	orden := OrdenPago{Id: ordenPago.Id}
 	if o.Read(&orden) == nil {
 		//orden.Iva = ordenPago.Iva
+		orden.Documento = ordenPago.Documento
 		orden.SubTipoOrdenPago = ordenPago.SubTipoOrdenPago
 		orden.FormaPago = ordenPago.FormaPago
 		orden.ValorBase = ordenPago.ValorBase
@@ -470,5 +444,57 @@ func FechaActual(formato string) (fechaActual string, err error) {
 func ValorTotal(m int) (valorTotal int, err error) {
 	o := orm.NewOrm()
 	err = o.Raw("SELECT SUM(valor) FROM concepto_orden_pago WHERE orden_de_pago = ?", m).QueryRow(&valorTotal)
+	return
+}
+
+func GetEstadoOrdenPago(CodeEstado string) (outputIdEstado EstadoOrdenPago, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	outputIdEstado = EstadoOrdenPago{CodigoAbreviacion: CodeEstado}
+	err := o.Read(&outputIdEstado, "CodigoAbreviacion")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	return
+}
+
+// personalizado consultar orden_pago en su estado actual
+func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string) (outputOrdenes []interface{}, alerta Alert) {
+	var ordenes []OrdenPago
+	o := orm.NewOrm()
+	o.Begin()
+	_, err := o.Raw(`SELECT DISTINCT OP.*
+			FROM orden_pago OP,orden_pago_estado_orden_pago OPEOP, estado_orden_pago OPE, tipo_orden_pago TOP,  sub_tipo_orden_pago STOP
+			WHERE OP.id = OPEOP.orden_pago
+			AND OPEOP.id=(SELECT MAX(opeop2.id) from orden_pago_estado_orden_pago opeop2 where opeop2.orden_pago = OP.id group by opeop2.orden_pago)
+			AND OPEOP.estado_orden_pago = OPE.id
+			AND TOP.id = STOP.tipo_orden_pago
+			AND STOP.id = OP.sub_tipo_orden_pago
+			AND OPE.codigo_abreviacion = ?
+			AND OP.vigencia = ?
+			AND OP.forma_pago = ?
+			AND TOP.id = ?`, codeEstdoOrdenPago, vigencia, tipoOp, formaPago).QueryRows(&ordenes)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(ordenes); i++ {
+		println("Id: ", ordenes[i].Id)
+		var query = make(map[string]string)
+		query["Id"] = strconv.Itoa(ordenes[i].Id)
+		v, err := GetAllOrdenPago(query, nil, nil, nil, 0, 10)
+		if err == nil {
+			outputOrdenes = append(outputOrdenes, v[0])
+		}
+	}
+	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: "OK"}
+	//
 	return
 }

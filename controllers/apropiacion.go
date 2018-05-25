@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
-
-	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 // ApropiacionController operations for Apropiacion
@@ -27,6 +29,12 @@ func (c *ApropiacionController) URLMapping() {
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("SaldoApropiacion", c.SaldoApropiacion)
+}
+
+func StartListadoApropiaciones() {
+	optimize.StartDispatcher(1, 0)
+	// beego.InsertFilter("/v1/ingreso/AprobacionPresupuestalIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
+	// beego.InsertFilter("/v1/orden_pago_estado_orden_pago/WorkFlowOrdenPago", beego.AfterExec, FunctionAfterExecEstadoOrdenP, false)
 }
 
 // Post ...
@@ -45,7 +53,7 @@ func (c *ApropiacionController) Post() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -90,6 +98,7 @@ func (c *ApropiacionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
+	var exclude = make(map[string]string)
 	var query = make(map[string]string)
 	var limit int64 = 10
 	var offset int64
@@ -114,6 +123,7 @@ func (c *ApropiacionController) GetAll() {
 	if v := c.GetString("order"); v != "" {
 		order = strings.Split(v, ",")
 	}
+
 	// query: k:v,k:v
 	if v := c.GetString("query"); v != "" {
 		for _, cond := range strings.Split(v, ",") {
@@ -128,7 +138,21 @@ func (c *ApropiacionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllApropiacion(query, fields, sortby, order, offset, limit)
+	// exclude: k:v,k:v
+	if v := c.GetString("exclude"); v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid exclude key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			exclude[k] = v
+		}
+	}
+
+	l, err := models.GetAllApropiacion(query, exclude, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -155,7 +179,7 @@ func (c *ApropiacionController) Put() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -199,7 +223,7 @@ func (c *ApropiacionController) SaldoApropiacion() {
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alert
 	} else {
@@ -228,7 +252,7 @@ func (c *ApropiacionController) SaldoApropiacionPadre() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -262,7 +286,7 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -282,18 +306,34 @@ func (c *ApropiacionController) GetApropiacionesHijo() {
 func (c *ApropiacionController) ArbolApropiaciones() {
 	vigStr := c.Ctx.Input.Param(":vigencia")
 	vig, err := strconv.Atoi(vigStr)
-	fmt.Println(vig)
+	var parameters []interface{}
+	unidadEjecutora := 1
 	if err == nil {
-		v, err := models.ArbolApropiaciones(1, vig)
-		if err != nil {
-			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
-			c.Data["json"] = alert
+		if _, err := os.Stat("apropaciones_" + strconv.Itoa(unidadEjecutora) + "_" + strconv.Itoa(vig) + ".json"); os.IsNotExist(err) {
+			parameters = append(parameters, 1)
+			parameters = append(parameters, vig)
+			work := optimize.WorkRequest{JobParameter: parameters, Job: (models.EncapsuArbolApropiaciones)}
+			// Push the work onto the queue.
+			select {
+			case worker := <-optimize.WorkerQueue:
+				optimize.WorkerQueue <- worker
+				optimize.WorkQueue <- work
+				fmt.Println("Envie el trabajo...")
+			default:
+				fmt.Println("No mande el trabajo :'(")
+			}
+
+			// v, err := models.EncapsuArbolApropiaciones(unidadEjecutora, idpadre)
+			fmt.Println("Construyendo archivo (controler)...")
+			c.Data["json"] = models.Alert{Type: "success", Code: "procesando archivo....", Body: nil}
 		} else {
+			// aca devuelve el archivo
+			data, _ := ioutil.ReadFile("apropaciones_" + strconv.Itoa(unidadEjecutora) + "_" + strconv.Itoa(vig) + ".json")
+			var v interface{}
+			err = json.Unmarshal(data, &v)
+			fmt.Println("Devolviendo archivo leido....")
 			c.Data["json"] = v
 		}
-	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
-		c.Data["json"] = alert
 	}
 
 	c.ServeJSON()
@@ -318,7 +358,7 @@ func (c *ApropiacionController) AprobarPresupuesto() {
 			} else {
 				alertdb := structs.Map(err)
 				var code string
-				utilidades.FillStruct(alertdb["Code"], &code)
+				formatdata.FillStruct(alertdb["Code"], &code)
 				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 				c.Data["json"] = alert
 			}
@@ -329,5 +369,21 @@ func (c *ApropiacionController) AprobarPresupuesto() {
 		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
 	}
 
+	c.ServeJSON()
+}
+
+// VigenciaApropiaciones ...
+// @Title VigenciaApropiaciones
+// @Description Obtiene todas las vigencias no repetidas de las apropiaciones
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /VigenciaApropiaciones [get]
+func (c *ApropiacionController) VigenciaApropiaciones() {
+	m, err := models.VigenciaApropiacion()
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_458", Body: err.Error(), Type: "error"}
+	} else {
+		c.Data["json"] = m
+	}
 	c.ServeJSON()
 }

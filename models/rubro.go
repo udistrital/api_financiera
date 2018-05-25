@@ -9,17 +9,19 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 type Rubro struct {
-	Id              int         `orm:"auto;column(id);pk"`
-	Entidad         int         `orm:"column(entidad)"`
-	Codigo          string      `orm:"column(codigo)"`
-	Descripcion     string      `orm:"column(descripcion);null"`
-	UnidadEjecutora int16       `orm:"column(unidad_ejecutora)"`
-	Nombre          string      `orm:"column(nombre);null"`
-	Concepto        []*Concepto `orm:"reverse(many)"`
+	Id              int              `orm:"auto;column(id);pk"`
+	Entidad         int              `orm:"column(entidad)"`
+	Codigo          string           `orm:"column(codigo)"`
+	Descripcion     string           `orm:"column(descripcion);null"`
+	UnidadEjecutora int16            `orm:"column(unidad_ejecutora)"`
+	Nombre          string           `orm:"column(nombre);null"`
+	Concepto        []*Concepto      `orm:"reverse(many)"`
+	ProductoRubro   []*ProductoRubro `orm:"reverse(many)"`
 }
 
 func (t *Rubro) TableName() string {
@@ -111,6 +113,7 @@ func GetAllRubro(query map[string]string, group []string, fields []string, sortb
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "Concepto", 5)
+				//o.LoadRelated(&v, "ProductoRubro", 5, 0, 0, "-Activo")
 				ml = append(ml, v)
 			}
 		} else {
@@ -149,11 +152,48 @@ func UpdateRubroById(m *Rubro) (err error) {
 func DeleteRubro(id int) (err error) {
 	o := orm.NewOrm()
 	v := Rubro{Id: id}
+	var apropiaciones []int
+	var rubrorubro []int
 	// ascertain id exists in the database
+	o.Begin()
 	if err = o.Read(&v); err == nil {
 		var num int64
+		qb, _ := orm.NewQueryBuilder("mysql")
+		qb.Select("id").
+			From("financiera.apropiacion").
+			Where("rubro=?")
+		if _, err = o.Raw(qb.String(), id).QueryRows(&apropiaciones); err == nil {
+
+			if len(apropiaciones) == 0 {
+				qb, _ = orm.NewQueryBuilder("mysql")
+				qb.Select("id").
+					From("financiera.rubro_rubro").
+					//Where("rubro_padre=?").
+					Where("rubro_hijo=?")
+				if _, err = o.Raw(qb.String(), id).QueryRows(&rubrorubro); err == nil {
+					for _, idx := range rubrorubro {
+						if _, err = o.Delete(&RubroRubro{Id: idx}); err == nil {
+
+						} else {
+							o.Rollback()
+						}
+					}
+				}
+			} else {
+				o.Rollback()
+			}
+
+		} else {
+			fmt.Println("Error 1 ", err)
+			o.Rollback()
+		}
 		if num, err = o.Delete(&Rubro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
+			o.Commit()
+		}else{
+			fmt.Println("Error 2 ", err)		
+			
+			o.Rollback()
 		}
 	}
 	return
@@ -171,8 +211,8 @@ func ListaFuentes() (res interface{}, err error) {
 func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err error) {
 	o := orm.NewOrm()
 	//falta realizar proyeccion por cada rubro.
-	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
-		FROM
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.nombre as descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
+	FROM
 		financiera.apropiacion as apropiacion
 	JOIN
 		financiera.rubro as rubro
@@ -192,6 +232,8 @@ func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err 
 
 		WHERE vigencia = ?
 		AND codigo LIKE ?
+		order by idfuente,
+							idrubro
 	`, vigencia, codigo).Values(&res)
 	return
 }
@@ -243,7 +285,7 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 				fll := egresos[0].(map[string]interface{})
 
 				var ejstr string
-				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
 				fmt.Println("err ", err)
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
@@ -261,8 +303,8 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 				fll["proyeccion"] = proy
 				var mp interface{}
 				var mpp interface{}
-				err = utilidades.FillStruct(variacion, &mp)
-				err = utilidades.FillStruct(pvariacion, &mpp)
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
 				fll["pvariacion"] = mpp
 				aux["valores"] = fll
@@ -282,7 +324,7 @@ func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		fmt.Println("err2 ", err)
 		return
@@ -307,7 +349,7 @@ func RubroReporteEgresosProyeccion(inicio time.Time, fin time.Time, nperiodos in
 				for _, m := range aux {
 					p := m.(map[string]interface{})
 					var val float64
-					err = utilidades.FillStruct(p["valor"], &val)
+					err = formatdata.FillStruct(p["valor"], &val)
 					proy = proy + val
 					fmt.Println("proy: ", proy)
 				}
@@ -337,7 +379,7 @@ func RubroReporteIngresosProyeccion(inicio time.Time, fin time.Time, nperiodos i
 				for _, m := range aux {
 					p := m.(map[string]interface{})
 					var val float64
-					err = utilidades.FillStruct(p["valor"], &val)
+					err = formatdata.FillStruct(p["valor"], &val)
 					proy = proy + val
 					fmt.Println("proy: ", proy)
 				}
@@ -395,7 +437,7 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 			} else {
 				fll := ingr[0].(map[string]interface{})
 				var ejstr string
-				err = utilidades.FillStruct(fll["valor"], &ejstr)
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
 				//fmt.Println("err ", err)
 				ej, err := strconv.ParseFloat(ejstr, 64)
 				fmt.Println("err ", err)
@@ -413,8 +455,8 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 				fll["proyeccion"] = proy
 				var mp interface{}
 				var mpp interface{}
-				err = utilidades.FillStruct(variacion, &mp)
-				err = utilidades.FillStruct(pvariacion, &mpp)
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
 				fll["variacion"] = mp
 				fll["pvariacion"] = mpp
 				aux["valores"] = fll
@@ -434,7 +476,7 @@ func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interfac
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		return
 	}
@@ -503,7 +545,7 @@ func RubroReporte(inicio time.Time, fin time.Time) (res []interface{}, err error
 		}
 
 	}
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	if err != nil {
 		return
 	}
@@ -568,7 +610,7 @@ func ApropiacionOrdenPago(apropiacion interface{}, fuente interface{}) (res []in
 		id_apr,
 		  codigo,
 			idfuente`, apropiacion, fuente).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -629,7 +671,194 @@ GROUP BY
 id_aprop,
 	codigo,
 	idfuente`, apropiacion, fuente, inicio, fin).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func RubroIngresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT  apropiacion.id as idaprop,
+							rubro.id as idrubro,
+							rubro.codigo as codigoRub,
+							rubro.nombre as descrubro,
+							COALESCE(fuente.id,0) as idfuente,
+							COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+							'Ingresos' as tipo,
+							0 as Proyeccion,
+							0 as Pvariacion,
+							sum(COALESCE(ingresoconcepto.valor_agregado,0)) as Valor,
+							0 as Variacion
+					FROM financiera.apropiacion as apropiacion
+					JOIN financiera.rubro as rubro ON rubro.id = apropiacion.rubro
+					LEFT JOIN financiera.concepto_tesoral as concepto ON concepto.rubro = rubro.id
+					LEFT JOIN financiera.ingreso_concepto as ingresoconcepto ON ingresoconcepto.concepto = concepto.id
+					LEFT JOIN financiera.ingreso as ingreso  ON ingresoconcepto.ingreso = ingreso.id
+					left JOIN financiera.ingreso_estado_ingreso estado_ing on estado_ing.ingreso = ingreso.id
+												AND estado_ing.fecha_registro BETWEEN ? AND ?
+												AND estado_ing.estado_ingreso = 4
+					LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa ON apropiacion.id = ffa.apropiacion
+					LEFT JOIN financiera.fuente_financiamiento as fuente ON fuente.id = ffa.fuente_financiamiento
+					LEFT JOIN financiera.forma_ingreso as formaingreso ON formaingreso.id = ingreso.forma_ingreso
+					WHERE
+					rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+					AND rubro.codigo LIKE ?
+					AND  apropiacion.vigencia =?
+					GROUP BY
+						apropiacion.id,
+						rubro.id,
+						rubro.codigo,
+						idfuente,
+						COALESCE(fuente.id,0),
+						fuente.descripcion
+					ORDER BY apropiacion.id`, inicio, fin, codigo, vigencia).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func RubroEgresoCierre(inicio time.Time, fin time.Time, codigo string, vigencia int64) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT apropiacion.id as idaprop,
+	    					rubro.id as idrubro,
+	    					rubro.nombre as descrubro,
+	    					COALESCE(fuente.id,0) as idfuente,
+	    					COALESCE(fuente.descripcion , 'Recursos Propios' ) as fdescrip,
+	    					'Egresos' as tipo,
+	    					0 as Proyeccion,
+	    					0 as Pvariacion,
+        					SUM (COALESCE(orden_concepto.valor,0)) as valor ,
+            						0 as Variacion
+            		From financiera.apropiacion as apropiacion
+            		    --ON apropiacion.id = disponibilidad.apropiacion
+            		JOIN financiera.rubro as rubro
+            		    ON apropiacion.rubro = rubro.id
+
+            		LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
+							ON apropiacion.id = ffa.apropiacion
+	    			LEFT JOIN financiera.fuente_financiamiento as fuente
+							ON fuente.id = ffa.fuente_financiamiento
+            		LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
+            		    ON disp_apr.apropiacion = apropiacion.id
+            		LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+            		    ON rpda.disponibilidad_apropiacion = disp_apr.id
+            		LEFT JOIN financiera.concepto_orden_pago as orden_concepto
+            		    ON  orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+            		LEFT JOIN financiera.orden_pago_estado_orden_pago ep
+            		    ON ep.fecha_registro between ? and ?
+            		    AND not exists (Select distinct ant.orden_pago
+            		        			from  financiera.orden_pago_estado_orden_pago ant
+            		        			where ant.orden_pago  = ep.orden_pago
+            		            				and ant.estado_orden_pago = 5
+            		            				and ant.fecha_registro
+            		            				between ? and ?)
+            		    AND ep.orden_pago = orden_concepto.orden_de_pago
+            		LEFT JOIN financiera.orden_pago as orden
+            		    ON ep.orden_pago = orden.id
+        			WHERE rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+            								AND apropiacion.vigencia = ?
+            								AND rubro.codigo LIKE ?
+            		group by apropiacion.id ,
+            				rubro.id ,
+            				fuente.id,
+            				rubro.codigo
+							ORDER BY apropiacion.id`, inicio, fin, inicio, fin, codigo, vigencia).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func RubroOrdenPagoP(ordenPago int) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT rubro.id as idrubro,
+	 									COALESCE(ffa.fuente_financiamiento,0) as idfuente,
+	 									ep.vigencia,
+	 									ep.valor_base
+         					From financiera.orden_pago ep
+										LEFT JOIN financiera.concepto_orden_pago as orden_concepto
+											ON ep.id = orden_concepto.orden_de_pago
+										LEFT JOIN financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+											ON orden_concepto.registro_presupuestal_disponibilidad_apropiacion = rpda.id
+										LEFT JOIN financiera.disponibilidad_apropiacion AS disp_apr
+											ON rpda.disponibilidad_apropiacion = disp_apr.id
+										LEFT JOIN financiera.apropiacion as apropiacion
+											ON apropiacion.id = disp_apr.apropiacion
+										LEFT JOIN financiera.fuente_financiamiento_apropiacion as ffa
+											ON apropiacion.id = ffa.apropiacion
+										LEFT JOIN financiera.rubro as rubro
+											ON apropiacion.rubro = rubro.id
+									WHERE ep.id = ?`, ordenPago).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func ValEjecutadoPac(vigencia int64, mes int, rubro string, fuente string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos ValEjecutadoPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as valor
+					from financiera.detalle_pac detalle
+					join financiera.pac pac
+    					on detalle.pac = pac.id
+					where pac.vigencia = ?
+						and detalle.mes = ?
+						and detalle.rubro = ?
+						and detalle.fuente_financiamiento = ?`, vigencia, mes, rubro, fuente).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetSumbySource(vigencia int, mes int, fuente string, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos GetSumbySource")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and rubro.Codigo like ?`, vigencia, mes, fuente, tipo).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetSumbyTotal(vigencia int, mes int, tipo string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos GetSumbyTotal")
+	_, err = o.Raw(`Select sum(valor_ejecutado_mes) as ejecutado,
+									sum(valor_proyectado_mes) as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+											join financiera.rubro
+												on rubro.id = detalle.rubro
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and rubro.Codigo like ?`, vigencia, mes, tipo).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+func GetRubroPac(vigencia int, mes int, fuente string, rubro string) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	fmt.Println("modelos getRubroPac")
+	_, err = o.Raw(`Select valor_ejecutado_mes as ejecutado,
+										valor_proyectado_mes as proyectado
+										from financiera.detalle_pac detalle
+											join financiera.pac pac
+    										on detalle.pac = pac.id
+										where pac.vigencia = ?
+												and detalle.mes = ?
+												and detalle.fuente_financiamiento = ?
+												and detalle.rubro = ?`, vigencia, mes, fuente, rubro).Values(&m)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -691,7 +920,7 @@ id_aprop,
 idrubro,
 	codigo,
 	idfuente`, rubro, fuente, inicio, fin).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 
@@ -754,7 +983,7 @@ func RubroOrdenPago(rubro interface{}, fuente interface{}) (res []interface{}, e
 		id_apr,
 		  codigo,
 			idfuente`, rubro, fuente).Values(&m)
-	err = utilidades.FillStruct(m, &res)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
 func RamaRubros(forkin interface{}, params ...interface{}) (forkout interface{}) {
@@ -770,12 +999,12 @@ func RamaRubros(forkin interface{}, params ...interface{}) (forkout interface{})
 	  WHERE rubro_rubro.rubro_padre = ?
 	  AND unidad_ejecutora in (?,0)`, fork["Id"], params).Values(&m)
 	if err == nil {
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		var hijos []map[string]interface{}
 		done := make(chan interface{})
 		defer close(done)
-		resch := utilidades.GenChanInterface(res...)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
+		resch := optimize.GenChanInterface(res...)
+		charbolrubros := optimize.Digest(done, RamaRubros, resch, params)
 		for hijo := range charbolrubros {
 			if hijo != nil {
 				hijos = append(hijos, hijo.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
@@ -809,13 +1038,13 @@ func ArbolRubros(unidadEjecutora int, CodigoPadre int) (padres []map[string]inte
 			  AND rubro.unidad_ejecutora IN (?,0)`, searchparam, unidadEjecutora).Values(&m)
 	if err == nil {
 		var res []interface{}
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		done := make(chan interface{})
 		defer close(done)
-		resch := utilidades.GenChanInterface(res...)
+		resch := optimize.GenChanInterface(res...)
 		var params []interface{}
 		params = append(params, unidadEjecutora)
-		charbolrubros := utilidades.Digest(done, RamaRubros, resch, params)
+		charbolrubros := optimize.Digest(done, RamaRubros, resch, params)
 		for padre := range charbolrubros {
 			padres = append(padres, padre.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
 		}

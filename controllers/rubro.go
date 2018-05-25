@@ -3,13 +3,16 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -28,6 +31,14 @@ func (c *RubroController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("ApropiacionReporte", c.ApropiacionReporte)
 }
+func genRubrosTreeFile(UnidadEjecutora int) {
+	v, err := models.ArbolRubros(UnidadEjecutora, 0)
+	rankingsJson, _ := json.Marshal(v)
+	if err == nil {
+		err = ioutil.WriteFile("RubroTreeUe"+strconv.Itoa(UnidadEjecutora)+".json", rankingsJson, 0644)
+
+	}
+}
 
 // Post ...
 // @Title Post
@@ -41,11 +52,12 @@ func (c *RubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			go genRubrosTreeFile(int(v.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -87,12 +99,25 @@ func (c *RubroController) ArbolRubros() {
 	idpadre, _ := c.GetInt("idpadre")
 	unidadEjecutora, err := c.GetInt("UnidadEjecutora")
 	if err == nil {
-		v, err := models.ArbolRubros(unidadEjecutora, idpadre)
-		if err != nil {
-			c.Data["json"] = err.Error()
+		if _, err := os.Stat("RubroTreeUe" + strconv.Itoa(unidadEjecutora) + ".json"); os.IsNotExist(err) {
+			// path/to/whatever does not exist
+			v, err := models.ArbolRubros(unidadEjecutora, idpadre)
+			if err != nil {
+				c.Data["json"] = err.Error()
+			} else {
+				rankingsJson, _ := json.Marshal(v)
+				err = ioutil.WriteFile("RubroTreeUe"+strconv.Itoa(unidadEjecutora)+".json", rankingsJson, 0644)
+				fmt.Println("err ", err)
+				c.Data["json"] = v
+			}
 		} else {
+			data, _ := ioutil.ReadFile("RubroTreeUe" + strconv.Itoa(unidadEjecutora) + ".json")
+			var v interface{}
+			err = json.Unmarshal(data, &v)
+			//fmt.Println("read from file")
 			c.Data["json"] = v
 		}
+
 	} else {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = e
@@ -207,10 +232,19 @@ func (c *RubroController) Put() {
 func (c *RubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
+	v, err1 := models.GetRubroById(id)
 	if err := models.DeleteRubro(id); err == nil {
-		c.Data["json"] = "OK"
+		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
+		if err1 == nil {
+			go genRubrosTreeFile(int(v.UnidadEjecutora))
+		}
+		c.Data["json"] = alert
 	} else {
-		c.Data["json"] = err.Error()
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }
@@ -223,7 +257,6 @@ func (c *RubroController) Delete() {
 // @Success 200 {object} interface{}
 // @Failure 403 No se encontraron datos
 // @router ApropiacionReporte/ [post]
-
 func (c *RubroController) ApropiacionReporte() {
 	var v interface{}
 	var p interface{}
@@ -232,9 +265,9 @@ func (c *RubroController) ApropiacionReporte() {
 		//fmt.Println("inicio: ", m["inicio"])
 		//fmt.Println("inicio: ", m["fin"])
 		var inicio time.Time
-		err = utilidades.FillStruct(m["inicio"], &inicio)
+		err = formatdata.FillStruct(m["inicio"], &inicio)
 		var fin time.Time
-		err = utilidades.FillStruct(m["fin"], &fin)
+		err = formatdata.FillStruct(m["fin"], &fin)
 		//fmt.Println("format inicio: ", int(inicio.Year()))
 		//fmt.Println("fecha mod: ", inicio.AddDate(0, 1, 0))
 		reporte := make(map[string]interface{})
@@ -245,7 +278,7 @@ func (c *RubroController) ApropiacionReporte() {
 		if err != nil {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		} else {
@@ -284,7 +317,7 @@ func (c *RubroController) GetRubroOrdenPago() {
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alert
 		c.ServeJSON()
@@ -336,6 +369,161 @@ func (c *RubroController) GetRubroIngreso() {
 	fuenteIf = fuente
 
 	res, err := models.RubroIngreso(rubro, fuenteIf, finicio, ffin)
+	c.Data["json"] = res
+	c.ServeJSON()
+}
+
+// GetIngresoCierre ...
+// @Title Get Ingreso Cierre
+// @Description Obtiene informacion para cierre ingresos mes
+// @Param	vigencia	path 	int64 	true		"valor vigencia apropiacion"
+// @Param	codigo		path 	string	true		"numero inicial de codigo rubro consultar"
+// @Param	mes		    path 	int	true		"fecha de inicio para el reporte"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetIngresoCierre [get]
+func (c *RubroController) GetIngresoCierre() {
+	vigencia, err := c.GetInt64("vigencia")
+
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	codigo := c.GetString("codigo")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	mes,err := c.GetInt("mes")
+
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	finicioStr := time.Date(int(vigencia),time.Month(mes),1,0,0,0,0,time.UTC).Format("2006-01-02")
+
+	ffinStr := time.Date(int(vigencia),time.Month(mes) + 1 ,0,0,0,0,0,time.UTC).Format("2006-01-02")
+
+	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	ffin, err := time.ParseInLocation("2006-01-02", ffinStr, time.Local)
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	if v := strings.Compare(codigo, "2"); v == 0 {
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo+"%", vigencia)
+		c.Data["json"] = res
+		c.ServeJSON()
+	} else {
+		res, _ := models.RubroIngresoCierre(finicio, ffin, codigo+"%", vigencia)
+		c.Data["json"] = res
+		c.ServeJSON()
+	}
+
+}
+
+// GetPacValue...
+// @Title Get Pac value
+// @Description Obtiene el valor de ejecucion para meses cesrrados
+// @Param	vigencia	path 	int64	true		"valor vigencia apropiacion"
+// @Param	mes			path 	int64	true		"valor mes a consultar cierre"
+// @Param	rubro		path 	string	true		"id rubro a consultar"
+// @Param	fuente		path 	string	true		"valor de la fuente a consultar"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetPacValue [get]
+func (c *RubroController) GetPacValue() {
+	vigencia, err := c.GetInt64("vigencia")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+
+	mes, err := c.GetInt("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	rubro := c.GetString("rubro")
+	fuente := c.GetString("fuente")
+
+	res, _ := models.ValEjecutadoPac(vigencia, mes, rubro, fuente)
+	c.Data["json"] = res
+	c.ServeJSON()
+}
+
+// GetSumbySource...
+// @Title Get Pac value
+// @Description Obtiene el valor de ejecucion para meses cesrrados
+// @Param	vigencia	path 	int	true		"valor vigencia apropiacion"
+// @Param	mes			path 	int	true		"valor mes a consultar cierre"
+// @Param	fuente		path 	string	true		"valor de la fuente a consultar"
+// @Param	tipo		path 	string	true		"ingresos :2, egresos:3"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /GetSumbySource [get]
+func (c *RubroController) GetSumbySource() {
+	vigencia, err := c.GetInt("vigencia")
+	mes, err := c.GetInt("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	fuente := c.GetString("fuente")
+	tipo := c.GetString("tipo") + "%"
+	if len(fuente) > 0 {
+		res, _ := models.GetSumbySource(vigencia, mes, fuente, tipo)
+		c.Data["json"] = res
+	} else {
+		beego.Error("entra a calcular por tipo")
+		res, _ := models.GetSumbyTotal(vigencia, mes, tipo)
+		c.Data["json"] = res
+	}
+
+	c.ServeJSON()
+}
+
+// GetRubroPac ...
+// @Title Get Pac Rubro
+// @Description get Apropiaciones Hijo
+// @Param	vigencia		path 	int	true		"apropiacion a consultar"
+// @Param	mes		path 	int	true		"fuente a consultar"
+// @Param	idRubro		path 	string	true		"fecha de inicio para el reporte"
+// @Param	idFuente		path 	string	true		"fecha final para el reporte"
+// @Success 200 interface{}
+// @Failure 403
+// @router /GetRubroPac [get]
+func (c *RubroController) GetRubroPac() {
+	vigencia, err := c.GetInt("vigencia")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	mes, err := c.GetInt("mes")
+	if err != nil {
+		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = e
+		c.ServeJSON()
+	}
+	rubro := c.GetString("idRubro")
+	fuente := c.GetString("idFuente")
+	res, err := models.GetRubroPac(vigencia, mes, fuente, rubro)
 	c.Data["json"] = res
 	c.ServeJSON()
 }

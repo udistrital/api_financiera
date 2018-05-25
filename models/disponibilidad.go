@@ -11,12 +11,12 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Info_disponibilidad_a_anular struct {
 	Anulacion                  AnulacionDisponibilidad
-	Disponibilidad_apropiacion []DisponibilidadApropiacion
+	Disponibilidad_apropiacion []*DisponibilidadApropiacion
 	Valor                      float64
 }
 type Disponibilidad struct {
@@ -95,7 +95,7 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 		And("rubro.unidad_ejecutora = ?")
 	err = o.Raw(qb.String(), int(m["Disponibilidad"].(map[string]interface{})["Vigencia"].(float64)),
 		int(m["Disponibilidad"].(map[string]interface{})["UnidadEjecutora"].(float64))).QueryRow(&consecutivo)
-	err = utilidades.FillStruct(m["Disponibilidad"], &v)
+	err = formatdata.FillStruct(m["Disponibilidad"], &v)
 	if err != nil {
 		o.Rollback()
 		fmt.Println(m["Disponibilidad"])
@@ -108,12 +108,12 @@ func AddDisponibilidad(m map[string]interface{}) (v Disponibilidad, err error) {
 	}
 	_, err = o.Insert(&v)
 	if err == nil {
-		err = utilidades.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
+		err = formatdata.FillStruct(m["DisponibilidadProcesoExterno"], &procesoExterno)
 		if err == nil {
 			procesoExterno.Disponibilidad = &v
 			_, err = o.Insert(&procesoExterno)
 			if err == nil {
-				err = utilidades.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
+				err = formatdata.FillStruct(m["DisponibilidadApropiacion"], &afectacion)
 				if err == nil {
 					for _, row := range afectacion {
 						row.Disponibilidad = &v
@@ -167,11 +167,16 @@ func GetAllDisponibilidad(query map[string]string, fields []string, sortby []str
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
+		//beego.Info(k)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else if strings.Contains(k, "in") {
+		} else if strings.Contains(k, "__in") {
 			arr := strings.Split(v, "|")
 			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
+			//beego.Info(k)
+			k = strings.Replace(k, "__not_in", "", -1)
+			qs = qs.Exclude(k, v)
 		} else {
 			qs = qs.Filter(k, v)
 		}
@@ -323,7 +328,7 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		acumCdp = acumCdp + saldoCDP
 		if saldoCDP > 0 {
 			anulacion_apropiacion := AnulacionDisponibilidadApropiacion{
-				DisponibilidadApropiacion: &m.Disponibilidad_apropiacion[i],
+				DisponibilidadApropiacion: m.Disponibilidad_apropiacion[i],
 				Anulacion:                 &AnulacionDisponibilidad{Id: int(id_anulacion_cdp)},
 				Valor:                     saldoCDP,
 			}
@@ -341,7 +346,8 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 		} else {
 			alerta[0] = "error"
 			alerta = append(alerta, "El CDP N° "+strconv.FormatFloat(m.Disponibilidad_apropiacion[i].Disponibilidad.NumeroDisponibilidad, 'f', -1, 64)+" para la apropiacion del Rubro "+m.Disponibilidad_apropiacion[i].Apropiacion.Rubro.Codigo+" tiene saldo 0")
-
+			o.Rollback()
+			return
 		}
 
 	}
@@ -352,6 +358,15 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	} else {
 		o.Rollback()
 	}*/
+	if m.Anulacion.TipoAnulacion.Id == 3 {
+		args := []string{"estado"}
+		m.Disponibilidad_apropiacion[0].Disponibilidad.Estado = &EstadoDisponibilidad{Id: 3}
+		_, err = o.Update(m.Disponibilidad_apropiacion[0].Disponibilidad, args...)
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
 	o.Commit()
 	return
 }
@@ -364,7 +379,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
@@ -388,7 +403,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 			o.Rollback()
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 			return
 		}
@@ -404,7 +419,7 @@ func AprobacionAnulacion(m *AnulacionDisponibilidad) (alert Alert, err error) {
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
@@ -467,7 +482,7 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 			return
 		} else {
 			anulacion_apropiacion := AnulacionDisponibilidadApropiacion{
-				DisponibilidadApropiacion: &m.Disponibilidad_apropiacion[i],
+				DisponibilidadApropiacion: m.Disponibilidad_apropiacion[i],
 				Anulacion:                 &AnulacionDisponibilidad{Id: int(id_anulacion_cdp)},
 				Valor:                     m.Valor,
 			}

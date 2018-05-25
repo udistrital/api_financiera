@@ -10,7 +10,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // DisponibilidadController operations for Disponibilidad
@@ -46,7 +46,7 @@ func (c *DisponibilidadController) Post() {
 			} else {
 				alertdb := structs.Map(err)
 				var code string
-				utilidades.FillStruct(alertdb["Code"], &code)
+				formatdata.FillStruct(alertdb["Code"], &code)
 				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 				c.Data["json"] = alert
 			}
@@ -186,14 +186,14 @@ func (c *DisponibilidadController) Delete() {
 func (c *DisponibilidadController) Anular() {
 	var v models.Info_disponibilidad_a_anular
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if v.Anulacion.TipoAnulacion == "T" {
+		if v.Anulacion.TipoAnulacion.Id == 2 || v.Anulacion.TipoAnulacion.Id == 3 {
 			alertas, err := models.AnulacionTotal(&v)
 			if err != nil {
 				c.Data["json"] = err
 			} else {
 				c.Data["json"] = alertas
 			}
-		} else if v.Anulacion.TipoAnulacion == "P" {
+		} else if v.Anulacion.TipoAnulacion.Id == 1 {
 			alertas, err := models.AnulacionParcial(&v)
 			if err != nil {
 				c.Data["json"] = err

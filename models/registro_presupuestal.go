@@ -10,7 +10,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type RegistroPresupuestal struct {
@@ -21,7 +21,8 @@ type RegistroPresupuestal struct {
 	Estado                                        *EstadoRegistroPresupuestal                      `orm:"column(estado);rel(fk)"`
 	NumeroRegistroPresupuestal                    int                                              `orm:"column(numero_registro_presupuestal)"`
 	Beneficiario                                  int                                              `orm:"column(beneficiario);null"`
-	Compromiso                                    *Compromiso                                      `orm:"column(compromiso);rel(fk)"`
+	TipoCompromiso                                *Compromiso                                      `orm:"column(tipo_compromiso);rel(fk)"`
+	NumeroCompromiso                              int                                              `orm:"column(numero_compromiso)"`
 	Solicitud                                     int                                              `orm:"column(solicitud)"`
 	RegistroPresupuestalDisponibilidadApropiacion []*RegistroPresupuestalDisponibilidadApropiacion `orm:"reverse(many)"`
 }
@@ -45,7 +46,7 @@ type DatosSaldoRp struct {
 }
 type Info_rp_a_anular struct {
 	Anulacion      AnulacionRegistroPresupuestal
-	Rp_apropiacion []RegistroPresupuestalDisponibilidadApropiacion
+	Rp_apropiacion []*RegistroPresupuestalDisponibilidadApropiacion
 	Valor          float64
 }
 
@@ -86,7 +87,13 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 	id, err = o.Insert(m.Rp)
 	if err == nil {
 		m.Rp.Id = int(id)
+		var totalcdp float64
 		for _, data := range m.Rubros {
+			saldocdpapr, _, _, errcdp := SaldoCdp(data.Disponibilidad.Id, data.Apropiacion.Id, data.FuenteFinanciacion.Id)
+			if errcdp != nil {
+				o.Rollback()
+				return 0, errcdp
+			}
 			registro := RegistroPresupuestalDisponibilidadApropiacion{
 				RegistroPresupuestal:      m.Rp,
 				DisponibilidadApropiacion: &DisponibilidadApropiacion{Id: data.Id},
@@ -95,8 +102,28 @@ func AddRegistoPresupuestal(m *DatosRegistroPresupuestal) (id int64, err error) 
 			_, err2 := o.Insert(&registro)
 			if err2 != nil {
 				o.Rollback()
+				return 0, err2
+			}
+			totalcdp = totalcdp + saldocdpapr - data.ValorAsignado
+		}
+		if totalcdp > 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 2
+			o.Update(m.Rubros[0].Disponibilidad)
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
 				return
 			}
+		} else if totalcdp == 0 {
+			m.Rubros[0].Disponibilidad.Estado.Id = 3
+			_, err = o.Update(m.Rubros[0].Disponibilidad)
+			if err != nil {
+				o.Rollback()
+				return
+			}
+		} else {
+			o.Rollback()
+			return
 		}
 	} else {
 		fmt.Println("error registro rp: ", err.Error())
@@ -131,7 +158,10 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 		k = strings.Replace(k, ".", "__", -1)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else if strings.Contains(k, "not_in") {
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
 			k = strings.Replace(k, "__not_in", "", -1)
 			qs = qs.Exclude(k, v)
 		} else {
@@ -182,7 +212,10 @@ func GetAllRegistroPresupuestal(query map[string]string, fields []string, sortby
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "RegistroPresupuestalDisponibilidadApropiacion", 5)
+				o.LoadRelated(&v, "RegistroPresupuestalDisponibilidadApropiacion", 5, 1, 0, "-Id")
+				for _, sub := range v.RegistroPresupuestalDisponibilidadApropiacion {
+					o.LoadRelated(sub.DisponibilidadApropiacion.Disponibilidad, "DisponibilidadProcesoExterno", 5, 1, 0, "-Id")
+				}
 				ml = append(ml, v)
 			}
 		} else {
@@ -285,11 +318,19 @@ func ComprometidoRp(id_rp int, id_apropiacion int, id_fuente int) (valor float64
             sum(concepto_orden_pago.valor) AS valor
            FROM financiera.concepto_orden_pago
              JOIN financiera.registro_presupuestal_disponibilidad_apropiacion ON registro_presupuestal_disponibilidad_apropiacion.id = concepto_orden_pago.registro_presupuestal_disponibilidad_apropiacion
+             AND
+			concepto_orden_pago.orden_de_pago = 
+				(
+					SELECT orden_de_pago FROM financiera.orden_pago_estado_orden_pago
+						WHERE orden_pago = concepto_orden_pago.orden_de_pago
+						AND estado_orden_pago NOT IN (3,5)
+						ORDER BY fecha_registro DESC
+						LIMIT 1 		) 
              JOIN financiera.registro_presupuestal ON registro_presupuestal.id = registro_presupuestal_disponibilidad_apropiacion.registro_presupuestal
              JOIN financiera.disponibilidad_apropiacion ON disponibilidad_apropiacion.id = registro_presupuestal_disponibilidad_apropiacion.disponibilidad_apropiacion
              JOIN financiera.apropiacion ON financiera.apropiacion.id = disponibilidad_apropiacion.apropiacion
-          GROUP BY registro_presupuestal.id, apropiacion.id, fuente_financiamiento) as comprometido
-          WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?`, id_rp, id_apropiacion, id_fuente).Values(&maps)
+          	GROUP BY registro_presupuestal.id, apropiacion.id, fuente_financiamiento) as comprometido
+          	WHERE id = ? AND apropiacion= ? AND fuente_financiamiento = ?`, id_rp, id_apropiacion, id_fuente).Values(&maps)
 	fmt.Println("maps: ", maps)
 	if maps == nil {
 		valor = 0
@@ -385,7 +426,7 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		if saldoRp > 0 {
 			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
 				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				RegistroPresupuestalDisponibilidadApropiacion: m.Rp_apropiacion[i],
 				Valor: saldoRp,
 			}
 			_, err3 := o.Insert(&anulacion_apropiacion)
@@ -413,6 +454,15 @@ func AnulacionTotalRp(m *Info_rp_a_anular) (alerta []string, err error) {
 	} else {
 		o.Rollback()
 	}*/
+	if m.Anulacion.TipoAnulacion.Id == 3 {
+		args := []string{"estado"}
+		m.Rp_apropiacion[0].RegistroPresupuestal.Estado = &EstadoRegistroPresupuestal{Id: 3}
+		_, err = o.Update(m.Rp_apropiacion[0].RegistroPresupuestal, args...)
+		if err != nil {
+			o.Rollback()
+			return
+		}
+	}
 	o.Commit()
 	return
 }
@@ -476,7 +526,7 @@ func AnulacionParcialRp(m *Info_rp_a_anular) (alerta []string, err error) {
 		} else {
 			anulacion_apropiacion := AnulacionRegistroPresupuestalDisponibilidadApropiacion{
 				AnulacionRegistroPresupuestal:                 &AnulacionRegistroPresupuestal{Id: int(id_anulacion_rp)},
-				RegistroPresupuestalDisponibilidadApropiacion: &m.Rp_apropiacion[i],
+				RegistroPresupuestalDisponibilidadApropiacion: m.Rp_apropiacion[i],
 				Valor: m.Valor,
 			}
 			_, err3 := o.Insert(&anulacion_apropiacion)
@@ -535,7 +585,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}
@@ -559,7 +609,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 			o.Rollback()
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 			return
 		}
@@ -575,7 +625,7 @@ func AprobacionAnulacionRp(m *AnulacionRegistroPresupuestal) (alert Alert, err e
 		o.Rollback()
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alert = Alert{Type: "error", Code: "E_" + code, Body: err}
 		return
 	}

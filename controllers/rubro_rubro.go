@@ -8,7 +8,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -39,11 +39,12 @@ func (c *RubroRubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			go genRubrosTreeFile(int(v.RubroHijo.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}

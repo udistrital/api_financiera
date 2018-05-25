@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type CalendarioTributario struct {
@@ -186,7 +186,7 @@ func GetImpuestosCalendario(idcalendario int) (calendario interface{}, err error
 			//var idcuenta int
 			//idcuenta := cuentas[index]["cuenta_contable"].(int)
 			//fmt.Println("int:", cuentas[index]["cuenta_contable"])
-			//err = utilidades.FillStruct(cuentas[index]["cuenta_contable"], &idcuenta)
+			//err = formatdata.FillStruct(cuentas[index]["cuenta_contable"], &idcuenta)
 			fmt.Println("cuenta:", cuentas[index])
 			cm := calmov
 
@@ -207,7 +207,7 @@ func GetImpuestosCalendario(idcalendario int) (calendario interface{}, err error
 		}
 
 		/*fmt.Println(movimientos)*/
-		err = utilidades.FillStruct(movs, &calendario)
+		err = formatdata.FillStruct(movs, &calendario)
 
 	}
 	return

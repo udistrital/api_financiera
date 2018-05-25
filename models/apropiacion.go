@@ -1,15 +1,17 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Apropiacion struct {
@@ -49,7 +51,7 @@ func GetApropiacionById(id int) (v *Apropiacion, err error) {
 
 // GetAllApropiacion retrieves all Apropiacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllApropiacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllApropiacion(query map[string]string, exclude map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(Apropiacion))
@@ -63,6 +65,18 @@ func GetAllApropiacion(query map[string]string, fields []string, sortby []string
 			qs = qs.Filter(k, v)
 		}
 	}
+
+	// exclude k=v
+	for k, v := range exclude {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Exclude(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Exclude(k, v)
+		}
+	}
+
 	// order by:
 	var sortFields []string
 	if len(sortby) != 0 {
@@ -199,6 +213,21 @@ func SaldoApropiacion(Id int) (saldo map[string]float64, err error) {
 	return
 }
 
+func VigenciaApropiacion() (ml []int, err error) {
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("DISTINCT vigencia").
+		From("financiera.apropiacion")
+
+	sql := qb.String()
+	o := orm.NewOrm()
+	o.Raw(sql).QueryRows(&ml)
+
+	if len(ml) == 0 {
+		return nil, err
+	}
+	return ml, nil
+}
+
 //funcion para determinar el valor con traslados de la apropiacion
 func ValorApropiacion(Id int) (valor float64, err error) {
 	o := orm.NewOrm()
@@ -263,7 +292,7 @@ func ValorAnuladoCdpPorApropiacion(Id int) (valor float64, err error) {
 		 					JOIN financiera.disponibilidad_apropiacion ON anulacion_disponibilidad_apropiacion.disponibilidad_apropiacion = disponibilidad_apropiacion.id
 		 					JOIN financiera.disponibilidad ON disponibilidad_apropiacion.disponibilidad = disponibilidad.id
 					 		JOIN financiera.anulacion_disponibilidad ON anulacion_disponibilidad.id = anulacion_disponibilidad_apropiacion.anulacion
-							 WHERE apropiacion = ?  AND estado_anulacion = 3  
+							 WHERE apropiacion = ?  AND estado_anulacion = 3
 							 GROUP BY  anulacion_disponibilidad.estado_anulacion, disponibilidad_apropiacion.apropiacion
 							`, Id).Values(&maps_valor_tot)
 	//fmt.Println("maps: ", len(maps_valor_tot))
@@ -310,30 +339,33 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 				  WHERE rubro_rubro.rubro_padre = ?
 				  AND unidad_ejecutora in (?,0)`, fork["Id"], unidadEjecutora).Values(&m)
 				if err == nil {
-					err = utilidades.FillStruct(m, &res)
+					err = formatdata.FillStruct(m, &res)
 					resch := genChanMapStr(res...)
 					var hijos []map[string]interface{}
 					wg.Add(1)
 					subdone := make(chan map[string]interface{}) // HLdone
 					defer close(subdone)
 					for hijo := range RamaApropiaciones(subdone, unidadEjecutora, Vigencia, resch) {
-						hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+						if hijo != nil {
+							hijos = append(hijos, hijo) //tomar valores del canal y agregarlos al array de hijos.
+						}
 					}
 					fork["Hijos"] = hijos
 					//recorrer hijos sumando apropiaciones, si las tiene.
 					if len(hijos) == 0 {
 						query := make(map[string]string)
 						var id string
-						err = utilidades.FillStruct(fork["Id"], &id)
+						err = formatdata.FillStruct(fork["Id"], &id)
 						query["Rubro.Id"] = id
 						query["Vigencia"] = strconv.Itoa(Vigencia)
-						v, err := GetAllApropiacion(query, nil, nil, nil, 0, 1)
+						v, err := GetAllApropiacion(query, nil, nil, nil, nil, 0, 1)
 						if v != nil && err == nil {
 							fork["Apropiacion"] = v[0]
 							fork["Hijos"] = nil
 						} else {
-							fork["Apropiacion"] = nil
-							fork["Hijos"] = nil
+							// fork["Apropiacion"] = nil
+							// fork["Hijos"] = nil
+							fork = nil
 						}
 					} else {
 						ap := Apropiacion{}
@@ -342,7 +374,7 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 						for _, hijo := range hijos {
 							if hijo["Apropiacion"] != nil {
 								ap = Apropiacion{}
-								utilidades.FillStruct(hijo["Apropiacion"], &ap)
+								formatdata.FillStruct(hijo["Apropiacion"], &ap)
 								valorPadre = valorPadre + ap.Valor
 							}
 						}
@@ -365,6 +397,7 @@ func RamaApropiaciones(done <-chan map[string]interface{}, unidadEjecutora int, 
 			close(out) // HL
 		}()
 	}()
+	// fmt.Println("rama generada...")
 	return out
 }
 
@@ -378,10 +411,12 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 	      where (id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 			  AND id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
 			  OR (id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro)
-			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))`).Values(&m)
+			  AND id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
+				AND rubro.unidad_ejecutora=?`, unidadEjecutora).Values(&m)
 	if err == nil {
+		fmt.Println("Generando arbol....")
 		var res []map[string]interface{}
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 		resch := genChanMapStr(res...)
 		done := make(chan map[string]interface{}) // HLdone
 		defer close(done)                         // HLdone
@@ -389,7 +424,27 @@ func ArbolApropiaciones(unidadEjecutora int, Vigencia int) (padres []map[string]
 			padres = append(padres, padre) //tomar valores del canal y agregarlos al array de hijos.
 		}
 	}
+	fmt.Println("Arbol generado...")
 	return
+}
+
+func EncapsuArbolApropiaciones(parameter ...interface{}) interface{} {
+	unidadEjecutora := parameter[0].(int)
+	vigencia := parameter[1].(int)
+
+	if v, err := ArbolApropiaciones(unidadEjecutora, vigencia); err == nil {
+		rankingsJson, _ := json.Marshal(v)
+		err = ioutil.WriteFile("apropaciones_"+strconv.Itoa(unidadEjecutora)+"_"+strconv.Itoa(vigencia)+".json", rankingsJson, 0644)
+		if err != nil {
+			fmt.Println("Error escribiendo archivo....")
+			return err
+		}
+		fmt.Println("Construyendo archivo....")
+		return err
+	} else {
+		fmt.Println("error encapsula: ", err)
+	}
+	return nil
 }
 
 //SaldoRubroPadre... Funcion para determinar el saldo de un rubro padre a partir de sus hijos.
@@ -406,7 +461,7 @@ func SaldoRubroPadre(Id int, unidadEjecutora int, Vigencia int) (saldo map[strin
 	  WHERE rubro_rubro.rubro_padre = ?
 	  AND unidad_ejecutora in (?,0)`, Id, unidadEjecutora).Values(&m)
 	if err == nil {
-		err = utilidades.FillStruct(m, &res)
+		err = formatdata.FillStruct(m, &res)
 
 		resch := genChanMapStr(res...)
 		done := make(chan map[string]interface{})
@@ -437,7 +492,7 @@ func sumaApropiacionesHoja(fork map[string]interface{}) (saldo map[string]float6
 		return
 	} else {
 		if fork["Hijos"] == nil {
-			err = utilidades.FillStruct(fork["Apropiacion"], &ap)
+			err = formatdata.FillStruct(fork["Apropiacion"], &ap)
 			if err == nil {
 				saldo, err = SaldoApropiacion(ap.Id)
 				if ap.Id == 240 {
@@ -454,7 +509,7 @@ func sumaApropiacionesHoja(fork map[string]interface{}) (saldo map[string]float6
 			}
 		} else {
 			var hijos []map[string]interface{}
-			err = utilidades.FillStruct(fork["Hijos"], &hijos)
+			err = formatdata.FillStruct(fork["Hijos"], &hijos)
 			if err == nil {
 				for _, subfork := range hijos {
 					saldoaux, err := sumaApropiacionesHoja(subfork)
@@ -483,11 +538,11 @@ func AprobarPresupuesto(UnidadEjecutora int, Vigencia int) (err error) {
 	query["Rubro.UnidadEjecutora"] = strconv.Itoa(UnidadEjecutora)
 	query["Vigencia"] = strconv.Itoa(Vigencia)
 	fmt.Println(query)
-	v, err := GetAllApropiacion(query, nil, nil, nil, 0, -1)
+	v, err := GetAllApropiacion(query, nil, nil, nil, nil, 0, -1)
 	o.Begin()
 	ap := Apropiacion{}
 	for _, apropiacion := range v {
-		utilidades.FillStruct(apropiacion, &ap)
+		formatdata.FillStruct(apropiacion, &ap)
 		ap.Estado.Id = 2
 		_, err = o.Update(&ap)
 		if err != nil {

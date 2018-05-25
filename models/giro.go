@@ -8,15 +8,19 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Giro struct {
-	Id             int             `orm:"column(id);pk;auto"`
-	Consecutivo    int             `orm:"column(consecutivo)"`
-	ValorTotal     float64         `orm:"column(valor_total)"`
-	CuentaBancaria *CuentaBancaria `orm:"column(cuenta_bancaria);rel(fk)"`
-	Vigencia       float64         `orm:"column(vigencia);null"`
-	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(date)"`
+	Id             int               `orm:"column(id);pk;auto"`
+	Consecutivo    int               `orm:"column(consecutivo)"`
+	ValorTotal     float64           `orm:"column(valor_total)"`
+	CuentaBancaria *CuentaBancaria   `orm:"column(cuenta_bancaria);rel(fk)"`
+	Vigencia       float64           `orm:"column(vigencia);null"`
+	FechaRegistro  time.Time         `orm:"column(fecha_registro);type(date)"`
+	FormaPago      *FormaPago        `orm:"column(forma_pago);rel(fk)"`
+	GiroDetalle    []*GiroDetalle    `orm:"reverse(many)"`
+	GiroEstadoGiro []*GiroEstadoGiro `orm:"reverse(many)"`
 }
 
 func (t *Giro) TableName() string {
@@ -51,7 +55,7 @@ func GetGiroById(id int) (v *Giro, err error) {
 func GetAllGiro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Giro))
+	qs := o.QueryTable(new(Giro)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -106,6 +110,8 @@ func GetAllGiro(query map[string]string, fields []string, sortby []string, order
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "GiroEstadoGiro", 5, 1, 0, "-Id")
+				o.LoadRelated(&v, "GiroDetalle", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -151,5 +157,104 @@ func DeleteGiro(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	newGiro := Giro{}
+	OrdenesPago := []OrdenPago{}
+	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
+	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
+	if err1 != nil || err2 != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01" //error en parametros de entrada
+		alerta.Body = "Erro en parametros de entrada en RegistrarGiro()"
+		o.Rollback()
+		return
+	}
+	// consecutivo
+	var consecutivo int
+	sqlConsecutivo := "SELECT COALESCE(MAX(consecutivo), 0)+1 FROM financiera.giro;"
+	o.Raw(sqlConsecutivo).QueryRow(&consecutivo)
+	newGiro.Consecutivo = consecutivo
+	newGiro.FechaRegistro = time.Now()
+	//insert giro
+	idNewGiro, err := o.Insert(&newGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// Primer estado
+	estadoNewGiro := EstadoGiro{CodigoAbreviatura: "EGI_01"}
+	err = o.Read(&estadoNewGiro, "CodigoAbreviatura")
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01" //en busqueda de estado
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	//insert giro_estado_giro
+	newGiroEstadoGiro := GiroEstadoGiro{}
+	newGiroEstadoGiro.Giro = &Giro{Id: int(idNewGiro)}
+	newGiroEstadoGiro.FechaRegistro = time.Now()
+	newGiroEstadoGiro.EstadoGiro = &EstadoGiro{Id: int(estadoNewGiro.Id)}
+	_, err = o.Insert(&newGiroEstadoGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	//insert giro_detalle and orden_pago_estado_ordenPago
+	var giroDetalles []GiroDetalle
+	var newEstadoOrdenPago []OrdenPagoEstadoOrdenPago
+	newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
+	if alerta.Type == "error" {
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(OrdenesPago); i++ {
+		//giro detalle
+		rowGiroDetalle := GiroDetalle{
+			Giro:      &Giro{Id: int(idNewGiro)},
+			OrdenPago: &OrdenPago{Id: int(OrdenesPago[i].Id)},
+		}
+		giroDetalles = append(giroDetalles, rowGiroDetalle)
+		// estados orden pago
+		rowEstadoOrdenPago := OrdenPagoEstadoOrdenPago{
+			OrdenPago:       &OrdenPago{Id: int(OrdenesPago[i].Id)},
+			EstadoOrdenPago: &EstadoOrdenPago{Id: int(newEstadoOP08.Id)},
+			FechaRegistro:   time.Now(),
+			Usuario:         1, //entra por sesion
+		}
+		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
+	}
+	// insertar giro_detalle
+	_, err = o.InsertMulti(100, giroDetalles)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	// insertar nuevo estado para las Ordenes de pago
+	_, err = o.InsertMulti(100, newEstadoOrdenPago)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	alerta = Alert{Type: "success", Code: "S_GIRO_01", Body: consecutivo}
+	o.Commit()
 	return
 }

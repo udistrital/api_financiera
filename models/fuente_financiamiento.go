@@ -10,10 +10,11 @@ import (
 )
 
 type FuenteFinanciamiento struct {
-	Id          int    `orm:"column(id);pk;auto"`
-	Descripcion string `orm:"column(descripcion);null"`
-	Nombre       string `orm:"column(nombre)"`
-	Codigo      string `orm:"column(codigo)"`
+	Id          						int    `orm:"column(id);pk;auto"`
+	Descripcion 						string `orm:"column(descripcion);null"`
+	Nombre       						string `orm:"column(nombre)"`
+	Codigo      						string `orm:"column(codigo)"`
+	TipoFuenteFinanciamiento *TipoFuenteFinanciamiento `orm:"column(tipo_fuente_financiamiento);rel(fk)"`
 }
 
 func (t *FuenteFinanciamiento) TableName() string {

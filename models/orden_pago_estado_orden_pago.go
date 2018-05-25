@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 type OrdenPagoEstadoOrdenPago struct {
@@ -51,7 +51,7 @@ func GetOrdenPagoEstadoOrdenPagoById(id int) (v *OrdenPagoEstadoOrdenPago, err e
 func GetAllOrdenPagoEstadoOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenPagoEstadoOrdenPago))
+	qs := o.QueryTable(new(OrdenPagoEstadoOrdenPago)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -176,8 +176,8 @@ func WorkFlowOrdenPago(DataWorkFlowOrdenPago map[string]interface{}) (alerta []m
 	if ordenPagoData != nil {
 		done := make(chan interface{})
 		defer close(done)
-		resch := utilidades.GenChanInterface(ordenPagoData...)
-		chlistaLiquidacion := utilidades.Digest(done, changeEstadoOP, resch, parametros)
+		resch := optimize.GenChanInterface(ordenPagoData...)
+		chlistaLiquidacion := optimize.Digest(done, changeEstadoOP, resch, parametros)
 		for dataLiquidacion := range chlistaLiquidacion {
 			if dataLiquidacion != nil {
 				respuesta = append(respuesta, dataLiquidacion.(map[string]interface{}))

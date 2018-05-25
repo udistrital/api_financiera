@@ -10,7 +10,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // IngresoController operations for Ingreso
@@ -29,24 +29,24 @@ func (c *IngresoController) URLMapping() {
 }
 
 // Post ...
-// @Title AprobarIngreso
+// @Title AprobacionContableIngreso
 // @Description Aprobar Ingreso
 // @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
 // @Success 201 {int} models.Ingreso
 // @Failure 403 body is empty
-// @router /AprobarIngreso [post]
-func (c *IngresoController) AprobarIngreso() {
+// @router /AprobacionContableIngreso [post]
+func (c *IngresoController) AprobacionContableIngreso() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		if res, err := models.AprobarIngreso(m); err == nil {
+		if res, err := models.AprobacionContableIngreso(m); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			alert := models.Alert{Type: "success", Code: "S_544", Body: res}
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -58,24 +58,82 @@ func (c *IngresoController) AprobarIngreso() {
 }
 
 // Post ...
-// @Title AprobarIngreso
+// @Title AprobacionPresupuestalIngreso
 // @Description Aprobar Ingreso
 // @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
 // @Success 201 {int} models.Ingreso
 // @Failure 403 body is empty
-// @router /RechazarIngreso [post]
-func (c *IngresoController) RechazarIngreso() {
+// @router /AprobacionPresupuestalIngreso [post]
+func (c *IngresoController) AprobacionPresupuestalIngreso() {
 	var v interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		if res, err := models.RechazarIngreso(m); err == nil {
+		if res, err := models.AprobacionPresupuestalIngreso(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_544", Body: res}
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}
+
+// Post ...
+// @Title RechazoContableIngreso
+// @Description Aprobar Ingreso
+// @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
+// @Success 201 {int} models.Ingreso
+// @Failure 403 body is empty
+// @router /RechazoContableIngreso [post]
+func (c *IngresoController) RechazoContableIngreso() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if res, err := models.RechazoContableIngreso(m); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		c.Data["json"] = err.Error()
+		fmt.Println(err.Error())
+	}
+	c.ServeJSON()
+}
+
+// Post ...
+// @Title RechazoPresupuestalIngreso
+// @Description Aprobar Ingreso
+// @Param	body		body 	models.Ingreso	true		"body for Ingreso content"
+// @Success 201 {int} models.Ingreso
+// @Failure 403 body is empty
+// @router /RechazoPresupuestalIngreso [post]
+func (c *IngresoController) RechazoPresupuestalIngreso() {
+	var v interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if res, err := models.RechazoPresupuestalIngreso(m); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_545", Body: res}
+			c.Data["json"] = alert
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -106,7 +164,7 @@ func (c *IngresoController) CreateIngresos() {
 			beego.Info(err.Error())
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
 			c.Data["json"] = alert
 		}

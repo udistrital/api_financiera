@@ -260,3 +260,33 @@ func (c *OrdenPagoController) ValorTotal() {
 	}
 	c.ServeJSON()
 }
+
+// GetOrdenPagoByEstado ...
+// @Title GetOrdenPagoByEstado
+// @Description return OrdenPago by Estado
+// @Param	codigoEstado		query string true		"code estado OrdenPago for search"
+// @Param	vigencia		query string true		"vigencia of OrdenPago for search"
+// @Param	tipoOp		query string true		"tipo OrdenPago for search"
+// @Param	formaPago		query string true		"forma pago OrdenPago for search"
+// @Success 201 {int} models.OrdenPago
+// @Failure 403 body is empty
+// @router /GetOrdenPagoByEstado [get]
+func (c *OrdenPagoController) GetOrdenPagoByEstado() {
+	estadoOrden := c.GetString("codigoEstado")
+	vigenciaOrden := c.GetString("vigencia")
+	tipoOrden := c.GetString("tipoOp")
+	formaPago := c.GetString("formaPago")
+	if estadoOrden != "" && vigenciaOrden != "" && tipoOrden != "" && formaPago != "" {
+		Ordenes, mensaje := models.GetOrdenPagoByEstado(estadoOrden, vigenciaOrden, tipoOrden, formaPago)
+		if mensaje.Type == "success" {
+			c.Data["json"] = Ordenes
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = mensaje
+		}
+	} else {
+		c.Ctx.Output.SetStatus(201)
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+	c.ServeJSON()
+}

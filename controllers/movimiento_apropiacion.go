@@ -3,12 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/api_financiera/utilidades"
-	"strconv"
-	"strings"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // MovimientoApropiacionController operations for MovimientoApropiacion
@@ -23,6 +25,32 @@ func (c *MovimientoApropiacionController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+}
+
+// TotalMovimientosApropiacion ...
+// @Title TotalMovimientosApropiacion
+// @Description numero de movimientos segun vigencia
+// @Param	vigencia		query 	string	true		"vigencia para la consulta del total de disponibilidades"
+// @Param	UnidadEjecutora	query	string	false	"unidad ejecutora de las solicitudes a consultar"
+// @Success 201 {int} total
+// @Failure 403 vigencia is empty
+// @router /TotalMovimientosApropiacion/:vigencia [get]
+func (c *MovimientoApropiacionController) TotalMovimientosApropiacion() {
+	vigenciaStr := c.Ctx.Input.Param(":vigencia")
+	vigencia, err := strconv.Atoi(vigenciaStr)
+	UnidadEjecutora, err2 := c.GetInt("UnidadEjecutora")
+	if err == nil && err2 == nil {
+		total, err := models.GetTotalMovimientosApropiacion(vigencia, UnidadEjecutora)
+		if err == nil {
+			c.Data["json"] = total
+		} else {
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
+
+	c.ServeJSON()
 }
 
 // RegistroSolicitudMovimientoApropiacion ...
@@ -41,7 +69,7 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
@@ -64,14 +92,14 @@ func (c *MovimientoApropiacionController) RegistroSolicitudMovimientoApropiacion
 // @router /AprobarMovimietnoApropiacion [post]
 func (c *MovimientoApropiacionController) AprobarMovimietnoApropiacion() {
 	var v models.MovimientoApropiacion
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil && v.Vigencia == time.Now().Year() {
 		if res, err := models.AprobarMovimietnoApropiaciontr(&v); err == nil && res != nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = res
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			var alert []models.Alert
 			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			alert = append(alert, alt)
@@ -145,7 +173,7 @@ func (c *MovimientoApropiacionController) GetMovimientosApropiacionByApropiacion
 		beego.Info(err)
 		alertdb := structs.Map(err)
 		var code string
-		utilidades.FillStruct(alertdb["Code"], &code)
+		formatdata.FillStruct(alertdb["Code"], &code)
 		alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		c.Data["json"] = alt
 	} else {
@@ -244,7 +272,7 @@ func (c *MovimientoApropiacionController) Put() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alt := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alt
 		}
