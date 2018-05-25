@@ -35,6 +35,7 @@ func (c *ActaDevolucionController) Post() {
 	var v models.ActaDevolucion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddActaDevolucion(&v); err == nil {
+			beego.Error(v)
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {

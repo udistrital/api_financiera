@@ -6,10 +6,10 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-	"github.com/fatih/structs"	
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
-	"github.com/udistrital/api_financiera/utilidades"
-	
+	"github.com/udistrital/utils_oas/formatdata"
+
 )
 
 // AvanceLegalizacionController operations for AvanceLegalizacion
@@ -66,7 +66,7 @@ func (c *AvanceLegalizacionController) AddAvanceLegalizacionCompra() {
 		} else {
 			alertdb := structs.Map(err)
 			var code string
-			utilidades.FillStruct(alertdb["Code"], &code)
+			formatdata.FillStruct(alertdb["Code"], &code)
 			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
 			c.Data["json"] = alert
 		}
