@@ -184,11 +184,16 @@ func DeleteRubro(id int) (err error) {
 			}
 
 		} else {
+			fmt.Println("Error 1 ", err)
 			o.Rollback()
 		}
 		if num, err = o.Delete(&Rubro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 			o.Commit()
+		}else{
+			fmt.Println("Error 2 ", err)		
+			
+			o.Rollback()
 		}
 	}
 	return

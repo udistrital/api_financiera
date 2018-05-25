@@ -7,8 +7,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/udistrital/api_financiera/controllers"
 	"github.com/udistrital/api_financiera/pacUtils"
-	"github.com/udistrital/utils_oas/apiStatusLib"
 	_ "github.com/udistrital/api_financiera/routers"
+	"github.com/udistrital/utils_oas/apiStatusLib"
 )
 
 func init() {

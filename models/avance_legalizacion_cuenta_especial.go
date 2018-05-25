@@ -9,48 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type RubroHomologado struct {
-	Id                int      `orm:"column(id);pk"`
-	Rubro             int   `orm:"column(rubro)"`
-	CodigoHomologado  string   `orm:"column(codigo_homologado)"`
-	NombreHomologado  string   `orm:"column(nombre_homologado)"`
-	EntidadHomologado *Entidad `orm:"column(entidad_homologado);rel(fk)"`
-	Vigencia          float64  `orm:"column(vigencia)"`
+type AvanceLegalizacionCuentaEspecial struct {
+	Id                 int                 `orm:"column(id);pk;auto"`
+	AvanceLegalizacion *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
+	CuentaEspecial     *CuentaEspecial     `orm:"column(cuenta_especial);rel(fk)"`
 }
 
-func (t *RubroHomologado) TableName() string {
-	return "rubro_homologado"
+func (t *AvanceLegalizacionCuentaEspecial) TableName() string {
+	return "avance_legalizacion_cuenta_especial"
 }
 
 func init() {
-	orm.RegisterModel(new(RubroHomologado))
+	orm.RegisterModel(new(AvanceLegalizacionCuentaEspecial))
 }
 
-// AddRubroHomologado insert a new RubroHomologado into database and returns
+// AddAvanceLegalizacionCuentaEspecial insert a new AvanceLegalizacionCuentaEspecial into database and returns
 // last inserted Id on success.
-func AddRubroHomologado(m *RubroHomologado) (id int64, err error) {
+func AddAvanceLegalizacionCuentaEspecial(m *AvanceLegalizacionCuentaEspecial) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetRubroHomologadoById retrieves RubroHomologado by Id. Returns error if
+// GetAvanceLegalizacionCuentaEspecialById retrieves AvanceLegalizacionCuentaEspecial by Id. Returns error if
 // Id doesn't exist
-func GetRubroHomologadoById(id int) (v *RubroHomologado, err error) {
+func GetAvanceLegalizacionCuentaEspecialById(id int) (v *AvanceLegalizacionCuentaEspecial, err error) {
 	o := orm.NewOrm()
-	v = &RubroHomologado{Id: id}
+	v = &AvanceLegalizacionCuentaEspecial{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllRubroHomologado retrieves all RubroHomologado matches certain condition. Returns empty list if
+// GetAllAvanceLegalizacionCuentaEspecial retrieves all AvanceLegalizacionCuentaEspecial matches certain condition. Returns empty list if
 // no records exist
-func GetAllRubroHomologado(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllAvanceLegalizacionCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RubroHomologado))
+	qs := o.QueryTable(new(AvanceLegalizacionCuentaEspecial)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -100,7 +97,7 @@ func GetAllRubroHomologado(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []RubroHomologado
+	var l []AvanceLegalizacionCuentaEspecial
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -123,11 +120,11 @@ func GetAllRubroHomologado(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateRubroHomologado updates RubroHomologado by Id and returns error if
+// UpdateAvanceLegalizacionCuentaEspecial updates AvanceLegalizacionCuentaEspecial by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateRubroHomologadoById(m *RubroHomologado) (err error) {
+func UpdateAvanceLegalizacionCuentaEspecialById(m *AvanceLegalizacionCuentaEspecial) (err error) {
 	o := orm.NewOrm()
-	v := RubroHomologado{Id: m.Id}
+	v := AvanceLegalizacionCuentaEspecial{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -138,15 +135,15 @@ func UpdateRubroHomologadoById(m *RubroHomologado) (err error) {
 	return
 }
 
-// DeleteRubroHomologado deletes RubroHomologado by Id and returns error if
+// DeleteAvanceLegalizacionCuentaEspecial deletes AvanceLegalizacionCuentaEspecial by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteRubroHomologado(id int) (err error) {
+func DeleteAvanceLegalizacionCuentaEspecial(id int) (err error) {
 	o := orm.NewOrm()
-	v := RubroHomologado{Id: id}
+	v := AvanceLegalizacionCuentaEspecial{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&RubroHomologado{Id: id}); err == nil {
+		if num, err = o.Delete(&AvanceLegalizacionCuentaEspecial{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
