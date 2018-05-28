@@ -15,8 +15,8 @@ type ProductoRubro struct {
 	Rubro             *Rubro    `orm:"column(rubro);rel(fk)"`
 	Producto          *Producto `orm:"column(producto);rel(fk)"`
 	ValorDistribucion float64   `orm:"column(valor_distribucion)"`
-	Activo            bool      `orm:"column(activo),default(true)"`
-	FechaRegistro     time.Time `orm:"column(fecha_registro),auto_now_add"`
+	Activo            bool      `orm:"column(activo);default(true)"`
+	FechaRegistro     time.Time `orm:"column(fecha_registro);auto_now_add"`
 }
 
 func (t *ProductoRubro) TableName() string {

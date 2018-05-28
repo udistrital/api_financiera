@@ -14,10 +14,11 @@ type CuentaDevolucion struct {
 	Banco        int    `orm:"column(banco)"`
 	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
 	NumeroCuenta string `orm:"column(numero_cuenta)"`
-}
+	Titular			 int		`orm:"column(titular)"`
+	}
 
 func (t *CuentaDevolucion) TableName() string {
-	return "cuenta_devolucion"
+	return "cuenta_bancaria_ente"
 }
 
 func init() {
