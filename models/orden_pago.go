@@ -19,7 +19,6 @@ type Usuario struct {
 type OrdenPago struct {
 	Id                       int                         `orm:"column(id);pk;auto"`
 	Vigencia                 float64                     `orm:"column(vigencia)"`
-	RegistroPresupuestal     *RegistroPresupuestal       `orm:"column(registro_presupuestal);rel(fk)"`
 	ValorBase                float64                     `orm:"column(valor_base)"`
 	Convenio                 int                         `orm:"column(convenio);null"`
 	SubTipoOrdenPago         *SubTipoOrdenPago           `orm:"column(sub_tipo_orden_pago);rel(fk)"`
