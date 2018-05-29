@@ -829,6 +829,12 @@ func init() {
 				&controllers.OrdenPagoRegistroPresupuestalController{},
 			),
 		),
+
+    beego.NSNamespace("/informacion_adicional_banco",
+			beego.NSInclude(
+				&controllers.InformacionAdicionalBancoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
