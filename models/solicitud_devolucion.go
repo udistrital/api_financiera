@@ -16,8 +16,8 @@ import (
 
 type SolicitudDevolucion struct {
 	Id               int                  `orm:"column(id);pk;auto"`
-	Solicitante      *DocumentoDevolucion `orm:"column(solicitante);rel(fk)"`
-	Beneficiario     *DocumentoDevolucion `orm:"column(beneficiario);rel(fk)"`
+	Solicitante      int					 				`orm:"column(solicitante)"`
+	Beneficiario     int 									`orm:"column(beneficiario)"`
 	FormaPago        *FormaPago           `orm:"column(forma_pago);rel(fk)"`
 	RazonDevolucion  *RazonDevolucion     `orm:"column(razon_devolucion);rel(fk)"`
 	Vigencia         float64              `orm:"column(vigencia)"`
@@ -25,7 +25,7 @@ type SolicitudDevolucion struct {
 	CuentaDevolucion *CuentaDevolucion    `orm:"column(cuenta_devolucion);rel(fk)"`
 	Observaciones    string               `orm:"column(observaciones)"`
 	FechaRegistro    time.Time            `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
-	Soporte          *ActaDevolucion      `orm:"column(soporte);rel(fk)"`
+	Soporte          int							    `orm:"column(soporte)"`
 }
 
 func (t *SolicitudDevolucion) TableName() string {
@@ -168,9 +168,6 @@ func DeleteSolicitudDevolucion(id int) (err error) {
 func AddDevolution(request map[string]interface{}) (err error) {
 
 	var solicitudDevol SolicitudDevolucion
-	var documentoSol *DocumentoDevolucion
-	var documentoBen *DocumentoDevolucion
-	var documentoBusqeda DocumentoDevolucion
 	var Id int64
 	var idDevol int64
 	var estadoDevol *EstadoDevolucion
@@ -194,10 +191,8 @@ func AddDevolution(request map[string]interface{}) (err error) {
 
 		solicitudEstado.EstadoDevolucion = estadoDevol
 		solicitudEstado.Activo = true
-		documentoBen = solicitudDevol.Beneficiario
-		documentoSol = solicitudDevol.Solicitante
 
-		err = o.QueryTable("cuenta_devolucion").
+		err = o.QueryTable("cuenta_bancaria_ente").
 			Filter("banco", solicitudDevol.CuentaDevolucion.Banco).
 			Filter("tipo_cuenta", solicitudDevol.CuentaDevolucion.TipoCuenta).
 			Filter("numero_cuenta", solicitudDevol.CuentaDevolucion.NumeroCuenta).
@@ -222,53 +217,6 @@ func AddDevolution(request map[string]interface{}) (err error) {
 			solicitudDevol.CuentaDevolucion.Id = cuentaDevol.Id
 		}
 
-		err = o.QueryTable("documento_devolucion").
-			Filter("Origen", documentoBen.Origen).
-			Filter("tipo_identificacion", documentoBen.TipoIdentificacion).
-			Filter("identificacion", documentoBen.Identificacion).
-			One(&documentoBusqeda)
-
-		if err == orm.ErrMultiRows {
-			beego.Error("Returned Multi Rows Not One")
-			return
-		}
-		if err == orm.ErrNoRows {
-
-			Id, err = o.Insert(documentoBen)
-			documentoBen.Id = int(Id)
-			beego.Error("Id Documento beneficiario",documentoBen.Id )
-			if err != nil {
-				beego.Error(err)
-				o.Rollback()
-				return
-			}
-		}else {
-			documentoBen.Id = documentoBusqeda.Id
-		}
-
-		beego.Error("Documento beneficiario",documentoBen.Id )
-		err = o.QueryTable("documento_devolucion").
-			Filter("Origen", documentoSol.Origen).
-			Filter("tipo_identificacion", documentoSol.TipoIdentificacion).
-			Filter("identificacion", documentoSol.Identificacion).
-			One(&documentoBusqeda)
-
-		if err == orm.ErrMultiRows {
-			beego.Error("Error consultado documento solicitante")
-			return
-		}
-
-		if err == orm.ErrNoRows {
-			Id, err = o.Insert(documentoSol)
-			documentoSol.Id = int(Id)
-			if err != nil {
-				beego.Error(err)
-				o.Rollback()
-				return
-			}
-		}else {
-			documentoSol.Id = documentoBusqeda.Id
-		}
 		lll, _ := json.Marshal(&solicitudDevol)
 		beego.Info(string(lll))
 		idDevol, err = o.Insert(&solicitudDevol)

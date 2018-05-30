@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// ActaDevolucionController operations for ActaDevolucion
-type ActaDevolucionController struct {
+// EstadoIngresoSinSituacionFondosController operations for EstadoIngresoSinSituacionFondos
+type EstadoIngresoSinSituacionFondosController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *ActaDevolucionController) URLMapping() {
+func (c *EstadoIngresoSinSituacionFondosController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *ActaDevolucionController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create ActaDevolucion
-// @Param	body		body 	models.ActaDevolucion	true		"body for ActaDevolucion content"
-// @Success 201 {int} models.ActaDevolucion
+// @Description create EstadoIngresoSinSituacionFondos
+// @Param	body		body 	models.EstadoIngresoSinSituacionFondos	true		"body for EstadoIngresoSinSituacionFondos content"
+// @Success 201 {int} models.EstadoIngresoSinSituacionFondos
 // @Failure 403 body is empty
 // @router / [post]
-func (c *ActaDevolucionController) Post() {
-	var v models.ActaDevolucion
+func (c *EstadoIngresoSinSituacionFondosController) Post() {
+	var v models.EstadoIngresoSinSituacionFondos
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddActaDevolucion(&v); err == nil {
+		if _, err := models.AddEstadoIngresoSinSituacionFondos(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *ActaDevolucionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get ActaDevolucion by id
+// @Description get EstadoIngresoSinSituacionFondos by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ActaDevolucion
+// @Success 200 {object} models.EstadoIngresoSinSituacionFondos
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *ActaDevolucionController) GetOne() {
+func (c *EstadoIngresoSinSituacionFondosController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetActaDevolucionById(id)
+	v, err := models.GetEstadoIngresoSinSituacionFondosById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *ActaDevolucionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get ActaDevolucion
+// @Description get EstadoIngresoSinSituacionFondos
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.ActaDevolucion
+// @Success 200 {object} models.EstadoIngresoSinSituacionFondos
 // @Failure 403
 // @router / [get]
-func (c *ActaDevolucionController) GetAll() {
+func (c *EstadoIngresoSinSituacionFondosController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *ActaDevolucionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllActaDevolucion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllEstadoIngresoSinSituacionFondos(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *ActaDevolucionController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the ActaDevolucion
+// @Description update the EstadoIngresoSinSituacionFondos
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.ActaDevolucion	true		"body for ActaDevolucion content"
-// @Success 200 {object} models.ActaDevolucion
+// @Param	body		body 	models.EstadoIngresoSinSituacionFondos	true		"body for EstadoIngresoSinSituacionFondos content"
+// @Success 200 {object} models.EstadoIngresoSinSituacionFondos
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *ActaDevolucionController) Put() {
+func (c *EstadoIngresoSinSituacionFondosController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.ActaDevolucion{Id: id}
+	v := models.EstadoIngresoSinSituacionFondos{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateActaDevolucionById(&v); err == nil {
+		if err := models.UpdateEstadoIngresoSinSituacionFondosById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *ActaDevolucionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the ActaDevolucion
+// @Description delete the EstadoIngresoSinSituacionFondos
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *ActaDevolucionController) Delete() {
+func (c *EstadoIngresoSinSituacionFondosController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteActaDevolucion(id); err == nil {
+	if err := models.DeleteEstadoIngresoSinSituacionFondos(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

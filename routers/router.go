@@ -823,8 +823,24 @@ func init() {
 				&controllers.DevolucionTributariaOrdenPagoController{},
 			),
 		),
+		beego.NSNamespace("/ingreso_sin_situacion_fondos",
+			beego.NSInclude(
+				&controllers.IngresoSinSituacionFondosController{},
+			),
+		),
 
-    beego.NSNamespace("/orden_pago_registro_presupuestal",
+		beego.NSNamespace("/estado_ingreso_sin_situacion_fondos",
+			beego.NSInclude(
+				&controllers.EstadoIngresoSinSituacionFondosController{},
+			),
+		),
+
+		beego.NSNamespace("/ingreso_sin_situacion_fondos_estado",
+			beego.NSInclude(
+				&controllers.IngresoSinSituacionFondosEstadoController{},
+			),
+		),
+		beego.NSNamespace("/orden_pago_registro_presupuestal",
 			beego.NSInclude(
 				&controllers.OrdenPagoRegistroPresupuestalController{},
 			),
@@ -836,7 +852,7 @@ func init() {
 			),
 		),
 
-    beego.NSNamespace("/informacion_adicional_banco",
+		beego.NSNamespace("/informacion_adicional_banco",
 			beego.NSInclude(
 				&controllers.InformacionAdicionalBancoController{},
 			),
