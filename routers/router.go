@@ -830,6 +830,12 @@ func init() {
 			),
 		),
 
+	beego.NSNamespace("/orden_pago_cuenta_especial",
+			beego.NSInclude(
+				&controllers.OrdenPagoCuentaEspecialController{},
+			),
+		),
+
     beego.NSNamespace("/informacion_adicional_banco",
 			beego.NSInclude(
 				&controllers.InformacionAdicionalBancoController{},
