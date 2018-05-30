@@ -6,7 +6,7 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// ConceptoConceptoController operations for ConceptoConcepto
+// ArbolConceptosController operations for ArbolConceptos
 type ArbolConceptosController struct {
 	beego.Controller
 }

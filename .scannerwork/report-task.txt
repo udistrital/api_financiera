@@ -1,0 +1,6 @@
+projectKey=api_financiera
+serverUrl=http://10.20.0.77:9000
+serverVersion=7.0.0.36138
+dashboardUrl=http://10.20.0.77:9000/dashboard/index/api_financiera
+ceTaskId=AWNLe5qfehz9wCZ_SCPB
+ceTaskUrl=http://10.20.0.77:9000/api/ce/task?id=AWNLe5qfehz9wCZ_SCPB
