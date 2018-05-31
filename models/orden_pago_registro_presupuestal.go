@@ -11,7 +11,7 @@ import (
 )
 
 type OrdenPagoRegistroPresupuestal struct {
-	Id                   int                   `orm:"column(id);pk"`
+	Id                   int                   `orm:"column(id);pk;auto"`
 	OrdenPago            *OrdenPago            `orm:"column(orden_pago);rel(fk)"`
 	RegistroPresupuestal *RegistroPresupuestal `orm:"column(registro_presupuestal);rel(fk)"`
 	FechaRegistro        time.Time             `orm:"column(fecha_registro);type(timestamp without time zone)"`

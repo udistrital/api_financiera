@@ -11,7 +11,7 @@ import (
 )
 
 type OrdenPagoCuentaEspecial struct {
-	Id             int             `orm:"column(id);pk"`
+	Id             int             `orm:"column(id);pk;auto"`
 	OrdenPago      *OrdenPago      `orm:"column(orden_pago);rel(fk)"`
 	CuentaEspecial *CuentaEspecial `orm:"column(cuenta_especial);rel(fk)"`
 	FormaPago      *FormaPago      `orm:"column(forma_pago);rel(fk)"`
