@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"strconv"
 	"strings"
 
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
 )
 
@@ -33,15 +35,21 @@ func (c *IngresoSinSituacionFondosEstadoController) URLMapping() {
 // @router / [post]
 func (c *IngresoSinSituacionFondosEstadoController) Post() {
 	var v models.IngresoSinSituacionFondosEstado
+	var code string
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddIngresoSinSituacionFondosEstado(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type:"error",Code:"E_" + code,Body:err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }

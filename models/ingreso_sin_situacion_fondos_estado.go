@@ -11,10 +11,10 @@ import (
 )
 
 type IngresoSinSituacionFondosEstado struct {
-	Id                              int                              `orm:"column(id);pk"`
+	Id                              int                              `orm:"column(id);pk;auto"`
 	IngresoSinSituacionFondos       *IngresoSinSituacionFondos       `orm:"column(ingreso_sin_situacion_fondos);rel(fk)"`
 	Activo                          bool                             `orm:"column(activo)"`
-	FechaRegistro                   time.Time                        `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro                   time.Time                        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	EstadoIngresoSinSituacionFondos *EstadoIngresoSinSituacionFondos `orm:"column(estado_ingreso_sin_situacion_fondos);rel(fk)"`
 }
 

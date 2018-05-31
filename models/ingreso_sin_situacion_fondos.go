@@ -5,19 +5,17 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
 type IngresoSinSituacionFondos struct {
-	Id              int              `orm:"column(id);pk"`
+	Id              int              `orm:"column(id);pk;auto"`
 	Rubro           *Rubro           `orm:"column(rubro);rel(fk)"`
 	Vigencia        int              `orm:"column(vigencia)"`
-	FechaRegistro   time.Time        `orm:"column(fecha_registro);type(timestamp without time zone)"`
-	UsuarioRegistro int              `orm:"column(usuario_registro);null"`
-	UnidadEjecutora *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk)"`
-	ValorIngreso    float64          `orm:"column(valor_ingreso);null"`
+	UsuarioRegistro int              `orm:"column(usuario_registro)"`
+	UnidadEjecutora int							 `orm:"column(unidad_ejecutora)"`
+	ValorIngreso    float64          `orm:"column(valor_ingreso)"`
 }
 
 func (t *IngresoSinSituacionFondos) TableName() string {
