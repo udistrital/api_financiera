@@ -186,7 +186,7 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 	id_nuevo, err := AddComprobante(nuevo_comprobante)
 
   //BUSCAR TERCERO
-	consulta_tercero["OrdenPago.Id"] = strconv.Itoa(op.RegistroPresupuestal.Id)
+	//consulta_tercero["OrdenPago.Id"] = strconv.Itoa(op.RegistroPresupuestal.Id)
 	respuesta, _ = GetAllOrdenPagoRegistroPresupuestal(consulta_tercero,fields,sortby,order,0,-1)
 	ObjetoRP = respuesta[0].(RegistroPresupuestal)
 
