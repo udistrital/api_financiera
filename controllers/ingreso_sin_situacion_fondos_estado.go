@@ -47,6 +47,7 @@ func (c *IngresoSinSituacionFondosEstadoController) Post() {
 			alert := models.Alert{Type:"error",Code:"E_" + code,Body:err}
 			c.Data["json"] = alert
 		}
+		
 	} else {
 		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = alert
