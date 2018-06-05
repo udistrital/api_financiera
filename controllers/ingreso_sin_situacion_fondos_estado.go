@@ -47,7 +47,7 @@ func (c *IngresoSinSituacionFondosEstadoController) Post() {
 			alert := models.Alert{Type:"error",Code:"E_" + code,Body:err}
 			c.Data["json"] = alert
 		}
-		
+
 	} else {
 		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		c.Data["json"] = alert
@@ -175,6 +175,46 @@ func (c *IngresoSinSituacionFondosEstadoController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// ChangeExistingStates ...
+// @Title ChangeExistingStates
+// @Description Change Existing States for IngresoSinSituacionFondosEstado
+// @Param	body		body 	models.IngresoSinSituacionFondosEstado	true		"body for IngresoSinSituacionFondosEstado content"
+// @Success 201 {int} models.IngresoSinSituacionFondosEstado
+// @Failure 403 body is empty
+// @router ChangeExistingStates/ [post]
+func (c *IngresoSinSituacionFondosEstadoController) ChangeExistingStates() {
+
+	var ingresoEstado models.IngresoSinSituacionFondosEstado
+	var code string
+	beego.Error("going on here....")
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ingresoEstado); err == nil {
+			if err = models.ChangeExistingStates(ingresoEstado.IngresoSinSituacionFondos.Id);err == nil{
+				if estadoIngreso, err := models.AddIngresoSinSituacionFondosEstado(&ingresoEstado); err == nil {
+					c.Ctx.Output.SetStatus(201)
+					alert := models.Alert{Type: "success", Code: "S_543", Body: estadoIngreso}
+					c.Data["json"] = alert
+				}else{
+					alertdb := structs.Map(err)
+					formatdata.FillStruct(alertdb["Code"], &code)
+					alert := models.Alert{Type:"error",Code:"E_" + code,Body:err}
+					beego.Error(err.Error())
+					c.Data["json"] = alert
+				}
+			}else{
+				alertdb := structs.Map(err)
+				formatdata.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type:"error",Code:"E_" + code,Body:err}
+				beego.Error(err.Error())
+				c.Data["json"] = alert
+			}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		c.Data["json"] = alert
+		beego.Error(err.Error())
 	}
 	c.ServeJSON()
 }

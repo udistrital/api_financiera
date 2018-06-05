@@ -3343,6 +3343,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoSinSituacionFondosEstadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:IngresoSinSituacionFondosEstadoController"],
+		beego.ControllerComments{
+			Method: "ChangeExistingStates",
+			Router: `ChangeExistingStates/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:InversionConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:InversionConceptoController"],
 		beego.ControllerComments{
 			Method: "Post",
