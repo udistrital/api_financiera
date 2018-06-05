@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
 type IngresoSinSituacionFondosEstado struct {
-	Id                              int                              `orm:"column(id);pk"`
+	Id                              int                              `orm:"column(id);pk;auto"`
 	IngresoSinSituacionFondos       *IngresoSinSituacionFondos       `orm:"column(ingreso_sin_situacion_fondos);rel(fk)"`
 	Activo                          bool                             `orm:"column(activo)"`
-	FechaRegistro                   time.Time                        `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro                   time.Time                        `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	EstadoIngresoSinSituacionFondos *EstadoIngresoSinSituacionFondos `orm:"column(estado_ingreso_sin_situacion_fondos);rel(fk)"`
 }
 
@@ -50,7 +51,7 @@ func GetIngresoSinSituacionFondosEstadoById(id int) (v *IngresoSinSituacionFondo
 func GetAllIngresoSinSituacionFondosEstado(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(IngresoSinSituacionFondosEstado))
+	qs := o.QueryTable(new(IngresoSinSituacionFondosEstado)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -150,5 +151,24 @@ func DeleteIngresoSinSituacionFondosEstado(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+// Change existing states to false if those are true
+func ChangeExistingStates(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	if _, err = o.QueryTable("ingreso_sin_situacion_fondos_estado").
+		Filter("ingreso_sin_situacion_fondos", id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		});err != nil {
+			o.Rollback()
+			beego.Error(" error ",err.Error())
+			return
+		}else {
+			o.Commit()
+		}
 	return
 }
