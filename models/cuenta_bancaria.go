@@ -19,6 +19,7 @@ type CuentaBancaria struct {
 	TipoRecurso     *TipoRecurso        `orm:"column(tipo_recurso);rel(fk)"`
 	Sucursal        int                 `orm:"column(sucursal)"`
 	UnidadEjecutora *UnidadEjecutora    `orm:"column(unidad_ejecutora);rel(fk)"`
+	CuentaContable  *CuentaContable     `orm:"column(cuenta_contable);rel(fk)"`
 }
 
 func (t *CuentaBancaria) TableName() string {
