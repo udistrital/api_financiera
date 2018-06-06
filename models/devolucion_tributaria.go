@@ -17,10 +17,10 @@ type DevolucionTributaria struct {
 	Id               int                  `orm:"column(id);pk;auto"`
 	Vigencia         float64              `orm:"column(vigencia)"`
 	UnidadEjecutora  *UnidadEjecutora     `orm:"column(unidad_ejecutora);rel(fk)"`
-	Acta             *ActaDevolucion      `orm:"column(acta);rel(fk)"`
+	Acta             int						      `orm:"column(acta)"`
 	Oficio           int                  `orm:"column(oficio)"`
 	FechaOficio      time.Time            `orm:"column(fecha_oficio);type(date)"`
-	Solicitante      *DocumentoDevolucion `orm:"column(solicitante);rel(fk)"`
+	Solicitante      int 									`orm:"column(solicitante)"`
 	FormaPago        *FormaPago           `orm:"column(forma_pago);rel(fk)"`
 	CuentaDevolucion *CuentaDevolucion    `orm:"column(cuenta_devolucion);rel(fk)"`
 	Justificacion    string               `orm:"column(justificacion)"`
@@ -166,8 +166,6 @@ func DeleteDevolucionTributaria(id int) (err error) {
 //if any insert fails
 func AddDevolucionTr(request map[string]interface{}) (tributariaDevol DevolucionTributaria, err error) {
 
-	var documentoSol *DocumentoDevolucion
-	var documentoBusqeda DocumentoDevolucion
 	var Id int64
 	var idDevol int64
 	var cuentaDevol CuentaDevolucion
@@ -186,9 +184,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	if err == nil {
 		o.Begin()
 
-		documentoSol = tributariaDevol.Solicitante
-
-		err = o.QueryTable("cuenta_devolucion").
+		err = o.QueryTable("cuenta_bancaria_ente").
 			Filter("banco", tributariaDevol.CuentaDevolucion.Banco).
 			Filter("tipo_cuenta", tributariaDevol.CuentaDevolucion.TipoCuenta).
 			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
@@ -214,29 +210,6 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
 		}
 
-		err = o.QueryTable("documento_devolucion").
-			Filter("Origen", documentoSol.Origen).
-			Filter("tipo_identificacion", documentoSol.TipoIdentificacion).
-			Filter("identificacion", documentoSol.Identificacion).
-			One(&documentoBusqeda)
-
-		if err == orm.ErrMultiRows {
-			beego.Error("Error consultado documento solicitante")
-			return
-		}
-
-		if err == orm.ErrNoRows {
-			Id, err = o.Insert(documentoSol)
-			documentoSol.Id = int(Id)
-			if err != nil {
-				beego.Error(err)
-				o.Rollback()
-				return
-			}
-		}
-		if err == nil {
-			documentoSol.Id = documentoBusqeda.Id
-		}
 		lll, _ := json.Marshal(&tributariaDevol)
 		beego.Info(string(lll))
 		idDevol, err = o.Insert(&tributariaDevol)

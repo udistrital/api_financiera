@@ -10,7 +10,7 @@ import (
 )
 
 type OrdenDevolucionSolicitudDevolucion struct {
-	Id                  int                  `orm:"column(id);pk:auto"`
+	Id                  int                  `orm:"column(id);pk;auto"`
 	OrdenDevolucion     *OrdenDevolucion     `orm:"column(orden_devolucion);rel(fk)"`
 	SolicitudDevolucion *SolicitudDevolucion `orm:"column(solicitud_devolucion);rel(fk)"`
 }

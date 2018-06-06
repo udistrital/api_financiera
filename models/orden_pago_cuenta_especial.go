@@ -5,51 +5,54 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaDevolucion struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Banco        int    `orm:"column(banco)"`
-	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
-	NumeroCuenta string `orm:"column(numero_cuenta)"`
-	Titular			 int		`orm:"column(titular)"`
-	}
+type OrdenPagoCuentaEspecial struct {
+	Id             int             `orm:"column(id);pk;auto"`
+	OrdenPago      *OrdenPago      `orm:"column(orden_pago);rel(fk)"`
+	CuentaEspecial *CuentaEspecial `orm:"column(cuenta_especial);rel(fk)"`
+	FormaPago      *FormaPago      `orm:"column(forma_pago);rel(fk)"`
+	ValorBase      float64         `orm:"column(valor_base)"`
+	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	Usuario        int             `orm:"column(usuario)"`
+}
 
-func (t *CuentaDevolucion) TableName() string {
-	return "cuenta_bancaria_ente"
+func (t *OrdenPagoCuentaEspecial) TableName() string {
+	return "orden_pago_cuenta_especial"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaDevolucion))
+	orm.RegisterModel(new(OrdenPagoCuentaEspecial))
 }
 
-// AddCuentaDevolucion insert a new CuentaDevolucion into database and returns
+// AddOrdenPagoCuentaEspecial insert a new OrdenPagoCuentaEspecial into database and returns
 // last inserted Id on success.
-func AddCuentaDevolucion(m *CuentaDevolucion) (id int64, err error) {
+func AddOrdenPagoCuentaEspecial(m *OrdenPagoCuentaEspecial) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaDevolucionById retrieves CuentaDevolucion by Id. Returns error if
+// GetOrdenPagoCuentaEspecialById retrieves OrdenPagoCuentaEspecial by Id. Returns error if
 // Id doesn't exist
-func GetCuentaDevolucionById(id int) (v *CuentaDevolucion, err error) {
+func GetOrdenPagoCuentaEspecialById(id int) (v *OrdenPagoCuentaEspecial, err error) {
 	o := orm.NewOrm()
-	v = &CuentaDevolucion{Id: id}
+	v = &OrdenPagoCuentaEspecial{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaDevolucion retrieves all CuentaDevolucion matches certain condition. Returns empty list if
+// GetAllOrdenPagoCuentaEspecial retrieves all OrdenPagoCuentaEspecial matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaDevolucion))
+	qs := o.QueryTable(new(OrdenPagoCuentaEspecial))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +102,7 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []CuentaDevolucion
+	var l []OrdenPagoCuentaEspecial
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +125,11 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateCuentaDevolucion updates CuentaDevolucion by Id and returns error if
+// UpdateOrdenPagoCuentaEspecial updates OrdenPagoCuentaEspecial by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
+func UpdateOrdenPagoCuentaEspecialById(m *OrdenPagoCuentaEspecial) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: m.Id}
+	v := OrdenPagoCuentaEspecial{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +140,15 @@ func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
 	return
 }
 
-// DeleteCuentaDevolucion deletes CuentaDevolucion by Id and returns error if
+// DeleteOrdenPagoCuentaEspecial deletes OrdenPagoCuentaEspecial by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaDevolucion(id int) (err error) {
+func DeleteOrdenPagoCuentaEspecial(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: id}
+	v := OrdenPagoCuentaEspecial{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&OrdenPagoCuentaEspecial{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

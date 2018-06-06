@@ -9,47 +9,48 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaDevolucion struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Banco        int    `orm:"column(banco)"`
-	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
-	NumeroCuenta string `orm:"column(numero_cuenta)"`
-	Titular			 int		`orm:"column(titular)"`
-	}
+type EstadoIngresoSinSituacionFondos struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden)"`
+	Activo            bool    `orm:"column(activo)"`
+}
 
-func (t *CuentaDevolucion) TableName() string {
-	return "cuenta_bancaria_ente"
+func (t *EstadoIngresoSinSituacionFondos) TableName() string {
+	return "estado_ingreso_sin_situacion_fondos"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaDevolucion))
+	orm.RegisterModel(new(EstadoIngresoSinSituacionFondos))
 }
 
-// AddCuentaDevolucion insert a new CuentaDevolucion into database and returns
+// AddEstadoIngresoSinSituacionFondos insert a new EstadoIngresoSinSituacionFondos into database and returns
 // last inserted Id on success.
-func AddCuentaDevolucion(m *CuentaDevolucion) (id int64, err error) {
+func AddEstadoIngresoSinSituacionFondos(m *EstadoIngresoSinSituacionFondos) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaDevolucionById retrieves CuentaDevolucion by Id. Returns error if
+// GetEstadoIngresoSinSituacionFondosById retrieves EstadoIngresoSinSituacionFondos by Id. Returns error if
 // Id doesn't exist
-func GetCuentaDevolucionById(id int) (v *CuentaDevolucion, err error) {
+func GetEstadoIngresoSinSituacionFondosById(id int) (v *EstadoIngresoSinSituacionFondos, err error) {
 	o := orm.NewOrm()
-	v = &CuentaDevolucion{Id: id}
+	v = &EstadoIngresoSinSituacionFondos{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaDevolucion retrieves all CuentaDevolucion matches certain condition. Returns empty list if
+// GetAllEstadoIngresoSinSituacionFondos retrieves all EstadoIngresoSinSituacionFondos matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoIngresoSinSituacionFondos(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaDevolucion))
+	qs := o.QueryTable(new(EstadoIngresoSinSituacionFondos))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +100,7 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []CuentaDevolucion
+	var l []EstadoIngresoSinSituacionFondos
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +123,11 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateCuentaDevolucion updates CuentaDevolucion by Id and returns error if
+// UpdateEstadoIngresoSinSituacionFondos updates EstadoIngresoSinSituacionFondos by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
+func UpdateEstadoIngresoSinSituacionFondosById(m *EstadoIngresoSinSituacionFondos) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: m.Id}
+	v := EstadoIngresoSinSituacionFondos{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +138,15 @@ func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
 	return
 }
 
-// DeleteCuentaDevolucion deletes CuentaDevolucion by Id and returns error if
+// DeleteEstadoIngresoSinSituacionFondos deletes EstadoIngresoSinSituacionFondos by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaDevolucion(id int) (err error) {
+func DeleteEstadoIngresoSinSituacionFondos(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: id}
+	v := EstadoIngresoSinSituacionFondos{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoIngresoSinSituacionFondos{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
