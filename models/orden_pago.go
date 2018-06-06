@@ -194,12 +194,14 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
 	ordenPagoRegistroPresupuestal := []OrdenPagoRegistroPresupuestal{}
+	ordenPagoCuentaEspecial := []OrdenPagoCuentaEspecial{}
 	err1 := formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
 	err2 := formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
 	err3 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
 	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
 	err5 := formatdata.FillStruct(DataOpProveedor["RegistroPresupuestal"], &ordenPagoRegistroPresupuestal)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
+	err6 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &ordenPagoCuentaEspecial)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil{
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
 		alerta.Body = "Erro en la estructura de parametro de entrada en RegistrarOpProveedor"
@@ -314,6 +316,22 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 		}
 		if movimientoContable[i].CuentaEspecial != nil {
 			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
+			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
+				OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
+				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
+				FormaPago: &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
+				ValorBase: 300000,
+				FechaRegistro: time.Now(),
+				Usuario: usuario.Id,
+			}
+			_, err = o.Insert(&ordenPagoCuentaEspecialData)
+			if err != nil {
+				alerta.Type = "errorCuentaEspecial"
+				alerta.Code = "E_OPP_04"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}			
 		}
 
 		_, err = o.Insert(&movimientoContableData)
