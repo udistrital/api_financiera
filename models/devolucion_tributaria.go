@@ -189,15 +189,15 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			Filter("tipo_cuenta", tributariaDevol.CuentaDevolucion.TipoCuenta).
 			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
 			One(&cuentaDevol)
-		beego.Error(err)
-		if err == orm.ErrMultiRows {
+
+
+		if err == nil {
+			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
+		}else if err == orm.ErrMultiRows {
 			beego.Error("Returned Multi Rows Not One")
 			return
-		}
-
-		if err == orm.ErrNoRows {
+		}else if err == orm.ErrNoRows {
 			Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
-			beego.Error("id", Id, "error", err)
 			if err != nil {
 				beego.Error(err)
 				o.Rollback()
@@ -206,9 +206,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 				tributariaDevol.CuentaDevolucion.Id = int(Id)
 			}
 		}
-		if err == nil {
-			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
-		}
+
 
 		lll, _ := json.Marshal(&tributariaDevol)
 		beego.Info(string(lll))
