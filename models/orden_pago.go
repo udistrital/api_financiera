@@ -320,7 +320,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 				OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
 				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
 				FormaPago: &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
-				ValorBase: 300000,
+				ValorBase: ordenPagoCuentaEspecial[i].ValorBase,
 				FechaRegistro: time.Now(),
 				Usuario: usuario.Id,
 			}
