@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/manucorporat/try"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/udistrital/utils_oas/optimize"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/astaxie/beego"
-	"github.com/fatih/structs"
-	"github.com/udistrital/api_financiera/models"
-	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/udistrital/utils_oas/optimize"
 )
 
 // ApropiacionController operations for Apropiacion
@@ -386,4 +386,33 @@ func (c *ApropiacionController) VigenciaApropiaciones() {
 		c.Data["json"] = m
 	}
 	c.ServeJSON()
+}
+
+// UpdateApropiacionValue ...
+// @Title UpdateApropiacionValue
+// @Description Obtiene todas las vigencias no repetidas de las apropiaciones
+// @Success 200 {string} resultado
+// @Failure 403
+// @router /UpdateApropiacionValue/:id/:valor [put]
+func (c *ApropiacionController) UpdateApropiacionValue() {
+	idStr := c.Ctx.Input.Param(":id")
+	valStr := c.Ctx.Input.Param(":valor")
+	try.This(func() {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			panic(err.Error())
+		}
+		val, err := strconv.ParseFloat(valStr, 64)
+		if err != nil {
+			panic(err.Error())
+		}
+		models.UpdateApropiacionValue(id, val)
+		c.Data["json"] = map[string]interface{}{"Code": "A_S002", "Body": nil, "Type": "success"}
+
+	}).Catch(func(e try.E) {
+		fmt.Println("expc ", e)
+		c.Data["json"] = map[string]interface{}{"Code": "E_0458", "Body": e, "Type": "error"}
+	})
+	c.ServeJSON()
+
 }
