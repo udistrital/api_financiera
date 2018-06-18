@@ -1217,6 +1217,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"],
 		beego.ControllerComments{
+			Method: "GetPrincDisponibilidadInfo",
+			Router: `/GetPrincDisponibilidadInfo/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DisponibilidadController"],
+		beego.ControllerComments{
 			Method: "TotalDisponibilidades",
 			Router: `/TotalDisponibilidades/:vigencia`,
 			AllowHTTPMethods: []string{"get"},

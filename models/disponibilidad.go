@@ -726,3 +726,16 @@ func GetValorActualCDP(cdp_id int) (total float64, err error) {
 	total = valor - comprometido - anulado - anulado_rp
 	return
 }
+
+//GetPrincDisponibilidadInfo... Obtiene la informacion principal de una disponibilidad
+//afectacion
+func GetPrincDisponibilidadInfo(id int) (interface{}, error) {
+	o := orm.NewOrm()
+	var maps []orm.Params
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("apropiacion as \"Apropiacion\", valor as \"Valor\"").
+		From("financiera.disponibilidad_apropiacion").
+		Where("disponibilidad = ?")
+	_, err := o.Raw(qb.String(), id).Values(&maps)
+	return maps, err
+}
