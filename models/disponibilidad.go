@@ -739,3 +739,65 @@ func GetPrincDisponibilidadInfo(id int) (interface{}, error) {
 	_, err := o.Raw(qb.String(), id).Values(&maps)
 	return maps, err
 }
+
+//DeleteDisponibilidadData... Elimina la disponibilidad dado su id
+// y todos los datos que esta representa.
+func DeleteDisponibilidadData(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+
+	var maps []orm.Params
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.disponibilidad_proceso_externo").
+		Where("disponibilidad = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&maps); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range maps {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&DisponibilidadProcesoExterno{Id: idDispExt}); err != nil {
+				o.Rollback()
+				return err
+			}
+		} else {
+			o.Rollback()
+			return err
+		}
+
+	}
+
+	var dispApr []orm.Params
+	qb, _ = orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.disponibilidad_apropiacion").
+		Where("disponibilidad = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&dispApr); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range dispApr {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&DisponibilidadApropiacion{Id: idDispExt}); err != nil {
+				o.Rollback()
+				return err
+			}
+
+		} else {
+			o.Rollback()
+			return err
+		}
+
+	}
+
+	if _, err = o.Delete(&Disponibilidad{Id: id}); err != nil {
+		o.Rollback()
+		return
+	}
+
+	o.Commit()
+	return
+}

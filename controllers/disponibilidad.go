@@ -315,4 +315,22 @@ func (c *DisponibilidadController) GetPrincDisponibilidadInfo() {
 	c.ServeJSON()
 }
 
+// DeleteDisponibilidadData ...
+// @Title DeleteDisponibilidadData
+// @Description delete the Disponibilidad
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteDisponibilidadData/:id [delete]
+func (c *DisponibilidadController) DeleteDisponibilidadData() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if err := models.DeleteDisponibilidadData(id); err == nil {
+		c.Data["json"] = models.Alert{Code: "S_554", Body: nil, Type: "success"}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+	c.ServeJSON()
+}
+
 //-------------------
