@@ -3729,6 +3729,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"],
 		beego.ControllerComments{
+			Method: "DeleteRpData",
+			Router: `/DeleteRpData/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RegistroPresupuestalController"],
+		beego.ControllerComments{
 			Method: "TotalRp",
 			Router: `/TotalRp/:vigencia`,
 			AllowHTTPMethods: []string{"get"},
