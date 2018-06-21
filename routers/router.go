@@ -857,6 +857,11 @@ func init() {
 				&controllers.InformacionAdicionalBancoController{},
 			),
 		),
+		beego.NSNamespace("/rubro_homologado_rubro",
+			beego.NSInclude(
+				&controllers.RubroHomologadoRubroController{},
+				),
+			),
 	)
 	beego.AddNamespace(ns)
 }

@@ -1,23 +1,22 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
-	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
 )
 
-// RubroHomologadoController operations for RubroHomologado
-type RubroHomologadoController struct {
+// RubroHomologadoRubroController operations for RubroHomologadoRubro
+type RubroHomologadoRubroController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *RubroHomologadoController) URLMapping() {
+func (c *RubroHomologadoRubroController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -27,40 +26,37 @@ func (c *RubroHomologadoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create RubroHomologado
-// @Param	body		body 	models.RubroHomologado	true		"body for RubroHomologado content"
-// @Success 201 {int} models.RubroHomologado
+// @Description create RubroHomologadoRubro
+// @Param	body		body 	models.RubroHomologadoRubro	true		"body for RubroHomologadoRubro content"
+// @Success 201 {int} models.RubroHomologadoRubro
 // @Failure 403 body is empty
 // @router / [post]
-func (c *RubroHomologadoController) Post() {
-	var v models.RubroHomologado
-	beego.Error("going on post from rubro homologado")
+func (c *RubroHomologadoRubroController) Post() {
+	var v models.RubroHomologadoRubro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddRubroHomologado(&v); err == nil {
+		if _, err := models.AddRubroHomologadoRubro(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+			c.Data["json"] = v
 		} else {
-			alertdb:=structs.Map(err)
-			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+			c.Data["json"] = err.Error()
 		}
 	} else {
-		beego.Error("error ",err.Error())
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err.Error()}
+		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
 }
 
 // GetOne ...
 // @Title Get One
-// @Description get RubroHomologado by id
+// @Description get RubroHomologadoRubro by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.RubroHomologado
+// @Success 200 {object} models.RubroHomologadoRubro
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *RubroHomologadoController) GetOne() {
+func (c *RubroHomologadoRubroController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetRubroHomologadoById(id)
+	v, err := models.GetRubroHomologadoRubroById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -71,17 +67,17 @@ func (c *RubroHomologadoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get RubroHomologado
+// @Description get RubroHomologadoRubro
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.RubroHomologado
+// @Success 200 {object} models.RubroHomologadoRubro
 // @Failure 403
 // @router / [get]
-func (c *RubroHomologadoController) GetAll() {
+func (c *RubroHomologadoRubroController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -123,7 +119,7 @@ func (c *RubroHomologadoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllRubroHomologado(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllRubroHomologadoRubro(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -134,18 +130,18 @@ func (c *RubroHomologadoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the RubroHomologado
+// @Description update the RubroHomologadoRubro
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.RubroHomologado	true		"body for RubroHomologado content"
-// @Success 200 {object} models.RubroHomologado
+// @Param	body		body 	models.RubroHomologadoRubro	true		"body for RubroHomologadoRubro content"
+// @Success 200 {object} models.RubroHomologadoRubro
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *RubroHomologadoController) Put() {
+func (c *RubroHomologadoRubroController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.RubroHomologado{Id: id}
+	v := models.RubroHomologadoRubro{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateRubroHomologadoById(&v); err == nil {
+		if err := models.UpdateRubroHomologadoRubroById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -158,15 +154,15 @@ func (c *RubroHomologadoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the RubroHomologado
+// @Description delete the RubroHomologadoRubro
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *RubroHomologadoController) Delete() {
+func (c *RubroHomologadoRubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteRubroHomologado(id); err == nil {
+	if err := models.DeleteRubroHomologadoRubro(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

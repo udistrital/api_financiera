@@ -9,47 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type RubroHomologado struct {
-	Id                int      `orm:"column(id);pk;auto"`
-	CodigoHomologado  string   `orm:"column(codigo_homologado)"`
-	NombreHomologado  string   `orm:"column(nombre_homologado)"`
-	Organizacion 			int			 `orm:"column(organizacion)"`
-	Vigencia          float64  `orm:"column(vigencia)"`
+type RubroHomologadoRubro struct {
+	Id              int              `orm:"column(id);pk;auto"`
+	RubroHomologado *RubroHomologado `orm:"column(rubro_homologado);rel(fk)"`
+	Rubro           *Rubro           `orm:"column(rubro);rel(fk)"`
 }
 
-func (t *RubroHomologado) TableName() string {
-	return "rubro_homologado"
+func (t *RubroHomologadoRubro) TableName() string {
+	return "rubro_homologado_rubro"
 }
 
 func init() {
-	orm.RegisterModel(new(RubroHomologado))
+	orm.RegisterModel(new(RubroHomologadoRubro))
 }
 
-// AddRubroHomologado insert a new RubroHomologado into database and returns
+// AddRubroHomologadoRubro insert a new RubroHomologadoRubro into database and returns
 // last inserted Id on success.
-func AddRubroHomologado(m *RubroHomologado) (id int64, err error) {
+func AddRubroHomologadoRubro(m *RubroHomologadoRubro) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetRubroHomologadoById retrieves RubroHomologado by Id. Returns error if
+// GetRubroHomologadoRubroById retrieves RubroHomologadoRubro by Id. Returns error if
 // Id doesn't exist
-func GetRubroHomologadoById(id int) (v *RubroHomologado, err error) {
+func GetRubroHomologadoRubroById(id int) (v *RubroHomologadoRubro, err error) {
 	o := orm.NewOrm()
-	v = &RubroHomologado{Id: id}
+	v = &RubroHomologadoRubro{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllRubroHomologado retrieves all RubroHomologado matches certain condition. Returns empty list if
+// GetAllRubroHomologadoRubro retrieves all RubroHomologadoRubro matches certain condition. Returns empty list if
 // no records exist
-func GetAllRubroHomologado(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllRubroHomologadoRubro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RubroHomologado))
+	qs := o.QueryTable(new(RubroHomologadoRubro))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +97,7 @@ func GetAllRubroHomologado(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []RubroHomologado
+	var l []RubroHomologadoRubro
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +120,11 @@ func GetAllRubroHomologado(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateRubroHomologado updates RubroHomologado by Id and returns error if
+// UpdateRubroHomologadoRubro updates RubroHomologadoRubro by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateRubroHomologadoById(m *RubroHomologado) (err error) {
+func UpdateRubroHomologadoRubroById(m *RubroHomologadoRubro) (err error) {
 	o := orm.NewOrm()
-	v := RubroHomologado{Id: m.Id}
+	v := RubroHomologadoRubro{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +135,15 @@ func UpdateRubroHomologadoById(m *RubroHomologado) (err error) {
 	return
 }
 
-// DeleteRubroHomologado deletes RubroHomologado by Id and returns error if
+// DeleteRubroHomologadoRubro deletes RubroHomologadoRubro by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteRubroHomologado(id int) (err error) {
+func DeleteRubroHomologadoRubro(id int) (err error) {
 	o := orm.NewOrm()
-	v := RubroHomologado{Id: id}
+	v := RubroHomologadoRubro{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&RubroHomologado{Id: id}); err == nil {
+		if num, err = o.Delete(&RubroHomologadoRubro{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
