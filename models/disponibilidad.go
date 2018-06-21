@@ -741,6 +741,8 @@ func GetPrincDisponibilidadInfo(id int) (interface{}, error) {
 		On("rubro.id = apropiacion.rubro").
 		Where("disponibilidad = ?")
 	_, err := o.Raw(qb.String(), id).Values(&maps)
+	maps[0]["Valor"], err = strconv.ParseFloat(maps[0]["Valor"].(string), 64) 
+
 	return maps, err
 }
 
