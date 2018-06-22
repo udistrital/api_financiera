@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
 )
 
 // RubroHomologadoRubroController operations for RubroHomologadoRubro
@@ -36,12 +37,15 @@ func (c *RubroHomologadoRubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroHomologadoRubro(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
 		} else {
-			c.Data["json"] = err.Error()
+			beego.Error(err)
+			alertdb:=structs.Map(err)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		beego.Error(err)
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
 	}
 	c.ServeJSON()
 }

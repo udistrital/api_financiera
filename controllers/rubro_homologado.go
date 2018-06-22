@@ -34,7 +34,6 @@ func (c *RubroHomologadoController) URLMapping() {
 // @router / [post]
 func (c *RubroHomologadoController) Post() {
 	var v models.RubroHomologado
-	beego.Error("going on post from rubro homologado")
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroHomologado(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
