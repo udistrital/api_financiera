@@ -172,3 +172,23 @@ func (c *RubroHomologadoController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+// GetRecordsNumber...
+// @Title Get One
+// @Description get RubroHomologado by id
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.RubroHomologado
+// @Failure 403 :id is empty
+// @router /GetRecordsNumber/:id [get]
+func (c *RubroHomologadoController) GetRecordsNumber() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetRecordsNumberById(id)
+	if err != nil {
+		alertdb:=structs.Map(err)
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+	} else {
+		c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+	}
+	c.ServeJSON()
+}

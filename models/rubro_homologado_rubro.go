@@ -42,12 +42,23 @@ func GetRubroHomologadoRubroById(id int) (v *RubroHomologadoRubro, err error) {
 	return nil, err
 }
 
+
+// GetRubroHomologadoRubroById retrieves RubroHomologadoRubro by Id. Returns error if
+// Id doesn't exist
+func GetRecordsNumberById(id int) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(RubroHomologadoRubro))
+	qs = qs.Filter("id", id)
+	cnt, err = qs.Count()
+	return
+}
+
 // GetAllRubroHomologadoRubro retrieves all RubroHomologadoRubro matches certain condition. Returns empty list if
 // no records exist
 func GetAllRubroHomologadoRubro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(RubroHomologadoRubro))
+	qs := o.QueryTable(new(RubroHomologadoRubro)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
