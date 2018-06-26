@@ -5009,8 +5009,24 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"],
 		beego.ControllerComments{
-			Method: "GetRecordsNumber",
-			Router: `/GetRecordsNumber/:id`,
+			Method: "GetRecordsNumberRubroHomologadoById",
+			Router: `/GetRecordsNumberRubroHomologadoById/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "GetRecordsNumberRubroHomologadoRubroById",
+			Router: `/GetRecordsNumberRubroHomologadoRubroById/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RubroHomologadoController"],
+		beego.ControllerComments{
+			Method: "ArbolRubros",
+			Router: `ArbolRubros/`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})

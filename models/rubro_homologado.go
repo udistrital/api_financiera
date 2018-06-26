@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"strconv"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 type RubroHomologado struct {
@@ -148,6 +151,72 @@ func DeleteRubroHomologado(id int) (err error) {
 		if num, err = o.Delete(&RubroHomologado{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
+	}
+	return
+}
+
+//get tree for homologate item
+func ArbolRubrosHomologados (CodigoPadre int,idEntidad int)(padres []map[string]interface{},err error){
+	o := orm.NewOrm()
+	var m []orm.Params
+	searchparam := ""
+	if CodigoPadre != 0 {
+		searchparam = strconv.Itoa(CodigoPadre)
+	}
+
+	searchparam = searchparam + "%"
+
+	_, err = o.Raw(`SELECT r.id as "Id", rh.codigo_homologado as "Codigo",rh.nombre_homologado as "Nombre" , r.descripcion as "Descripcion",rubro.id as "Id"
+	    from financiera.rubro r
+	    join financiera.rubro_homologado_rubro rhr on rhr.rubro = r.Id
+	    join financiera.rubro_homologado rh on rh.Id = rhr.rubro_homologado and rh.organizacion = ?
+	      where (r.id  in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+			  AND r.id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  OR (r.id not in (select DISTINCT rubro_padre from financiera.rubro_rubro)
+					AND r.id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
+			  AND r.codigo LIKE ?`,strconv.Itoa(CodigoPadre), searchparam).Values(&m)
+	if err == nil {
+		var res []interface{}
+		err = formatdata.FillStruct(m, &res)
+		done := make(chan interface{})
+		defer close(done)
+		resch := optimize.GenChanInterface(res...)
+		var params []interface{}
+		params = append(params, idEntidad)
+		charbolrubros := optimize.Digest(done, RamaRubrosHomologados, resch, params)
+		for padre := range charbolrubros {
+			padres = append(padres, padre.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
+		}
+	}
+	return
+}
+
+// get branches from homologate item
+func RamaRubrosHomologados(forkin interface{}, params ...interface{}) (forkout interface{}) {
+	fork := forkin.(map[string]interface{})
+	o := orm.NewOrm()
+	var m []orm.Params
+	var res []interface{}
+	_, err := o.Raw(`SELECT r.id as "Id", rh.codigo_homologado as "Codigo",rh.nombre_homologado as "Nombre" , r.descripcion as "Descripcion"
+	  from financiera.rubro r
+	  join financiera.rubro_rubro on  rubro_rubro.rubro_hijo = r.id
+	  join financiera.rubro_homologado_rubro rhr on rhr.rubro = r.Id
+	  join financiera.rubro_homologado rh on rh.Id = rhr.rubro_homologado and rh.organizacion=?
+	  WHERE rubro_rubro.rubro_padre = ?`, params,fork["Id"]).Values(&m)
+	if err == nil {
+		err = formatdata.FillStruct(m, &res)
+		var hijos []map[string]interface{}
+		done := make(chan interface{})
+		defer close(done)
+		resch := optimize.GenChanInterface(res...)
+		charbolrubros := optimize.Digest(done, RamaRubros, resch, params)
+		for hijo := range charbolrubros {
+			if hijo != nil {
+				hijos = append(hijos, hijo.(map[string]interface{}))
+			}
+		}
+		fork["Hijos"] = hijos
+		return fork
 	}
 	return
 }
