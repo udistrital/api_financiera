@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/optimize"
 )
@@ -160,13 +161,16 @@ func ArbolRubrosHomologados (CodigoPadre int,idEntidad int)(padres []map[string]
 	o := orm.NewOrm()
 	var m []orm.Params
 	searchparam := ""
+	beego.Error("going on arbol rubros homologados")
 	if CodigoPadre != 0 {
 		searchparam = strconv.Itoa(CodigoPadre)
 	}
 
 	searchparam = searchparam + "%"
 
-	_, err = o.Raw(`SELECT r.id as "Id", rh.codigo_homologado as "Codigo",rh.nombre_homologado as "Nombre" , r.descripcion as "Descripcion",rubro.id as "Id"
+	beego.Error("parametros padre rubro homologado entidad ",idEntidad, "searvh param ",searchparam)
+
+	_, err = o.Raw(`SELECT r.id as "Id", rh.codigo_homologado as "Codigo",rh.nombre_homologado as "Nombre" , r.descripcion as "Descripcion",r.id as "Id"
 	    from financiera.rubro r
 	    join financiera.rubro_homologado_rubro rhr on rhr.rubro = r.Id
 	    join financiera.rubro_homologado rh on rh.Id = rhr.rubro_homologado and rh.organizacion = ?
@@ -174,7 +178,7 @@ func ArbolRubrosHomologados (CodigoPadre int,idEntidad int)(padres []map[string]
 			  AND r.id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
 			  OR (r.id not in (select DISTINCT rubro_padre from financiera.rubro_rubro)
 					AND r.id not in (select DISTINCT rubro_hijo from financiera.rubro_rubro))
-			  AND r.codigo LIKE ?`,strconv.Itoa(CodigoPadre), searchparam).Values(&m)
+			  AND r.codigo LIKE ?`,strconv.Itoa(idEntidad), searchparam).Values(&m)
 	if err == nil {
 		var res []interface{}
 		err = formatdata.FillStruct(m, &res)

@@ -222,16 +222,17 @@ func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoRubroById() {
 // @Param	idEntidad	path 	string	true		"Id entidad para la cual se quieren consultar rubros"
 // @Param	idPadre		path 	string	true		"Id del padre para armar la rama default todos"
 // @Success 200 {object} models.Rubro
-// @Failure 403 :id is empty
-// @router ArbolRubros/ [get]
+// @Failure 403
+// @router /ArbolRubros [get]
 func (c *RubroHomologadoController) ArbolRubros() {
 	idEntidad, err := c.GetInt("idEntidad")
-	idPadre, _ := c.GetInt("idPadre")
+	idPadre, err := c.GetInt("idPadre")
 	if err == nil {
 		if _, err := os.Stat("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json"); os.IsNotExist(err) {
 			v, err := models.ArbolRubrosHomologados(idPadre,idEntidad)
 			if err != nil {
 				c.Data["json"] = err.Error()
+				beego.Error(err)
 			} else {
 				rankingsJson, _ := json.Marshal(v)
 				err = ioutil.WriteFile("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json", rankingsJson, 0644)
@@ -246,8 +247,8 @@ func (c *RubroHomologadoController) ArbolRubros() {
 		}
 
 	} else {
-		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
-		c.Data["json"] = e
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		beego.Error(err)
 	}
 	c.ServeJSON()
 }
