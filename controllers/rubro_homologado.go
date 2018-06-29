@@ -6,7 +6,11 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"io/ioutil"
+	"os"
+	"fmt"
 
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
 )
 
@@ -36,12 +40,14 @@ func (c *RubroHomologadoController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroHomologado(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb:=structs.Map(err)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		beego.Error("error ",err.Error())
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err.Error()}
 	}
 	c.ServeJSON()
 }
@@ -166,6 +172,83 @@ func (c *RubroHomologadoController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// GetRecordsNumber...
+// @Title Get Records Number RubroHomologado By Id
+// @Description get Number of records for homologate item
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.RubroHomologado
+// @Failure 403 :id is empty
+// @router /GetRecordsNumberRubroHomologadoById/:id [get]
+func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoById() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetRecordsNumberRubroHomologadoById(id)
+	if err != nil {
+		alertdb:=structs.Map(err)
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+	} else {
+		c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+	}
+	c.ServeJSON()
+}
+
+// GetRecordsNumberRubro...
+// @Title Get Records Number RubroHomologado By Id
+// @Description get Number of records for item when its homologate
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} interface
+// @Failure 403 :id is empty
+// @router /GetRecordsNumberRubroHomologadoRubroById/:id [get]
+func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoRubroById() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetRecordsNumberRubroHomologadoRubroById(id)
+	if err != nil {
+		alertdb:=structs.Map(err)
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+	} else {
+		c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+	}
+	c.ServeJSON()
+}
+
+// ArbolRubros ...
+// @Title ArbolRubros
+// @Description genera arbol rubros
+// @Param	idEntidad	path 	string	true		"Id entidad para la cual se quieren consultar rubros"
+// @Param	idPadre		path 	string	true		"Id del padre para armar la rama default todos"
+// @Success 200 {object} models.Rubro
+// @Failure 403
+// @router /ArbolRubros [get]
+func (c *RubroHomologadoController) ArbolRubros() {
+	idEntidad, err := c.GetInt("idEntidad")
+	idPadre, err := c.GetInt("idPadre")
+	if err == nil {
+		if _, err := os.Stat("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json"); os.IsNotExist(err) {
+			v, err := models.ArbolRubrosHomologados(idPadre,idEntidad)
+			if err != nil {
+				c.Data["json"] = err.Error()
+				beego.Error(err)
+			} else {
+				rankingsJson, _ := json.Marshal(v)
+				err = ioutil.WriteFile("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json", rankingsJson, 0644)
+				fmt.Println("err ", err)
+				c.Data["json"] = v
+			}
+		} else {
+			data, _ := ioutil.ReadFile("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json")
+			var v interface{}
+			err = json.Unmarshal(data, &v)
+			c.Data["json"] = v
+		}
+
+	} else {
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+		beego.Error(err)
 	}
 	c.ServeJSON()
 }
