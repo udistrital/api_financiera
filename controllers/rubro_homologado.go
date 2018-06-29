@@ -216,6 +216,30 @@ func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoRubroById() {
 	c.ServeJSON()
 }
 
+
+// GetRecordsNumberByEntity...
+// @Title Get Records Number RubroHomologado By Entity
+// @Description get Number of records for a entity
+// @Param	idEntidad	path 	string	true		"The key for staticblock"
+// @Success 200 {object} interface
+// @Failure 403 :id is empty
+// @router /GetRecordsNumberByEntity [get]
+func (c *RubroHomologadoController) GetRecordsNumberByEntity() {
+	if idEntidad, err := c.GetInt("idEntidad");err==nil{
+		v, err := models.GetRecordsNumberRubroByEntity(idEntidad)
+			if err != nil {
+				alertdb:=structs.Map(err)
+				c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+				} else {
+					c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+				}
+		}else{
+			c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+		}
+	c.ServeJSON()
+}
+
+
 // ArbolRubros ...
 // @Title ArbolRubros
 // @Description genera arbol rubros

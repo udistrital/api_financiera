@@ -224,3 +224,13 @@ func RamaRubrosHomologados(forkin interface{}, params ...interface{}) (forkout i
 	}
 	return
 }
+
+// GetRubroHomologadoRubroById retrieves RubroHomologadoRubro by Id. Returns error if
+// Id doesn't exist
+func GetRecordsNumberRubroByEntity(idEntidad int) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(RubroHomologado))
+	qs = qs.Filter("organizacion", idEntidad)
+	cnt, err = qs.Count()
+	return
+}
