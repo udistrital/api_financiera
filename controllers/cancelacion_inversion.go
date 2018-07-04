@@ -6,7 +6,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
 )
 
@@ -42,6 +42,29 @@ func (c *CancelacionInversionController) Post() {
 		}
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// CreateCancelacion ...
+// @Title Create Cancelacion
+// @Description create CancelacionInversion
+// @Param	body		body interface{}	true		"body for CancelacionInversion content"
+// @Success 201 {int} models.CancelacionInversion
+// @Failure 403 body is empty
+// @router CreateCancelacion/ [post]
+func(c *CancelacionInversionController) CreateCancelacion(){
+	var v map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if response, err := models.CreateCancelacion(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:response}
+		} else {
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
 	}
 	c.ServeJSON()
 }

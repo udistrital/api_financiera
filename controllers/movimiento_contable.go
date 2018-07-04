@@ -8,6 +8,7 @@ import (
 	"strings"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
 )
 
 // MovimientoContableController operations for MovimientoContable
@@ -42,6 +43,29 @@ func (c *MovimientoContableController) Post() {
 		}
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// PostArray ...
+// @Title Post Array
+// @Description create Array of MovimientoContable
+// @Param	body		body 	[]models.MovimientoContable	true		"body for MovimientoContable content"
+// @Success 201 {int} interface{}
+// @Failure 403 body is empty
+// @router PostArray/ [post]
+func (c *MovimientoContableController) PostArray() {
+	var v []models.MovimientoContable
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if _, err := models.AddMovimientoContableArray(&v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+		} else {
+			alertdb:=structs.Map(err)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
 	}
 	c.ServeJSON()
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
 )
 
@@ -36,12 +36,13 @@ func (c *CancelacionInversionConceptoController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddCancelacionInversionConcepto(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
 	}
 	c.ServeJSON()
 }

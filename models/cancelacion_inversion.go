@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type CancelacionInversion struct {
@@ -152,4 +154,96 @@ func DeleteCancelacionInversion(id int) (err error) {
 		}
 	}
 	return
+}
+
+
+
+
+//Create a entire record for a cancelation
+func CreateCancelacion(v map[string]interface{})(cancelacionInversion CancelacionInversion,err error){
+
+	var estadoResp EstadoCancelacionInversion
+	var tipoDocAfectante TipoDocumentoAfectante
+	var movimientosContables []MovimientoContable
+	var cancelacionConcepto CancelacionInversionConcepto
+	var idCancInv int64
+
+
+	o := orm.NewOrm()
+
+
+		err = formatdata.FillStruct(v["cancelacionInversion"],&cancelacionInversion)
+		err = formatdata.FillStruct(v["Movimientos"],&movimientosContables)
+		err = formatdata.FillStruct(v["cancelacionConcepto"],&cancelacionConcepto)
+		if err != nil {
+			beego.Error(err.Error())
+			return
+		}
+
+		o.Begin()
+
+		idCancInv, err = o.Insert(&cancelacionInversion)
+
+		if err == nil {
+			cancelacionInversion.Id = int(idCancInv);
+			cancelacionConcepto.Cancelacion = &cancelacionInversion;
+
+			_, err = o.Insert(&cancelacionConcepto)
+
+			if err == nil {
+				err = o.QueryTable("tipo_documento_afectante").
+					Filter("numeroOrden", 7).
+					One(&tipoDocAfectante)
+				if err == nil {
+					for _, element := range movimientosContables {
+						element.Fecha = time.Now()
+						element.CodigoDocumentoAfectante = cancelacionInversion.Id
+						element.TipoDocumentoAfectante = &tipoDocAfectante
+						element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+					}
+					_,err = AddMovimientoContableArray(&movimientosContables)
+					if  err == nil {
+						err = o.QueryTable("estado_cancelacion_inversion").
+							Filter("numeroOrden", 1).
+							One(&estadoResp)
+							if err == nil {
+								estadoCancInv := &CancelacionInversionEstadoCancelacion{CancelacionInversion: &cancelacionInversion, EstadoCancelacionInversion: &estadoResp, Activo: true, Usuario: cancelacionInversion.UsuarioEjecucion}
+								_, err = o.Insert(&estadoCancInv)
+								if  err == nil {
+									o.Commit()
+								} else {
+									beego.Error(err)
+									o.Rollback()
+									return
+								}
+							}else if err == orm.ErrMultiRows {
+								beego.Error("Returned Multi Rows Not One")
+								o.Rollback()
+								return
+							}else if err != nil {
+								o.Rollback()
+								return
+							}
+					}else{
+						beego.Error(err.Error())
+						o.Rollback()
+						return
+					}
+				}else if err == orm.ErrMultiRows {
+					beego.Error("Returned Multi Rows Not One")
+					o.Rollback()
+					return
+				}else if err != nil {
+					beego.Error(err)
+					o.Rollback()
+					return
+				}
+
+			}
+		} else {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+		return
 }
