@@ -171,10 +171,10 @@ func CreateCancelacion(v map[string]interface{})(cancelacionInversion Cancelacio
 
 	o := orm.NewOrm()
 
-
 		err = formatdata.FillStruct(v["cancelacionInversion"],&cancelacionInversion)
 		err = formatdata.FillStruct(v["Movimientos"],&movimientosContables)
 		err = formatdata.FillStruct(v["cancelacionConcepto"],&cancelacionConcepto)
+
 		if err != nil {
 			beego.Error(err.Error())
 			return
@@ -190,25 +190,26 @@ func CreateCancelacion(v map[string]interface{})(cancelacionInversion Cancelacio
 
 			_, err = o.Insert(&cancelacionConcepto)
 
-			if err == nil {
-				err = o.QueryTable("tipo_documento_afectante").
-					Filter("numeroOrden", 7).
-					One(&tipoDocAfectante)
-				if err == nil {
-					for _, element := range movimientosContables {
-						element.Fecha = time.Now()
-						element.CodigoDocumentoAfectante = cancelacionInversion.Id
-						element.TipoDocumentoAfectante = &tipoDocAfectante
-						element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
-					}
-					_,err = AddMovimientoContableArray(&movimientosContables)
 					if  err == nil {
 						err = o.QueryTable("estado_cancelacion_inversion").
 							Filter("numeroOrden", 1).
 							One(&estadoResp)
 							if err == nil {
 								estadoCancInv := &CancelacionInversionEstadoCancelacion{CancelacionInversion: &cancelacionInversion, EstadoCancelacionInversion: &estadoResp, Activo: true, Usuario: cancelacionInversion.UsuarioEjecucion}
-								_, err = o.Insert(&estadoCancInv)
+								_, err = o.Insert(estadoCancInv)
+								if err == nil {
+									err = o.QueryTable("tipo_documento_afectante").
+										Filter("numeroOrden", 7).
+										One(&tipoDocAfectante)
+									if err == nil {
+										for i, _:=range movimientosContables {
+											movimientosContables[i].Fecha = time.Now()
+											movimientosContables[i].CodigoDocumentoAfectante = cancelacionInversion.Id
+											movimientosContables[i].TipoDocumentoAfectante = &tipoDocAfectante
+											movimientosContables[i].EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+										}
+
+										_,err = AddMovimientoContableArray(&movimientosContables)
 								if  err == nil {
 									o.Commit()
 								} else {
