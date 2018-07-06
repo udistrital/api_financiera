@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-	"github.com/fatih/structs"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // CancelacionInversionController operations for CancelacionInversion
@@ -53,18 +54,18 @@ func (c *CancelacionInversionController) Post() {
 // @Success 201 {int} models.CancelacionInversion
 // @Failure 403 body is empty
 // @router CreateCancelacion/ [post]
-func(c *CancelacionInversionController) CreateCancelacion(){
+func (c *CancelacionInversionController) CreateCancelacion() {
 	var v map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if response, err := models.CreateCancelacion(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:response}
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: response}
 		} else {
 			alertdb := structs.Map(err)
-			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err}
 		}
 	} else {
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
 }
