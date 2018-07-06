@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/astaxie/beego"
 )
 
 type CancelacionInversionEstadoCancelacion struct {
@@ -151,5 +153,83 @@ func DeleteCancelacionInversionEstadoCancelacion(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+
+func AddEstadoCancelacionCancInversion(request map[string]interface{}) (estadoCancelacion CancelacionInversionEstadoCancelacion,err error) {
+	var cancelacionInversion CancelacionInversion
+	var estadoInversion EstadoInversion
+	var requestEstadoInv map[string]interface{}
+	var inversionPadre Inversion
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(request["EstadoCancelacion"], &estadoCancelacion)
+	err = formatdata.FillStruct(request["CancelacionInversion"], &cancelacionInversion)
+	err = formatdata.FillStruct(request["inversionPadre"],&inversionPadre)
+	if err == nil {
+		_, err = o.QueryTable("cancelacion_inversion_estado_cancelacion").
+			Filter("cancelacion_inversion", cancelacionInversion.Id).
+			Filter("activo", true).
+			Update(orm.Params{
+				"activo": "false",
+			})
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			estadoCancelacion.CancelacionInversion = &cancelacionInversion
+			estadoCancelacion.Activo = true
+			_, err = o.Insert(&estadoCancelacion)
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+
+			if estadoCancelacion.EstadoCancelacionInversion.Id == 3 {
+				beego.Info("Aprobacion contable")
+				_, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 7).Filter("codigo_documento_afectante", cancelacionInversion.Id).Update(orm.Params{
+					"estado_movimiento_contable": 2,
+				})
+				err = o.QueryTable("estado_inversion").
+					Filter("numeroOrden", 7).
+					One(&estadoInversion)
+				if err==nil{
+					requestEstadoInv["Estado"]=estadoInversion
+					requestEstadoInv["Inversion"]= inversionPadre
+					requestEstadoInv["Usuario"]= estadoCancelacion.Usuario
+					_,err = AddEstadoInv(requestEstadoInv)
+					if err != nil {
+							o.Commit()
+					}else{
+						beego.Error(err.Error())
+						o.Rollback()
+						return
+					}
+
+				} else if err == orm.ErrMultiRows {
+					beego.Error("Returned Multi Rows Not One")
+					o.Rollback()
+					return
+				} else if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+			}
+		}
+		return
+}
+
+
+// GetCancelationQuantity retrieves number of records in active state. Returns error if
+// Id doesn't exist
+func GetCancelationQuantity() (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(CancelacionInversionEstadoCancelacion))
+	qs = qs.Filter("activo", true)
+	cnt, err = qs.Count()
 	return
 }

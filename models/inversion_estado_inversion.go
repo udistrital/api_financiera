@@ -161,7 +161,6 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 	var invEstadoPadre EstadoInversion
 	var inversion Inversion
 	var idEstadoInv int64
-	var num int64
 	var usuario int
 
 	o := orm.NewOrm()
@@ -177,11 +176,15 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 		invEstadoinversion.Inversion = &inversion
 		invEstadoinversion.Usuario = usuario
 
-		num, err = o.QueryTable("inversion_estado_inversion").Filter("estado", invEstadoPadre.Id).Filter("inversion", inversion.Id).Update(orm.Params{
+		qs:= o.QueryTable("inversion_estado_inversion").Filter("inversion", inversion.Id)
+
+		if !reflect.DeepEqual(invEstadoPadre,EstadoInversion{}){
+			qs.Filter("estado", invEstadoPadre.Id)
+		}
+
+		_, err = qs.Update(orm.Params{
 			"activo": "false",
 		})
-
-		fmt.Printf("Affected Num: %s, %s", num, err)
 
 		if err != nil {
 			beego.Error(err.Error())
@@ -191,7 +194,7 @@ func AddEstadoInv(request map[string]interface{}) (invEstadoinversion InversionE
 
 		if invEstado.Id == 4 {
 			beego.Error("Aprobacion contable")
-			num, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 3).Filter("codigo_documento_afectante", inversion.Id).Update(orm.Params{
+			_, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 3).Filter("codigo_documento_afectante", inversion.Id).Update(orm.Params{
 				"estado_movimiento_contable": 2,
 			})
 			if err != nil {
