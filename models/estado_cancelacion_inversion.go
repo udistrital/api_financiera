@@ -5,64 +5,52 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type MovimientoContable struct {
-	Id                       int                       `orm:"column(id);pk;auto"`
-	Debito                   int64                     `orm:"column(debito)"`
-	Credito                  int64                     `orm:"column(credito)"`
-	Fecha                    time.Time                 `orm:"column(fecha);type(timestamp without time zone)"`
-	Concepto                 *Concepto                 `orm:"column(concepto_tesoral);rel(fk)"`
-	CuentaContable           *CuentaContable           `orm:"column(cuenta_contable);rel(fk)"`
-	TipoDocumentoAfectante   *TipoDocumentoAfectante   `orm:"column(tipo_documento_afectante);rel(fk)"`
-	CodigoDocumentoAfectante int                       `orm:"column(codigo_documento_afectante)"`
-	EstadoMovimientoContable *EstadoMovimientoContable `orm:"column(estado_movimiento_contable);rel(fk);null"`
-	CuentaEspecial           *CuentaEspecial           `orm:"column(cuenta_especial);rel(fk);null"`
+type EstadoCancelacionInversion struct {
+	Id                int     `orm:"column(id);pk"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden)"`
+	Activo            bool    `orm:"column(activo)"`
 }
 
-func (t *MovimientoContable) TableName() string {
-	return "movimiento_contable"
+func (t *EstadoCancelacionInversion) TableName() string {
+	return "estado_cancelacion_inversion"
 }
 
 func init() {
-	orm.RegisterModel(new(MovimientoContable))
+	orm.RegisterModel(new(EstadoCancelacionInversion))
 }
 
-// AddMovimientoContable insert a new MovimientoContable into database and returns
+// AddEstadoCancelacionInversion insert a new EstadoCancelacionInversion into database and returns
 // last inserted Id on success.
-func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
+func AddEstadoCancelacionInversion(m *EstadoCancelacionInversion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-//AddMovimientoContableArray insert an array from MovimientoContable into database
-func AddMovimientoContableArray(m *[]MovimientoContable) (id int64, err error) {
-	o := orm.NewOrm()
-	id, err = o.InsertMulti(100,m)
-	return
-}
-
-// GetMovimientoContableById retrieves MovimientoContable by Id. Returns error if
+// GetEstadoCancelacionInversionById retrieves EstadoCancelacionInversion by Id. Returns error if
 // Id doesn't exist
-func GetMovimientoContableById(id int) (v *MovimientoContable, err error) {
+func GetEstadoCancelacionInversionById(id int) (v *EstadoCancelacionInversion, err error) {
 	o := orm.NewOrm()
-	v = &MovimientoContable{Id: id}
+	v = &EstadoCancelacionInversion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllMovimientoContable retrieves all MovimientoContable matches certain condition. Returns empty list if
+// GetAllEstadoCancelacionInversion retrieves all EstadoCancelacionInversion matches certain condition. Returns empty list if
 // no records exist
-func GetAllMovimientoContable(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoCancelacionInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(MovimientoContable)).RelatedSel()
+	qs := o.QueryTable(new(EstadoCancelacionInversion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -112,7 +100,7 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []MovimientoContable
+	var l []EstadoCancelacionInversion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -135,11 +123,11 @@ func GetAllMovimientoContable(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateMovimientoContable updates MovimientoContable by Id and returns error if
+// UpdateEstadoCancelacionInversion updates EstadoCancelacionInversion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
+func UpdateEstadoCancelacionInversionById(m *EstadoCancelacionInversion) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: m.Id}
+	v := EstadoCancelacionInversion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -150,15 +138,15 @@ func UpdateMovimientoContableById(m *MovimientoContable) (err error) {
 	return
 }
 
-// DeleteMovimientoContable deletes MovimientoContable by Id and returns error if
+// DeleteEstadoCancelacionInversion deletes EstadoCancelacionInversion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMovimientoContable(id int) (err error) {
+func DeleteEstadoCancelacionInversion(id int) (err error) {
 	o := orm.NewOrm()
-	v := MovimientoContable{Id: id}
+	v := EstadoCancelacionInversion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&MovimientoContable{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoCancelacionInversion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

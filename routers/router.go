@@ -846,7 +846,7 @@ func init() {
 			),
 		),
 
-	beego.NSNamespace("/orden_pago_cuenta_especial",
+		beego.NSNamespace("/orden_pago_cuenta_especial",
 			beego.NSInclude(
 				&controllers.OrdenPagoCuentaEspecialController{},
 			),
@@ -860,8 +860,36 @@ func init() {
 		beego.NSNamespace("/rubro_homologado_rubro",
 			beego.NSInclude(
 				&controllers.RubroHomologadoRubroController{},
-				),
 			),
+		),
+		beego.NSNamespace("/cancelacion_inversion_inversion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionInversionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_cancelacion_inversion",
+			beego.NSInclude(
+				&controllers.EstadoCancelacionInversionController{},
+			),
+		),
+
+		beego.NSNamespace("/cancelacion_inversion_estado_cancelacion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionEstadoCancelacionController{},
+			),
+		),
+
+		beego.NSNamespace("/cancelacion_inversion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionController{},
+			),
+		),
+        beego.NSNamespace("/cancelacion_inversion_concepto",
+			beego.NSInclude(
+				&controllers.CancelacionInversionConceptoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
