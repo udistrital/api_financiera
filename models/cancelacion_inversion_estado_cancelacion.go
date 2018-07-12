@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/astaxie/beego"
 )
 
 type CancelacionInversionEstadoCancelacion struct {
@@ -156,17 +157,67 @@ func DeleteCancelacionInversionEstadoCancelacion(id int) (err error) {
 	return
 }
 
+//searchs for state of all cancelations created to look if there One
+//which isn't approve
+func ActiveCancelations(idInversion int) (res interface{}, err error) {
+	var estadoCancelacion EstadoCancelacionInversion
+	var cancelacionInversionInversion CancelacionInversionInversion
+	var invEstCanc map[string]interface{}
+	var realState EstadoCancelacionInversion
+	var gaInvEstCanc []interface{}
+	o := orm.NewOrm()
+	query := make(map[string]string)
 
-func AddEstadoCancelacionCancInversion(request map[string]interface{}) (estadoCancelacion CancelacionInversionEstadoCancelacion,err error) {
+	err = o.QueryTable("cancelacion_inversion_inversion").
+		Filter("inversion", idInversion).
+		One(&cancelacionInversionInversion)
+
+	if err == nil {
+		query["Activo"] = "true"
+		query["CancelacionInversion.Id"] = strconv.Itoa(cancelacionInversionInversion.Cancelacion.Id)
+
+		gaInvEstCanc, err = GetAllCancelacionInversionEstadoCancelacion(query, nil, nil, nil, 0, 1)
+		if err != nil {
+			beego.Error(err.Error())
+			return
+		}
+		err = formatdata.FillStruct(gaInvEstCanc[0], &invEstCanc)
+		err = formatdata.FillStruct(invEstCanc["EstadoCancelacionInversion"], &realState)
+		if err != nil {
+			beego.Error(err.Error())
+			return
+		}
+		err = o.QueryTable("estado_cancelacion_inversion").
+			Filter("numeroOrden", 3).
+			One(&estadoCancelacion)
+		if err == nil {
+			beego.Error("estado cancelacion", estadoCancelacion)
+			beego.Error("estado real", realState)
+			res = reflect.DeepEqual(estadoCancelacion, realState)
+		} else {
+			beego.Error(err.Error())
+			return
+		}
+	} else if err == orm.ErrNoRows {
+		res = true
+		beego.Error("No row found, doesn't exist")
+		return res, nil
+	} else if err != nil {
+		beego.Error(err)
+		return
+	}
+	return
+}
+
+func AddEstadoCancelacionCancInversion(request map[string]interface{}) (estadoCancelacion CancelacionInversionEstadoCancelacion, err error) {
 	var cancelacionInversion CancelacionInversion
 	var estadoInversion EstadoInversion
-	var requestEstadoInv map[string]interface{}
 	var inversionPadre Inversion
 	o := orm.NewOrm()
 	o.Begin()
 	err = formatdata.FillStruct(request["EstadoCancelacion"], &estadoCancelacion)
 	err = formatdata.FillStruct(request["CancelacionInversion"], &cancelacionInversion)
-	err = formatdata.FillStruct(request["inversionPadre"],&inversionPadre)
+	err = formatdata.FillStruct(request["inversionPadre"], &inversionPadre)
 	if err == nil {
 		_, err = o.QueryTable("cancelacion_inversion_estado_cancelacion").
 			Filter("cancelacion_inversion", cancelacionInversion.Id).
@@ -174,55 +225,60 @@ func AddEstadoCancelacionCancInversion(request map[string]interface{}) (estadoCa
 			Update(orm.Params{
 				"activo": "false",
 			})
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		estadoCancelacion.CancelacionInversion = &cancelacionInversion
+		estadoCancelacion.Activo = true
+		_, err = o.Insert(&estadoCancelacion)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		if estadoCancelacion.EstadoCancelacionInversion.Id == 2 {
+
+			_, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 7).Filter("codigo_documento_afectante", cancelacionInversion.Id).Update(orm.Params{
+				"estado_movimiento_contable": 2,
+			})
 			if err != nil {
 				beego.Error(err.Error())
 				o.Rollback()
 				return
 			}
-			estadoCancelacion.CancelacionInversion = &cancelacionInversion
-			estadoCancelacion.Activo = true
-			_, err = o.Insert(&estadoCancelacion)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-
-			if estadoCancelacion.EstadoCancelacionInversion.Id == 3 {
-				beego.Info("Aprobacion contable")
-				_, err = o.QueryTable("movimiento_contable").Filter("tipo_documento_afectante", 7).Filter("codigo_documento_afectante", cancelacionInversion.Id).Update(orm.Params{
-					"estado_movimiento_contable": 2,
-				})
-				err = o.QueryTable("estado_inversion").
-					Filter("numeroOrden", 7).
-					One(&estadoInversion)
-				if err==nil{
-					requestEstadoInv["Estado"]=estadoInversion
-					requestEstadoInv["Inversion"]= inversionPadre
-					requestEstadoInv["Usuario"]= estadoCancelacion.Usuario
-					_,err = AddEstadoInv(requestEstadoInv)
-					if err != nil {
-							o.Commit()
-					}else{
-						beego.Error(err.Error())
-						o.Rollback()
-						return
-					}
-
-				} else if err == orm.ErrMultiRows {
-					beego.Error("Returned Multi Rows Not One")
-					o.Rollback()
-					return
-				} else if err != nil {
+			err = o.QueryTable("estado_inversion").
+				Filter("numeroOrden", 7).
+				One(&estadoInversion)
+			if err == nil {
+				requestEstadoInv := make(map[string]interface{})
+				requestEstadoInv["Estado"] = estadoInversion
+				requestEstadoInv["Inversion"] = inversionPadre
+				requestEstadoInv["Usuario"] = estadoCancelacion.Usuario
+				_, err = AddEstadoInv(requestEstadoInv)
+				if err == nil {
+					o.Commit()
+				} else {
 					beego.Error(err.Error())
 					o.Rollback()
 					return
 				}
+
+			} else if err == orm.ErrMultiRows {
+				beego.Error("Returned Multi Rows Not One")
+				o.Rollback()
+				return
+			} else if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
 			}
 		}
-		return
+		o.Commit()
+	}
+	return
 }
-
 
 // GetCancelationQuantity retrieves number of records in active state. Returns error if
 // Id doesn't exist
