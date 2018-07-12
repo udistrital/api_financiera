@@ -745,6 +745,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"],
 		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"],
+		beego.ControllerComments{
 			Method: "GetOne",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"get"},
@@ -761,9 +769,9 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:CancelacionInversionEstadoCancelacionController"],
 		beego.ControllerComments{
-			Method: "Delete",
-			Router: `/:id`,
-			AllowHTTPMethods: []string{"delete"},
+			Method: "GetActiveCancelations",
+			Router: `/GetActiveCancelations`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
