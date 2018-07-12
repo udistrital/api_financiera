@@ -163,6 +163,7 @@ func CreateCancelacion(v map[string]interface{}) (cancelacionInversion Cancelaci
 	var tipoDocAfectante TipoDocumentoAfectante
 	var movimientosContables []MovimientoContable
 	var cancelacionConcepto CancelacionInversionConcepto
+	var inversion Inversion
 	var idCancInv int64
 
 	o := orm.NewOrm()
@@ -170,9 +171,8 @@ func CreateCancelacion(v map[string]interface{}) (cancelacionInversion Cancelaci
 	err = formatdata.FillStruct(v["cancelacionInversion"], &cancelacionInversion)
 	err = formatdata.FillStruct(v["Movimientos"], &movimientosContables)
 	err = formatdata.FillStruct(v["cancelacionConcepto"], &cancelacionConcepto)
-	beego.Error("cancelacion concepto", cancelacionConcepto)
-	beego.Error("cancelacion inversion", cancelacionInversion)
-	beego.Error("movimientos ", movimientosContables)
+	err = formatdata.FillStruct(v["Inversion"], &inversion)
+
 	if err != nil {
 		beego.Error(err.Error())
 		return
@@ -200,21 +200,30 @@ func CreateCancelacion(v map[string]interface{}) (cancelacionInversion Cancelaci
 						Filter("numeroOrden", 7).
 						One(&tipoDocAfectante)
 					if err == nil {
-						for i, _ := range movimientosContables {
-							movimientosContables[i].Fecha = time.Now()
-							movimientosContables[i].CodigoDocumentoAfectante = cancelacionInversion.Id
-							movimientosContables[i].TipoDocumentoAfectante = &tipoDocAfectante
-							movimientosContables[i].EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
-						}
 
-						_, err = AddMovimientoContableArray(&movimientosContables)
-						if err == nil {
-							o.Commit()
-						} else {
-							beego.Error(err.Error())
-							o.Rollback()
-							return
-						}
+						cancelacionInversionInv := CancelacionInversionInversion{Cancelacion:&cancelacionInversion,Inversion:&inversion}
+						_,err = o.Insert(&cancelacionInversionInv)
+						if err == nil{
+							for i, _ := range movimientosContables {
+								movimientosContables[i].Fecha = time.Now()
+								movimientosContables[i].CodigoDocumentoAfectante = cancelacionInversion.Id
+								movimientosContables[i].TipoDocumentoAfectante = &tipoDocAfectante
+								movimientosContables[i].EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+							}
+							_, err = AddMovimientoContableArray(&movimientosContables)
+							if err == nil {
+								beego.Error("getting last")
+								o.Commit()
+							} else {
+									beego.Error(err.Error())
+									o.Rollback()
+									return
+							}
+					}else{
+						beego.Error(err.Error())
+						o.Rollback()
+						return
+					}
 					} else if err == orm.ErrMultiRows {
 						beego.Error("Returned Multi Rows Not One")
 						o.Rollback()

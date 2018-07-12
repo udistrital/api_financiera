@@ -240,6 +240,30 @@ func (c *RubroHomologadoController) GetRecordsNumberByEntity() {
 }
 
 
+
+// GetParentHomologation...
+// @Title Get Parent Item Homologation
+// @Description Identifies if exist homologation for item's parent
+// @Param	idRubro	path 	string	true		"The key for staticblock"
+// @Success 200 {object} interface
+// @Failure 403 Rubro is empty
+// @router GetParentHomologation/ [get]
+func (c *RubroHomologadoController) GetParentHomologation() {
+	
+ idRubro := c.GetString("idRubro")
+		beego.Error(" GetParentHomologation id rubro",idRubro)
+		v, err := models.GetParentHomologation(idRubro)
+			if err != nil {
+				alertdb:=structs.Map(err)
+				c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+				} else {
+					c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+				}
+
+	c.ServeJSON()
+}
+
+
 // ArbolRubros ...
 // @Title ArbolRubros
 // @Description genera arbol rubros

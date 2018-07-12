@@ -21,6 +21,11 @@ type RubroHomologado struct {
 	Vigencia          float64  `orm:"column(vigencia)"`
 }
 
+type RubroPadreHomol struct {
+	RubroPadre string
+	CntHomologacion int64
+}
+
 func (t *RubroHomologado) TableName() string {
 	return "rubro_homologado"
 }
@@ -234,3 +239,61 @@ func GetRecordsNumberRubroByEntity(idEntidad int) (cnt int64, err error) {
 	cnt, err = qs.Count()
 	return
 }
+//validate if item parent's has got homologation
+//Return true if has it
+func GetParentHomologation (idRubro interface{})(res interface{},err error){
+ beego.Error("GetParentHomologation idRubro ",idRubro)
+//var qb QueryBuilder
+var respRubroPHomol RubroPadreHomol
+
+qb, err := orm.NewQueryBuilder("tidb")
+
+if (err != nil ){
+	return
+}
+
+if (idRubro != nil) {
+		qb.Select("rr.rubro_padre",
+						"count(rh.id)").
+			From("financiera.rubro_rubro rr").
+			LeftJoin("financiera.rubro r").On("rr.rubro_padre = r.id").
+			LeftJoin("financiera.rubro_homologado rh").On("rh.codigo_homologado = r.codigo").
+			Where("rr.rubro_hijo = ?").
+			GroupBy("rr.rubro_padre")
+}
+
+
+		sql := qb.String()
+		beego.Error("query",sql)
+		o := orm.NewOrm()
+		err = o.Raw(sql, idRubro.(string)).QueryRow(&respRubroPHomol)
+		beego.Error("rspuesta query ",respRubroPHomol,"error ",err)
+		if err == nil {
+
+			}else if err == orm.ErrNoRows{
+				qb, err = orm.NewQueryBuilder("tidb")
+
+				qb.Select("null as rubro_padre",
+								"count(1) ").
+					From("financiera.rubro_homologado_rubro rh").
+					Where("rh.rubro = ?")
+
+					sql := qb.String()
+					beego.Error("query",sql)
+
+				 err = o.Raw(sql, idRubro.(string)).QueryRow(&respRubroPHomol)
+				 if err != nil {
+					 beego.Error(err)
+					 return
+				 }
+			}
+		if (respRubroPHomol.CntHomologacion == 0 ){
+			res = false
+			return
+		}
+		if (respRubroPHomol.RubroPadre != ""){
+			 beego.Error(" call function again ")
+			 GetParentHomologation(respRubroPHomol.RubroPadre)
+		}
+		return
+	}

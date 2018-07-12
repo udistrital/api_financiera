@@ -3,11 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
 )
 
 // CancelacionInversionEstadoCancelacionController operations for CancelacionInversionEstadoCancelacion
@@ -46,6 +48,48 @@ func (c *CancelacionInversionEstadoCancelacionController) Post() {
 	c.ServeJSON()
 }
 
+// AddEstadoCancelacionInversion ...
+// @Title Add Estado Cancelacion Inversion
+// @Description create AddEstadoCancelacionInversion
+// @Param	body		body 	interface{} true		"body for CancelacionInversionEstadoCancelacion content"
+// @Success 201 {int} models.CancelacionInversionEstadoCancelacion
+// @Failure 403 body is empty
+// @router AddEstadoCancelacionInversion/ [post]
+func (c *CancelacionInversionEstadoCancelacionController) AddEstadoCancelacionInversion() {
+	var v map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if response, err := models.AddEstadoCancelacionCancInversion(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: response}
+		} else {
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
+	}
+	c.ServeJSON()
+}
+
+// GetCancelationQuantity...
+// @Title Get Cancelation Quantity
+// @Description get the number of record given a id from cancelation
+// @Success 200 {object} interface{}
+// @Failure 403
+// @router GetCancelationQuantity/ [get]
+func (c *CancelacionInversionEstadoCancelacionController) GetCancelationQuantity() {
+
+	v, err := models.GetCancelationQuantity()
+	if err != nil {
+		alertdb := structs.Map(err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+	} else {
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+	}
+
+	c.ServeJSON()
+}
+
 // GetOne ...
 // @Title Get One
 // @Description get CancelacionInversionEstadoCancelacion by id
@@ -61,6 +105,30 @@ func (c *CancelacionInversionEstadoCancelacionController) GetOne() {
 		c.Data["json"] = err.Error()
 	} else {
 		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
+// GetOne ...
+// @Title Get One
+// @Description get CancelacionInversionEstadoCancelacion by id
+// @Param	idInversion		path 	int	true		"The key for staticblock"
+// @Success 200 {object} models.CancelacionInversionEstadoCancelacion
+// @Failure 403 :id is empty
+// @router /GetActiveCancelations [get]
+func (c *CancelacionInversionEstadoCancelacionController) GetActiveCancelations() {
+	if idInversion, err := c.GetInt("idInversion"); err == nil {
+		v, err := models.ActiveCancelations(idInversion)
+		if err != nil {
+			beego.Error("error recien llega", err)
+			alertdb := structs.Map(err)
+			beego.Error("valor del error", alertdb)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+		} else {
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
 	}
 	c.ServeJSON()
 }
