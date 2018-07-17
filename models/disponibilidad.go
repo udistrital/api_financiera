@@ -282,14 +282,14 @@ func AnulacionTotal(m *Info_disponibilidad_a_anular) (alerta []string, err error
 	m.Anulacion.FechaRegistro = time.Now()
 	var consecutivo int
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
-						FROM financiera.anulacion_disponibilidad 
+						FROM financiera.anulacion_disponibilidad
 						JOIN
 						financiera.anulacion_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion = anulacion_disponibilidad.id 
+						ada.anulacion = anulacion_disponibilidad.id
 						JOIN
 						financiera.disponibilidad_apropiacion
-						ON 
+						ON
 						disponibilidad_apropiacion.id = ada.disponibilidad_apropiacion
 						JOIN
 						financiera.disponibilidad
@@ -434,14 +434,14 @@ func AnulacionParcial(m *Info_disponibilidad_a_anular) (alerta []string, err err
 	m.Anulacion.FechaRegistro = time.Now()
 	var consecutivo int
 	o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
-						FROM financiera.anulacion_disponibilidad 
+						FROM financiera.anulacion_disponibilidad
 						JOIN
 						financiera.anulacion_disponibilidad_apropiacion as ada
 						ON
-						ada.anulacion = anulacion_disponibilidad.id 
+						ada.anulacion = anulacion_disponibilidad.id
 						JOIN
 						financiera.disponibilidad_apropiacion
-						ON 
+						ON
 						disponibilidad_apropiacion.id = ada.disponibilidad_apropiacion
 						JOIN
 						financiera.disponibilidad
@@ -741,7 +741,7 @@ func GetPrincDisponibilidadInfo(id int) (interface{}, error) {
 		On("rubro.id = apropiacion.rubro").
 		Where("disponibilidad = ?")
 	_, err := o.Raw(qb.String(), id).Values(&maps)
-	maps[0]["Valor"], err = strconv.ParseFloat(maps[0]["Valor"].(string), 64) 
+	maps[0]["Valor"], err = strconv.ParseFloat(maps[0]["Valor"].(string), 64)
 
 	return maps, err
 }
@@ -802,6 +802,87 @@ func DeleteDisponibilidadData(id int) (err error) {
 	if _, err = o.Delete(&Disponibilidad{Id: id}); err != nil {
 		o.Rollback()
 		return
+	}
+
+	o.Commit()
+	return
+}
+
+//DeleteDisponibilidadMovimiento... Elimina la disponibilidad dado su id
+// y todos los datos que esta representa.
+func DeleteDisponibilidadMovimiento(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+
+	var maps []orm.Params
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.disponibilidad_proceso_externo").
+		Where("disponibilidad = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&maps); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range maps {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&DisponibilidadProcesoExterno{Id: idDispExt}); err != nil {
+				o.Rollback()
+				return err
+			}
+		} else {
+			o.Rollback()
+			return err
+		}
+
+	}
+
+	var dispApr []orm.Params
+	qb, _ = orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.disponibilidad_apropiacion").
+		Where("disponibilidad = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&dispApr); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range dispApr {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&DisponibilidadApropiacion{Id: idDispExt}); err != nil {
+				o.Rollback()
+				return err
+			}
+
+		} else {
+			o.Rollback()
+			return err
+		}
+
+	}
+
+	var dispMov []orm.Params
+	qb, _ = orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.movimiento_apropiacion_disponibilidad_apropiacion").
+		Where("disponibilidad = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&dispMov); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range dispMov {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Update(&MovimientoApropiacionDisponibilidadApropiacion{Id: idDispExt, Disponibilidad: nil}, "Disponibilidad"); err != nil {
+				o.Rollback()
+				return err
+			}
+
+		} else {
+			o.Rollback()
+			return err
+		}
+
 	}
 
 	o.Commit()
