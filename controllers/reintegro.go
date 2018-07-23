@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"github.com/fatih/structs"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/astaxie/beego"
 )
 
@@ -58,19 +57,17 @@ func (c *ReintegroController) Post() {
 // @router /Create [post]
 func (c *ReintegroController) Create() {
 	var v map[string]interface{}
-	var reintegro models.Reintegro
-	var ingreso models.Ingreso
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		err = formatdata.FillStruct(v["Reintegro"],&reintegro)
-		err = formatdata.FillStruct(v["Ingreso"],&ingreso)
-		if _, err := models.AddReintegroConsec(&reintegro,&ingreso); err == nil {
+		if _, err := models.AddReintegroConsec(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:reintegro}
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
 		} else {
+			beego.Error("Error",err)
 			alertdb := structs.Map(err)
 			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
 		}
 	} else {
+		beego.Error("Error",err)
 		c.Data["json"] =  models.Alert{Type:"error",Code:"E_0458",Body:err}
 	}
 	c.ServeJSON()

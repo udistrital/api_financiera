@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/fatih/structs"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Reintegro struct {
-	Id            int              `orm:"column(id);pk"`
+	Id            int              `orm:"column(id);pk;auto"`
 	Consecutivo   int              `orm:"column(consecutivo)"`
 	Oficio        int              `orm:"column(oficio)"`
 	FechaOficio   time.Time        `orm:"column(fecha_oficio);type(date)"`
@@ -40,19 +41,31 @@ func AddReintegro(m *Reintegro) (id int64, err error) {
 
 // AddReintegro insert a new Reintegro setting consecutivo into database and returns
 // last inserted Id on success.
-func AddReintegroConsec(m *Reintegro,ingreso *Ingreso) (id int64, err error) {
+func AddReintegroConsec(v map[string]interface{}) (id int64, err error) {
 	o := orm.NewOrm()
 	var consec float64
+	var ingreso Ingreso
+	var reintegro Reintegro
 	var ingresoRes Ingreso
 	var formaIngreso FormaIngreso
+
+	err = formatdata.FillStruct(v["Reintegro"],&reintegro)
+	err = formatdata.FillStruct(v["Ingreso"],&ingreso)
+
+	beego.Error("valor v",v)
+
+	if err != nil {
+		return
+	}
+
 	o.Begin()
 
 	err = o.QueryTable("forma_ingreso").
 		Filter("nombre", "REINTEGROS").
 		One(&formaIngreso)
-
+		beego.Error(formaIngreso)
 	if err != nil {
-		return
+		o.Rollback()
 	}
 	ingreso.FormaIngreso = &formaIngreso
 	qb, _ := orm.NewQueryBuilder("mysql")
@@ -67,28 +80,26 @@ func AddReintegroConsec(m *Reintegro,ingreso *Ingreso) (id int64, err error) {
 	err = o.Raw(sql, ingreso.Vigencia).QueryRow(&consec)
 
 	if (err != nil){
-		return
+		o.Rollback()
 	}
-	m.Consecutivo = int(consec)
-	if id, err = o.Insert(m); err != nil{
-		if ingresoRes, err = AddIngresotr(structs.Map(ingreso)); err != nil {
+	reintegro.Consecutivo = int(consec)
+		v["Ingreso"]=ingreso;
+		if ingresoRes, err = AddIngresotr(v); err != nil {
+			beego.Error(err)
 			o.Rollback()
-			return
 		}else{
-			_, err := o.QueryTable("reintegro").Filter("id", id).Update(orm.Params{
-    "ingreso": ingresoRes.Id,
-				})
-			if err == nil {
+			reintegro.Ingreso = &ingresoRes
+			if id, err = o.Insert(&reintegro); err == nil{
+				beego.Error("realiza commit")
 				o.Commit()
+				return
 			}else{
+				beego.Error(err)
 				o.Rollback()
+				return
 			}
 		}
-	}else{
-		return
-	}
-
-
+	o.Rollback()
 	return
 }
 

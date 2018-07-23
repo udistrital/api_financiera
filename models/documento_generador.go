@@ -11,7 +11,7 @@ import (
 )
 
 type DocumentoGenerador struct {
-	Id             int       `orm:"column(id);pk"`
+	Id             int       `orm:"column(id);pk;auto"`
 	NumDocumento   int       `orm:"column(num_documento)"`
 	FechaDocumento time.Time `orm:"column(fecha_documento);type(date)"`
 	TipoDocumento  int16     `orm:"column(tipo_documento)"`

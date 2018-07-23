@@ -180,7 +180,6 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		ingreso.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
-		beego.Info(err)
 		if err == nil {
 			ingreso.Id = int(id)
 			//crear el rompimiento para registrar el estado del ingreso.
@@ -191,6 +190,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			ingresoEstadoIngreso.FechaRegistro = time.Now()
 			_, err = o.Insert(&ingresoEstadoIngreso)
 		} else {
+			beego.Error("Error",err.Error())
 			o.Rollback()
 			return
 		}
@@ -198,6 +198,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		//insert MovimientoContable
 		var mov []MovimientoContable
 		err = formatdata.FillStruct(m["Movimientos"], &mov)
+		beego.Error("Movimientos ",mov)
 		for _, element := range mov {
 			element.Fecha = time.Now()
 			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 2}
@@ -205,7 +206,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
 			_, err = o.Insert(&element)
 			if err != nil {
-				beego.Info(err.Error())
+				beego.Error("Error",err.Error())
 				o.Rollback()
 				return
 			}
@@ -251,9 +252,11 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		}
 	} else {
 		beego.Info(err)
+		o.Rollback()
 		return
 	}
-
+	o.Rollback()
+	return
 }
 
 // AddIngreso insert a new Ingreso into database and returns
