@@ -159,9 +159,8 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var docGen DocumentoGenerador
 	err = formatdata.FillStruct(m["DocumentoGenerador"], &docGen)
 	o := orm.NewOrm()
-
+	o.Begin()
 	if err == nil {
-		o.Begin()
 		idDocgenerador, err = o.Insert(&docGen)
 		beego.Error("inserta doc generador")
 		if err != nil {
