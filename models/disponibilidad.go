@@ -733,13 +733,16 @@ func GetPrincDisponibilidadInfo(id int) (interface{}, error) {
 	o := orm.NewOrm()
 	var maps []orm.Params
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("apropiacion as \"Apropiacion\", disponibilidad_apropiacion.valor as \"Valor\", codigo as \"Rubro\" , unidad_ejecutora as \"UnidadEjecutora\"").
+	qb.Select("apropiacion as \"Apropiacion\", disponibilidad_apropiacion.valor as \"Valor\", rubro.codigo as \"Rubro\" , unidad_ejecutora as \"UnidadEjecutora\", fuente_financiamiento.codigo as \"FuenteCodigo\",  fuente_financiamiento.nombre as \"FuenteNombre\"").
 		From("financiera.disponibilidad_apropiacion").
 		InnerJoin("financiera.apropiacion").
 		On("apropiacion.Id = disponibilidad_apropiacion.apropiacion").
 		InnerJoin("financiera.rubro").
 		On("rubro.id = apropiacion.rubro").
+		LeftJoin("financiera.fuente_financiamiento").
+		On("disponibilidad_apropiacion.fuente_financiamiento = fuente_financiamiento.id").
 		Where("disponibilidad = ?")
+
 	_, err := o.Raw(qb.String(), id).Values(&maps)
 	maps[0]["Valor"], err = strconv.ParseFloat(maps[0]["Valor"].(string), 64)
 
