@@ -9,6 +9,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // CancelacionInversionController operations for CancelacionInversion
@@ -61,8 +62,10 @@ func (c *CancelacionInversionController) CreateCancelacion() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: response}
 		} else {
+			var code string
 			alertdb := structs.Map(err)
-			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err}
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		}
 	} else {
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}

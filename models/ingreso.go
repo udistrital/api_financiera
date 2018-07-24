@@ -30,8 +30,8 @@ type Ingreso struct {
 	MotivoRechazo        string                  `orm:"column(motivo_rechazo)"`
 	IngresoConcepto      []*IngresoConcepto      `orm:"reverse(many)"`
 	IngresoEstadoIngreso []*IngresoEstadoIngreso `orm:"reverse(many)"`
-	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk)"`
-	NumCuenta			string                   `orm:"column(num_cuenta)"`
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk);null"`
+	NumCuenta            string                  `orm:"column(num_cuenta)"`
 }
 
 func (t *Ingreso) TableName() string {
@@ -157,12 +157,12 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 	var id int64
 	var idDocgenerador int64
 	var docGen DocumentoGenerador
+	var voidDocGen DocumentoGenerador
 	err = formatdata.FillStruct(m["DocumentoGenerador"], &docGen)
 	o := orm.NewOrm()
 	o.Begin()
-	if err == nil {
+	if err == nil && !reflect.DeepEqual(docGen, voidDocGen) {
 		idDocgenerador, err = o.Insert(&docGen)
-		beego.Error("inserta doc generador")
 		if err != nil {
 			beego.Info(err)
 			o.Rollback()
@@ -177,10 +177,11 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		o.Raw(`SELECT COALESCE(MAX(consecutivo), 0)+1  as consecutivo
 						FROM financiera.ingreso WHERE vigencia = ?`, ingreso.Vigencia).QueryRow(&consecutivo)
 		ingreso.Consecutivo = consecutivo
-		ingreso.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+		if !reflect.DeepEqual(docGen, voidDocGen) {
+			ingreso.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+		}
 		//insert ingreso
 		id, err = o.Insert(&ingreso)
-		beego.Info(err)
 		if err == nil {
 			ingreso.Id = int(id)
 			//crear el rompimiento para registrar el estado del ingreso.
@@ -189,8 +190,13 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			ingresoEstadoIngreso.Ingreso = &ingreso
 			ingresoEstadoIngreso.EstadoIngreso = &estadoIngreso
 			ingresoEstadoIngreso.FechaRegistro = time.Now()
-			_, err = o.Insert(&ingresoEstadoIngreso)
+			if _, err = o.Insert(&ingresoEstadoIngreso); err != nil {
+				beego.Error("Error", err.Error())
+				o.Rollback()
+				return
+			}
 		} else {
+			beego.Error("Error", err.Error())
 			o.Rollback()
 			return
 		}
@@ -205,7 +211,7 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
 			_, err = o.Insert(&element)
 			if err != nil {
-				beego.Info(err.Error())
+				beego.Error("Error", err.Error())
 				o.Rollback()
 				return
 			}
@@ -251,9 +257,11 @@ func AddIngresotr(m map[string]interface{}) (ingreso Ingreso, err error) {
 		}
 	} else {
 		beego.Info(err)
+		o.Rollback()
 		return
 	}
-
+	o.Rollback()
+	return
 }
 
 // AddIngreso insert a new Ingreso into database and returns
