@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
@@ -49,10 +49,10 @@ func AddReintegroConsec(v map[string]interface{}) (id int64, err error) {
 	var ingresoRes Ingreso
 	var formaIngreso FormaIngreso
 
-	err = formatdata.FillStruct(v["Reintegro"],&reintegro)
-	err = formatdata.FillStruct(v["Ingreso"],&ingreso)
+	err = formatdata.FillStruct(v["Reintegro"], &reintegro)
+	err = formatdata.FillStruct(v["Ingreso"], &ingreso)
 
-	beego.Error("valor v",v)
+	beego.Error("valor v", v)
 
 	if err != nil {
 		return
@@ -63,7 +63,6 @@ func AddReintegroConsec(v map[string]interface{}) (id int64, err error) {
 	err = o.QueryTable("forma_ingreso").
 		Filter("nombre", "REINTEGROS").
 		One(&formaIngreso)
-		beego.Error(formaIngreso)
 	if err != nil {
 		o.Rollback()
 	}
@@ -71,34 +70,36 @@ func AddReintegroConsec(v map[string]interface{}) (id int64, err error) {
 	qb, _ := orm.NewQueryBuilder("mysql")
 
 	qb.Select("COALESCE(MAX(r.consecutivo),0)+1").
-	From("ingreso i").
-	InnerJoin("reintegro r").On("r.ingreso = i.id").
-	Where("i.vigencia > ?")
+		From("ingreso i").
+		InnerJoin("reintegro r").On("r.ingreso = i.id").
+		Where("i.vigencia > ?")
 
 	sql := qb.String()
 
 	err = o.Raw(sql, ingreso.Vigencia).QueryRow(&consec)
 
-	if (err != nil){
+	if err != nil {
 		o.Rollback()
 	}
 	reintegro.Consecutivo = int(consec)
-		v["Ingreso"]=ingreso;
-		if ingresoRes, err = AddIngresotr(v); err != nil {
+	v["Ingreso"] = ingreso
+	if ingresoRes, err = AddIngresotr(v); err != nil {
+		v["Ingreso"] = ingresoRes
+		beego.Error(err)
+		o.Rollback()
+	} else {
+		reintegro.Ingreso = &ingresoRes
+		if id, err = o.Insert(&reintegro); err == nil {
+			reintegro.Id = int(id)
+			v["Reintegro"] = reintegro
+			o.Commit()
+			return
+		} else {
 			beego.Error(err)
 			o.Rollback()
-		}else{
-			reintegro.Ingreso = &ingresoRes
-			if id, err = o.Insert(&reintegro); err == nil{
-				beego.Error("realiza commit")
-				o.Commit()
-				return
-			}else{
-				beego.Error(err)
-				o.Rollback()
-				return
-			}
+			return
 		}
+	}
 	o.Rollback()
 	return
 }

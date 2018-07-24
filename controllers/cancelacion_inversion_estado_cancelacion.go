@@ -10,6 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // CancelacionInversionEstadoCancelacionController operations for CancelacionInversionEstadoCancelacion
@@ -62,8 +63,10 @@ func (c *CancelacionInversionEstadoCancelacionController) AddEstadoCancelacionIn
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: response}
 		} else {
+			var code string
 			alertdb := structs.Map(err)
-			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err}
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		}
 	} else {
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
@@ -81,8 +84,10 @@ func (c *CancelacionInversionEstadoCancelacionController) GetCancelationQuantity
 
 	v, err := models.GetCancelationQuantity()
 	if err != nil {
+		var code string
 		alertdb := structs.Map(err)
-		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+		formatdata.FillStruct(alertdb["Code"], &code)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
 	} else {
 		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 	}
@@ -120,10 +125,10 @@ func (c *CancelacionInversionEstadoCancelacionController) GetActiveCancelations(
 	if idInversion, err := c.GetInt("idInversion"); err == nil {
 		v, err := models.ActiveCancelations(idInversion)
 		if err != nil {
-			beego.Error("error recien llega", err)
+			var code string
 			alertdb := structs.Map(err)
-			beego.Error("valor del error", alertdb)
-			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
 		} else {
 			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		}
