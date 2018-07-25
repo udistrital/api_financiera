@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -15,8 +14,6 @@ import (
 type Reintegro struct {
 	Id            int              `orm:"column(id);pk;auto"`
 	Consecutivo   int              `orm:"column(consecutivo)"`
-	Oficio        int              `orm:"column(oficio)"`
-	FechaOficio   time.Time        `orm:"column(fecha_oficio);type(date)"`
 	Causal        *CausalReintegro `orm:"column(causal);rel(fk)"`
 	Observaciones string           `orm:"column(observaciones)"`
 	Ingreso       *Ingreso         `orm:"column(ingreso);rel(fk)"`
