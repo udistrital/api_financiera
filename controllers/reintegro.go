@@ -159,6 +159,55 @@ func (c *ReintegroController) GetAll() {
 	c.ServeJSON()
 }
 
+
+// GetAll ...
+// @Title Get All
+// @Description get Reintegro if income its aproved
+// @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
+// @Success 200 {object} models.Reintegro
+// @Failure 403
+// @router /GetAllReintegroDisponible [get]
+func (c *ReintegroController) GetAllReintegroDisponible() {
+
+	var limit int = 10
+	var offset int
+	query := make(map[string]string)
+
+	// limit: 10 (default is 10)
+	if v, err := c.GetInt("limit"); err == nil {
+		limit = v
+	}
+	// offset: 0 (default is 0)
+	if v, err := c.GetInt("offset"); err == nil {
+		offset = v
+	}
+
+
+	if v := c.GetString("query"); v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid query key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			query[k] = v
+		}
+	}
+
+	l, err := models.GetAllReintegroDisponible( query,offset, limit)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = l
+	}
+	c.ServeJSON()
+}
+
+
 // Put ...
 // @Title Put
 // @Description update the Reintegro

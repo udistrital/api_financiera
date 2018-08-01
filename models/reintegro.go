@@ -9,15 +9,16 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
+	//"github.com/udistrital/utils_oas/optimize"
 )
 
 type Reintegro struct {
 	Id            int              `orm:"column(id);pk;auto"`
 	Consecutivo   int              `orm:"column(consecutivo)"`
 	Causal        *CausalReintegro `orm:"column(causal);rel(fk)"`
-	Observaciones string           `orm:"column(observaciones)"`
 	Ingreso       *Ingreso         `orm:"column(ingreso);rel(fk)"`
 	OrdenPago     *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
+	Disponible    bool    				 `orm:"column(disponible);null"`
 }
 
 func (t *Reintegro) TableName() string {
@@ -117,7 +118,7 @@ func GetReintegroById(id int) (v *Reintegro, err error) {
 func GetAllReintegro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Reintegro))
+	qs := o.QueryTable(new(Reintegro)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -188,6 +189,72 @@ func GetAllReintegro(query map[string]string, fields []string, sortby []string, 
 		return ml, nil
 	}
 	return nil, err
+}
+
+//get reintegros which his state belongs to a certain number
+func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (ml map[string]interface{}, err error) {
+
+	var reintegrosDisp []Reintegro
+	var reintegroInt []interface{}
+	var parametros []string
+	var where string
+
+
+	ml = make(map[string]interface{})
+
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	for k, v := range query {
+		if strings.Contains(k, "mayor") {
+			where = where + strings.Replace(k, "mayor", " > ?", -1)
+		} else {
+			where = where + k + " = ?"
+		}
+		where = where + " and "
+		parametros = append(parametros,v)
+	}
+	where = strings.TrimRight(where," and ")
+
+
+	qb.Select("r.*").
+		From("financiera.reintegro r").
+		InnerJoin("financiera.ingreso i").On("i.id = r.ingreso").
+		InnerJoin("financiera.ingreso_estado_ingreso iei").On("iei.ingreso = i.id").
+		Where(where).
+		Limit(limit).Offset(offset)
+
+		sql := qb.String()
+
+		o := orm.NewOrm()
+		o.Raw(sql,parametros ).QueryRows(&reintegrosDisp)
+
+		reintegroInt = append(reintegroInt)
+
+		beego.Error("reintegros disponibles",reintegrosDisp)
+		//if reintegrosDisp != nil {
+		//	reintegrosDisp = optimize.ProccDigest(reintegrosDisp, getReintegroList, nil, 3)
+		//}
+
+		//_, err = o.LoadRelated(&reintegrosDisp[0], "Ingreso")
+		if err != nil {
+			beego.Error(" error  load related sel ",err.Error())
+		}
+		ml["reintegros"]=reintegrosDisp
+		return
+	}
+
+
+	func getReintegroList(rpintfc interface{}, params ...interface{}) (res interface{}) {
+		beego.Error("entra a cargar reintegro")
+	var reintegro Reintegro
+	err := formatdata.FillStruct(rpintfc,&reintegro)
+	o := orm.NewOrm()
+	_, err = o.LoadRelated(reintegro, "Ingreso")
+	if err != nil {
+		beego.Error(" error  load related sel ",err.Error())
+	}
+	rpintfc = reintegro
+	return rpintfc
 }
 
 // UpdateReintegro updates Reintegro by Id and returns error if

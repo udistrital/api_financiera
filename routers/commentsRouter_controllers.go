@@ -5071,6 +5071,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ReintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ReintegroController"],
+		beego.ControllerComments{
+			Method: "GetAllReintegroDisponible",
+			Router: `/GetAllReintegroDisponible`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RequisitoAvanceController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:RequisitoAvanceController"],
 		beego.ControllerComments{
 			Method: "Post",
