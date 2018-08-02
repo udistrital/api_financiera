@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
-	//"github.com/udistrital/utils_oas/optimize"
+	"github.com/udistrital/utils_oas/optimize"
 )
 
 type Reintegro struct {
@@ -193,11 +193,10 @@ func GetAllReintegro(query map[string]string, fields []string, sortby []string, 
 
 //get reintegros which his state belongs to a certain number
 func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (ml map[string]interface{}, err error) {
-
 	var reintegrosDisp []Reintegro
-	var reintegroInt []interface{}
 	var parametros []string
 	var where string
+	var cnt int64
 
 
 	ml = make(map[string]interface{})
@@ -226,32 +225,42 @@ func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (m
 		sql := qb.String()
 
 		o := orm.NewOrm()
-		o.Raw(sql,parametros ).QueryRows(&reintegrosDisp)
+		o.Raw(sql,parametros).QueryRows(&reintegrosDisp)
 
-		reintegroInt = append(reintegroInt)
+		qb, _ = orm.NewQueryBuilder("mysql")
 
-		beego.Error("reintegros disponibles",reintegrosDisp)
-		//if reintegrosDisp != nil {
-		//	reintegrosDisp = optimize.ProccDigest(reintegrosDisp, getReintegroList, nil, 3)
-		//}
+		qb.Select("count(1)").
+			From("financiera.reintegro r").
+			InnerJoin("financiera.ingreso i").On("i.id = r.ingreso").
+			InnerJoin("financiera.ingreso_estado_ingreso iei").On("iei.ingreso = i.id").
+			Where(where)
 
-		//_, err = o.LoadRelated(&reintegrosDisp[0], "Ingreso")
+		sql = qb.String()
+		o.Raw(sql,parametros).QueryRow(&cnt)
+
+		reintegroInt := make([]interface{}, len(reintegrosDisp))
+		for i, v := range reintegrosDisp {
+    		reintegroInt[i] = v
+		}
+		if reintegrosDisp != nil {
+			reintegroInt = optimize.ProccDigest(reintegroInt, getReintegroList, nil, 3)
+		}
 		if err != nil {
 			beego.Error(" error  load related sel ",err.Error())
 		}
-		ml["reintegros"]=reintegrosDisp
+		ml["reintegros"]=reintegroInt
+		ml["cantidadReg"]=cnt
 		return
 	}
 
 
 	func getReintegroList(rpintfc interface{}, params ...interface{}) (res interface{}) {
-		beego.Error("entra a cargar reintegro")
 	var reintegro Reintegro
 	err := formatdata.FillStruct(rpintfc,&reintegro)
 	o := orm.NewOrm()
-	_, err = o.LoadRelated(reintegro, "Ingreso")
+	_, err = o.LoadRelated(&reintegro, "Causal")
 	if err != nil {
-		beego.Error(" error  load related sel ",err.Error())
+		return err
 	}
 	rpintfc = reintegro
 	return rpintfc
