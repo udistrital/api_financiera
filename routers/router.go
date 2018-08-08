@@ -885,7 +885,7 @@ func init() {
 				&controllers.CancelacionInversionController{},
 			),
 		),
-        	beego.NSNamespace("/cancelacion_inversion_concepto",
+		beego.NSNamespace("/cancelacion_inversion_concepto",
 			beego.NSInclude(
 				&controllers.CancelacionInversionConceptoController{},
 			),
@@ -899,6 +899,12 @@ func init() {
 		beego.NSNamespace("/reintegro",
 			beego.NSInclude(
 				&controllers.ReintegroController{},
+			),
+		),
+
+		beego.NSNamespace("/reintegro_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.ReintegroAvanceLegalizacionController{},
 			),
 		),
 	)
