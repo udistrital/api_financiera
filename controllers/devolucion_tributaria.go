@@ -184,6 +184,7 @@ func (c *DevolucionTributariaController) AddDevolucionTributaria() {
 	var request map[string]interface{}
 	var code string
 	defer c.ServeJSON()
+	beego.Error("add devolucion tributaria")
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
 
 		if devolucion, err := models.AddDevolucionTr(request); err == nil {
