@@ -14,17 +14,17 @@ import (
 )
 
 type DevolucionTributaria struct {
-	Id               int                  `orm:"column(id);pk;auto"`
-	Vigencia         float64              `orm:"column(vigencia)"`
-	UnidadEjecutora  *UnidadEjecutora     `orm:"column(unidad_ejecutora);rel(fk)"`
-	Acta             int						      `orm:"column(acta)"`
-	Oficio           int                  `orm:"column(oficio)"`
-	FechaOficio      time.Time            `orm:"column(fecha_oficio);type(date)"`
-	Solicitante      int 									`orm:"column(solicitante)"`
-	FormaPago        *FormaPago           `orm:"column(forma_pago);rel(fk)"`
-	CuentaDevolucion *CuentaDevolucion    `orm:"column(cuenta_devolucion);rel(fk)"`
-	Justificacion    string               `orm:"column(justificacion)"`
-	FechaRegistro    time.Time            `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Id               int               `orm:"column(id);pk;auto"`
+	Vigencia         float64           `orm:"column(vigencia)"`
+	UnidadEjecutora  *UnidadEjecutora  `orm:"column(unidad_ejecutora);rel(fk)"`
+	Acta             int               `orm:"column(acta)"`
+	Oficio           int               `orm:"column(oficio)"`
+	FechaOficio      time.Time         `orm:"column(fecha_oficio);type(date)"`
+	Solicitante      int               `orm:"column(solicitante)"`
+	FormaPago        *FormaPago        `orm:"column(forma_pago);rel(fk)"`
+	CuentaDevolucion *CuentaDevolucion `orm:"column(cuenta_devolucion);rel(fk)"`
+	Justificacion    string            `orm:"column(justificacion)"`
+	FechaRegistro    time.Time         `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 }
 
 func (t *DevolucionTributaria) TableName() string {
@@ -170,7 +170,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	var idDevol int64
 	var cuentaDevol CuentaDevolucion
 
-	var concepto Concepto
+	var concepto []map[string]interface{}
 	var mov []MovimientoContable
 	var totalInv float64
 
@@ -190,13 +190,12 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
 			One(&cuentaDevol)
 
-
 		if err == nil {
 			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
-		}else if err == orm.ErrMultiRows {
+		} else if err == orm.ErrMultiRows {
 			beego.Error("Returned Multi Rows Not One")
 			return
-		}else if err == orm.ErrNoRows {
+		} else if err == orm.ErrNoRows {
 			Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
 			if err != nil {
 				beego.Error(err)
@@ -206,7 +205,6 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 				tributariaDevol.CuentaDevolucion.Id = int(Id)
 			}
 		}
-
 
 		lll, _ := json.Marshal(&tributariaDevol)
 		beego.Info(string(lll))
@@ -223,16 +221,19 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			return
 		}
 
-		devolucion_concepto := &DevolucionTributariaConcepto{ValorDevolucion: totalInv,
-			DevolucionTributaria: &tributariaDevol,
-			Concepto:             &concepto}
+		for _, element := range concepto {
+			conceptoDevol := &Concepto{Id: int(element["Id"].(float64))}
+			devolucion_concepto := &DevolucionTributariaConcepto{ValorDevolucion: element["valorAfectacion"].(float64),
+				DevolucionTributaria: &tributariaDevol,
+				Concepto:             conceptoDevol,
+			}
+			_, err = o.Insert(devolucion_concepto)
+			if err != nil {
+				beego.Info(err.Error())
+				o.Rollback()
+				return
+			}
 
-		_, err = o.Insert(devolucion_concepto)
-
-		if err != nil {
-			beego.Info(err.Error())
-			o.Rollback()
-			return
 		}
 
 		for _, element := range mov {
