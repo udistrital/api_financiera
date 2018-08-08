@@ -13,12 +13,12 @@ import (
 )
 
 type Reintegro struct {
-	Id            int              `orm:"column(id);pk;auto"`
-	Consecutivo   int              `orm:"column(consecutivo)"`
-	Causal        *CausalReintegro `orm:"column(causal);rel(fk)"`
-	Ingreso       *Ingreso         `orm:"column(ingreso);rel(fk)"`
-	OrdenPago     *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
-	Disponible    bool    				 `orm:"column(disponible);null"`
+	Id          int              `orm:"column(id);pk;auto"`
+	Consecutivo int              `orm:"column(consecutivo)"`
+	Causal      *CausalReintegro `orm:"column(causal);rel(fk)"`
+	Ingreso     *Ingreso         `orm:"column(ingreso);rel(fk)"`
+	OrdenPago   *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
+	Disponible  bool             `orm:"column(disponible);null"`
 }
 
 func (t *Reintegro) TableName() string {
@@ -192,12 +192,11 @@ func GetAllReintegro(query map[string]string, fields []string, sortby []string, 
 }
 
 //get reintegros which his state belongs to a certain number
-func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (ml map[string]interface{}, err error) {
+func GetAllReintegroDisponible(query map[string]string, offset int, limit int) (ml map[string]interface{}, err error) {
 	var reintegrosDisp []Reintegro
 	var parametros []string
 	var where string
 	var cnt int64
-
 
 	ml = make(map[string]interface{})
 
@@ -210,10 +209,9 @@ func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (m
 			where = where + k + " = ?"
 		}
 		where = where + " and "
-		parametros = append(parametros,v)
+		parametros = append(parametros, v)
 	}
-	where = strings.TrimRight(where," and ")
-
+	where = strings.TrimRight(where, " and ")
 
 	qb.Select("r.*").
 		From("financiera.reintegro r").
@@ -222,41 +220,40 @@ func GetAllReintegroDisponible(query map[string]string,offset int, limit int) (m
 		Where(where).
 		Limit(limit).Offset(offset)
 
-		sql := qb.String()
+	sql := qb.String()
 
-		o := orm.NewOrm()
-		o.Raw(sql,parametros).QueryRows(&reintegrosDisp)
+	o := orm.NewOrm()
+	o.Raw(sql, parametros).QueryRows(&reintegrosDisp)
 
-		qb, _ = orm.NewQueryBuilder("mysql")
+	qb, _ = orm.NewQueryBuilder("mysql")
 
-		qb.Select("count(1)").
-			From("financiera.reintegro r").
-			InnerJoin("financiera.ingreso i").On("i.id = r.ingreso").
-			InnerJoin("financiera.ingreso_estado_ingreso iei").On("iei.ingreso = i.id").
-			Where(where)
+	qb.Select("count(1)").
+		From("financiera.reintegro r").
+		InnerJoin("financiera.ingreso i").On("i.id = r.ingreso").
+		InnerJoin("financiera.ingreso_estado_ingreso iei").On("iei.ingreso = i.id").
+		Where(where)
 
-		sql = qb.String()
-		o.Raw(sql,parametros).QueryRow(&cnt)
+	sql = qb.String()
+	o.Raw(sql, parametros).QueryRow(&cnt)
 
-		reintegroInt := make([]interface{}, len(reintegrosDisp))
-		for i, v := range reintegrosDisp {
-    		reintegroInt[i] = v
-		}
-		if reintegrosDisp != nil {
-			reintegroInt = optimize.ProccDigest(reintegroInt, getReintegroList, nil, 3)
-		}
-		if err != nil {
-			beego.Error(" error  load related sel ",err.Error())
-		}
-		ml["reintegros"]=reintegroInt
-		ml["cantidadReg"]=cnt
-		return
+	reintegroInt := make([]interface{}, len(reintegrosDisp))
+	for i, v := range reintegrosDisp {
+		reintegroInt[i] = v
 	}
+	if reintegrosDisp != nil {
+		reintegroInt = optimize.ProccDigest(reintegroInt, getReintegroList, nil, 3)
+	}
+	if err != nil {
+		beego.Error(" error  load related sel ", err.Error())
+	}
+	ml["reintegros"] = reintegroInt
+	ml["cantidadReg"] = cnt
+	return
+}
 
-
-	func getReintegroList(rpintfc interface{}, params ...interface{}) (res interface{}) {
+func getReintegroList(rpintfc interface{}, params ...interface{}) (res interface{}) {
 	var reintegro Reintegro
-	err := formatdata.FillStruct(rpintfc,&reintegro)
+	err := formatdata.FillStruct(rpintfc, &reintegro)
 	o := orm.NewOrm()
 	_, err = o.LoadRelated(&reintegro, "Causal")
 	if err != nil {
