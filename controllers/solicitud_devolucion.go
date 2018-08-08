@@ -184,8 +184,8 @@ func (c *SolicitudDevolucionController) AddDevolution() {
 	var code string
 	defer c.ServeJSON()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-		if err := models.AddDevolution(request); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: "devolucion creada"}
+		if solicutudDevol,err := models.AddDevolution(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: solicutudDevol}
 			c.Data["json"] = alert
 		} else {
 			beego.Info(err.Error())

@@ -165,9 +165,8 @@ func DeleteSolicitudDevolucion(id int) (err error) {
 
 // add a devolution, state,a id type returns error
 //if any insert fails
-func AddDevolution(request map[string]interface{}) (err error) {
+func AddDevolution(request map[string]interface{}) (solicitudDevol SolicitudDevolucion,err error) {
 
-	var solicitudDevol SolicitudDevolucion
 	var Id int64
 	var idDevol int64
 	var estadoDevol *EstadoDevolucion
