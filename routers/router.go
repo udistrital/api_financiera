@@ -907,6 +907,12 @@ func init() {
 				&controllers.ReintegroAvanceLegalizacionController{},
 			),
 		),
+
+		beego.NSNamespace("/orden_pago_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.OrdenPagoAvanceLegalizacionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

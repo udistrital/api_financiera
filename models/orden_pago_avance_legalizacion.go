@@ -11,45 +11,45 @@ import (
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type ReintegroAvanceLegalizacion struct {
+type OrdenPagoAvanceLegalizacion struct {
 	Id        int              `orm:"column(id);pk;auto"`
-	Reintegro *Reintegro       `orm:"column(reintegro);rel(fk)"`
 	Avance    *SolicitudAvance `orm:"column(avance);rel(fk)"`
+	OrdenPago *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
 }
 
-func (t *ReintegroAvanceLegalizacion) TableName() string {
-	return "reintegro_avance_legalizacion"
+func (t *OrdenPagoAvanceLegalizacion) TableName() string {
+	return "orden_pago_avance_legalizacion"
 }
 
 func init() {
-	orm.RegisterModel(new(ReintegroAvanceLegalizacion))
+	orm.RegisterModel(new(OrdenPagoAvanceLegalizacion))
 }
 
-// AddReintegroAvanceLegalizacion insert a new ReintegroAvanceLegalizacion into database and returns
+// AddOrdenPagoAvanceLegalizacion insert a new OrdenPagoAvanceLegalizacion into database and returns
 // last inserted Id on success.
-func AddReintegroAvanceLegalizacion(m *ReintegroAvanceLegalizacion) (id int64, err error) {
+func AddOrdenPagoAvanceLegalizacion(m *OrdenPagoAvanceLegalizacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetReintegroAvanceLegalizacionById retrieves ReintegroAvanceLegalizacion by Id. Returns error if
+// GetOrdenPagoAvanceLegalizacionById retrieves OrdenPagoAvanceLegalizacion by Id. Returns error if
 // Id doesn't exist
-func GetReintegroAvanceLegalizacionById(id int) (v *ReintegroAvanceLegalizacion, err error) {
+func GetOrdenPagoAvanceLegalizacionById(id int) (v *OrdenPagoAvanceLegalizacion, err error) {
 	o := orm.NewOrm()
-	v = &ReintegroAvanceLegalizacion{Id: id}
+	v = &OrdenPagoAvanceLegalizacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllReintegroAvanceLegalizacion retrieves all ReintegroAvanceLegalizacion matches certain condition. Returns empty list if
+// GetAllOrdenPagoAvanceLegalizacion retrieves all OrdenPagoAvanceLegalizacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllOrdenPagoAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ReintegroAvanceLegalizacion)).RelatedSel()
+	qs := o.QueryTable(new(OrdenPagoAvanceLegalizacion)).RelatedSel(4)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +99,7 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 		}
 	}
 
-	var l []ReintegroAvanceLegalizacion
+	var l []OrdenPagoAvanceLegalizacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +122,11 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 	return nil, err
 }
 
-// UpdateReintegroAvanceLegalizacion updates ReintegroAvanceLegalizacion by Id and returns error if
+// UpdateOrdenPagoAvanceLegalizacion updates OrdenPagoAvanceLegalizacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err error) {
+func UpdateOrdenPagoAvanceLegalizacionById(m *OrdenPagoAvanceLegalizacion) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: m.Id}
+	v := OrdenPagoAvanceLegalizacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,48 +137,57 @@ func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err 
 	return
 }
 
-// DeleteReintegroAvanceLegalizacion deletes ReintegroAvanceLegalizacion by Id and returns error if
+// DeleteOrdenPagoAvanceLegalizacion deletes OrdenPagoAvanceLegalizacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteReintegroAvanceLegalizacion(id int) (err error) {
+func DeleteOrdenPagoAvanceLegalizacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: id}
+	v := OrdenPagoAvanceLegalizacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ReintegroAvanceLegalizacion{Id: id}); err == nil {
+		if num, err = o.Delete(&OrdenPagoAvanceLegalizacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
 	return
 }
 
-//Add all reinintegro avance relations returns error
+//Add all OP avance relations returns error
 //if any insert fails
-func AddReintegroAvance(request map[string]interface{}) (successNums int64, err error) {
-	var reintegrosAvance []ReintegroAvanceLegalizacion
-	err = formatdata.FillStruct(request["reintegroAvance"], &reintegrosAvance)
+func AddOPAvance(request map[string]interface{}) (successNums int64, err error) {
+	var OPAvance []OrdenPagoAvanceLegalizacion
+
+	var cnt int64
+	var tamArray int
+	err = formatdata.FillStruct(request["OPAvance"], &OPAvance)
 	o := orm.NewOrm()
 	if err == nil {
 
 		o.Begin()
+		tamArray = len(OPAvance)
+		for i := 0; i < tamArray; i += 1 {
 
-		for _, element := range reintegrosAvance {
-			_, err = o.QueryTable("reintegro").Filter("id", element.Reintegro.Id).Update(orm.Params{
-				"disponible": false,
-			})
+			qs := o.QueryTable(new(OrdenPagoAvanceLegalizacion))
+			qs = qs.Filter("avance", OPAvance[i].Avance.Id)
+			qs = qs.Filter("orden_pago", OPAvance[i].OrdenPago.Id)
+			cnt, err = qs.Count()
+
 			if err != nil {
 				beego.Error(err.Error())
-				o.Rollback()
 				return
-			}
-			successNums, err = o.InsertMulti(100, reintegrosAvance)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
+			} else {
+				if cnt > 0 {
+					OPAvance = append(OPAvance[:i], OPAvance[i+1:]...)
+					tamArray -= 1
+				}
 			}
 		}
-
+		successNums, err = o.InsertMulti(100, OPAvance)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
 	} else {
 		beego.Error(err.Error())
 		return
