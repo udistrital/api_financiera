@@ -6,17 +6,18 @@ import (
 	"reflect"
 	"strings"
 
+	"time"
+
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/astaxie/beego"
-	"time"
 )
 
 type ConceptoAvanceLegalizacion struct {
-	Id       int              `orm:"column(id);pk"`
+	Id       int              `orm:"column(id);pk;auto"`
 	Valor    int64            `orm:"column(valor)"`
 	Avance   *SolicitudAvance `orm:"column(avance);rel(fk)"`
-	Concepto *Concepto `orm:"column(concepto);rel(fk)"`
+	Concepto *Concepto        `orm:"column(concepto);rel(fk)"`
 }
 
 func (t *ConceptoAvanceLegalizacion) TableName() string {
@@ -51,7 +52,7 @@ func GetConceptoAvanceLegalizacionById(id int) (v *ConceptoAvanceLegalizacion, e
 func GetAllConceptoAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ConceptoAvanceLegalizacion))
+	qs := o.QueryTable(new(ConceptoAvanceLegalizacion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -154,10 +155,9 @@ func DeleteConceptoAvanceLegalizacion(id int) (err error) {
 	return
 }
 
-
 // add a Accountant information about an advance, state,a id type returns error
 //if any insert fails
-func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoAvance ConceptoAvanceLegalizacion,err error) {
+func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoAvance ConceptoAvanceLegalizacion, err error) {
 
 	var mov []MovimientoContable
 	var tipoDocAfectante TipoDocumentoAfectante
@@ -168,12 +168,8 @@ func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoA
 	err = formatdata.FillStruct(request["ConceptoAvance"], &conceptoAvance)
 	err = formatdata.FillStruct(request["Movimientos"], &mov)
 
-
-
 	if err == nil {
 		o.Begin()
-
-
 
 		qs := o.QueryTable(new(ConceptoAvanceLegalizacion))
 		qs = qs.Filter("avance", conceptoAvance.Avance.Id)
@@ -192,8 +188,8 @@ func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoA
 				o.Rollback()
 				return
 			}
-		}else{
-			idConceptoAvnc , err = o.Insert(&conceptoAvance)
+		} else {
+			idConceptoAvnc, err = o.Insert(&conceptoAvance)
 			if err != nil {
 				beego.Info(err.Error())
 				o.Rollback()
@@ -210,7 +206,7 @@ func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoA
 			for _, element := range mov {
 				element.Fecha = time.Now()
 				element.TipoDocumentoAfectante = &tipoDocAfectante
-				element.CodigoDocumentoAfectante = conceptoAvance.Id
+				element.CodigoDocumentoAfectante = conceptoAvance.Avance.Id
 				element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
 				_, err = o.Insert(&element)
 
@@ -219,8 +215,8 @@ func CreateLegalizacionAccountantInfo(request map[string]interface{}) (conceptoA
 					o.Rollback()
 					return
 				}
-				}
-		}else {
+			}
+		} else {
 			beego.Error(err.Error())
 			o.Rollback()
 			return
