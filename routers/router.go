@@ -919,6 +919,25 @@ func init() {
 				&controllers.ConceptoAvanceLegalizacionController{},
 			),
 		),
+
+		beego.NSNamespace("/chequera",
+			beego.NSInclude(
+				&controllers.ChequeraController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_chequera",
+			beego.NSInclude(
+				&controllers.EstadoChequeraController{},
+			),
+		),
+
+		beego.NSNamespace("/chequera_estado_chequera",
+			beego.NSInclude(
+				&controllers.ChequeraEstadoChequeraController{},
+			),
+		),
+		
 	)
 	beego.AddNamespace(ns)
 }
