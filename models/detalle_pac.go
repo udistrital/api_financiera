@@ -168,8 +168,8 @@ func AddEgresoPac(parameter ...interface{}) (err interface{}) {
 	var valoresAnt []map[string]interface{}
 	var TotalEjecutado float64
 
-	params := parameter[0].([]interface{})
-	ordenPago := params[0].(OrdenPago)
+	ordenPago := parameter[0].(OrdenPago)
+	//ordenPago := params[0].(OrdenPago)
 	res, err := RubroOrdenPagoP(ordenPago.Id)
 
 	err = formatdata.FillStruct(res[0], &total)

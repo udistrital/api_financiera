@@ -7,30 +7,34 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Inversion struct {
-	Id                  int       `orm:"column(id);pk"`
-	Vendedor            string    `orm:"column(vendedor)"`
-	Emisor              string    `orm:"column(emisor)"`
-	NumOperacion        int       `orm:"column(num_operacion)"`
-	Trm                 float64   `orm:"column(trm)"`
-	TasaNominal         float64   `orm:"column(tasa_nominal);null"`
-	ValorNomSaldo       float64   `orm:"column(valor_nom_saldo);null"`
-	ValorNomSaldoMonNal float64   `orm:"column(valor_nom_saldo_mon_nal);null"`
-	ValorActual         float64   `orm:"column(valor_actual);null"`
-	ValorNetoGirar      float64   `orm:"column(valor_neto_girar);null"`
-	FechaCompra         time.Time `orm:"column(fecha_compra);type(date);null"`
-	FechaRedencion      time.Time `orm:"column(fecha_redencion);type(date);null"`
-	FechaVencimiento    time.Time `orm:"column(fecha_vencimiento);type(date);null"`
-	FechaEmision        time.Time `orm:"column(fecha_emision);type(date);null"`
-	Comprador           string    `orm:"column(comprador);null"`
-	ValorRecompra       float64   `orm:"column(valor_recompra);null"`
-	FechaVenta          time.Time `orm:"column(fecha_venta);type(date);null"`
-	FechaPacto          time.Time `orm:"column(fecha_pacto);type(date);null"`
-	Observaciones       string    `orm:"column(observaciones);null"`
-	InversionConcepto   []*InversionConcepto `orm:"reverse(many)"`
+	Id                  int              `orm:"column(id);pk;auto"`
+	Vendedor            int              `orm:"column(vendedor)"`
+	Emisor              int              `orm:"column(emisor)"`
+	NumeroTransaccion   int              `orm:"column(numero_transaccion)"`
+	Trm                 float64          `orm:"column(trm)"`
+	TasaNominal         float64          `orm:"column(tasa_nominal);null"`
+	ValorNominalSaldo   float64          `orm:"column(valor_nominal_saldo);null"`
+	ValorNomSaldoMonNal float64          `orm:"column(valor_nom_saldo_mon_nal);null"`
+	ValorActual         float64          `orm:"column(valor_actual);null"`
+	ValorNetoGirar      float64          `orm:"column(valor_neto_girar);null"`
+	FechaCompra         time.Time        `orm:"column(fecha_compra);type(date);null"`
+	FechaRedencion      time.Time        `orm:"column(fecha_redencion);type(date);null"`
+	FechaVencimiento    time.Time        `orm:"column(fecha_vencimiento);type(date);null"`
+	FechaEmision        time.Time        `orm:"column(fecha_emision);type(date);null"`
+	Comprador           int              `orm:"column(comprador);null"`
+	ValorRecompra       float64          `orm:"column(valor_recompra);null"`
+	FechaVenta          time.Time        `orm:"column(fecha_venta);type(date);null"`
+	FechaPacto          time.Time        `orm:"column(fecha_pacto);type(date);null"`
+	Observaciones       string           `orm:"column(observaciones);null"`
+	TituloInversion     *TituloInversion `orm:"column(titulo_inversion);rel(fk)"`
+	UnidadEjecutora     *UnidadEjecutora `orm:"column(unidad_ejecutora);rel(fk)"`
+	Vigencia            float64          `orm:"column(vigencia);null"`
 }
 
 func (t *Inversion) TableName() string {
@@ -65,7 +69,7 @@ func GetInversionById(id int) (v *Inversion, err error) {
 func GetAllInversion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Inversion))
+	qs := o.QueryTable(new(Inversion)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -165,5 +169,113 @@ func DeleteInversion(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+// Insert an entire inversion in database returns error if record cant be inserted
+func AddInver(request map[string]interface{}) (inversion Inversion, err error) {
+
+	var tipoInversion int
+	var usuario int
+	var actapadre Inversion
+	var inversionCompare Inversion
+	var invEstadoInv InversionEstadoInversion
+	var concepto Concepto
+	var mov []MovimientoContable
+	var totalInv float64
+	var idInvNueva int64
+	var historicoInversiones HistoricoInversion
+	o := orm.NewOrm()
+	err = formatdata.FillStruct(request["Inversion"], &inversion)
+	err = formatdata.FillStruct(request["tipoInversion"], &tipoInversion)
+	err = formatdata.FillStruct(request["actapadre"], &actapadre)
+
+	if err == nil {
+
+		o.Begin()
+
+		idInvNueva, err = o.Insert(&inversion)
+		inversion.Id = int(idInvNueva)
+
+		if err == nil {
+			if !reflect.DeepEqual(actapadre, inversionCompare) {
+				beego.Error("informacion acta padre")
+				historicoInversiones.InversionAntigua = &actapadre
+				historicoInversiones.InversionNueva = &inversion
+				_, err = o.Insert(&historicoInversiones)
+				if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+			}
+		} else {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+
+		if err == nil {
+
+			err = formatdata.FillStruct(request["usuario"], &usuario)
+			err = formatdata.FillStruct(request["EstadoInversion"], &invEstadoInv)
+			err = formatdata.FillStruct(request["Concepto"], &concepto)
+			err = formatdata.FillStruct(request["Movimientos"], &mov)
+			err = formatdata.FillStruct(request["TotalInversion"], &totalInv)
+
+			if err != nil {
+				beego.Info(err.Error())
+				o.Rollback()
+				return
+			}
+
+			inversion_concepto := &InversionConcepto{ValorAgregado: totalInv,
+				Inversion: &inversion,
+				Concepto:  &concepto}
+
+			_, err = o.Insert(inversion_concepto)
+
+			if err != nil {
+				beego.Info(err.Error())
+				o.Rollback()
+				return
+			}
+
+			for _, element := range mov {
+				element.Fecha = time.Now()
+				element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 3}
+				element.CodigoDocumentoAfectante = inversion.Id
+				element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+				_, err = o.Insert(&element)
+
+				if err != nil {
+					beego.Info(err.Error())
+					o.Rollback()
+					return
+				}
+			}
+		if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			invEstadoInv.Inversion = &inversion
+			invEstadoInv.Usuario = usuario
+			beego.Error(invEstadoInv)
+			_, err = o.Insert(&invEstadoInv)
+
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			o.Commit()
+			return
+		} else {
+			o.Rollback()
+			return
+		}
+	}
+
 	return
 }

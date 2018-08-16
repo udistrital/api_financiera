@@ -19,7 +19,6 @@ type Usuario struct {
 type OrdenPago struct {
 	Id                       int                         `orm:"column(id);pk;auto"`
 	Vigencia                 float64                     `orm:"column(vigencia)"`
-	RegistroPresupuestal     *RegistroPresupuestal       `orm:"column(registro_presupuestal);rel(fk)"`
 	ValorBase                float64                     `orm:"column(valor_base)"`
 	Convenio                 int                         `orm:"column(convenio);null"`
 	SubTipoOrdenPago         *SubTipoOrdenPago           `orm:"column(sub_tipo_orden_pago);rel(fk)"`
@@ -194,11 +193,15 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
+	ordenPagoRegistroPresupuestal := []OrdenPagoRegistroPresupuestal{}
+	ordenPagoCuentaEspecial := []OrdenPagoCuentaEspecial{}
 	err1 := formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
 	err2 := formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
 	err3 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
 	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+	err5 := formatdata.FillStruct(DataOpProveedor["RegistroPresupuestal"], &ordenPagoRegistroPresupuestal)
+	err6 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &ordenPagoCuentaEspecial)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil{
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
 		alerta.Body = "Erro en la estructura de parametro de entrada en RegistrarOpProveedor"
@@ -284,6 +287,21 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			return
 		}
 	}
+	for i := 0; i < len(ordenPagoRegistroPresupuestal); i++ {
+		ordenPagoRegistroPresupuestalData := OrdenPagoRegistroPresupuestal{
+		    OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
+		    RegistroPresupuestal: &RegistroPresupuestal{Id: int(ordenPagoRegistroPresupuestal[i].Id)},
+		    FechaRegistro: time.Now(),
+		}
+		_, err = o.Insert(&ordenPagoRegistroPresupuestalData)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_01"
+			alerta.Body = err.Error()
+			o.Rollback()
+			return
+		}	
+	}	
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(movimientoContable); i++ {
 		movimientoContableData := MovimientoContable{
@@ -298,6 +316,22 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 		}
 		if movimientoContable[i].CuentaEspecial != nil {
 			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
+			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
+				OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
+				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
+				FormaPago: &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
+				ValorBase: ordenPagoCuentaEspecial[i].ValorBase,
+				FechaRegistro: time.Now(),
+				Usuario: usuario.Id,
+			}
+			_, err = o.Insert(&ordenPagoCuentaEspecialData)
+			if err != nil {
+				alerta.Type = "errorCuentaEspecial"
+				alerta.Code = "E_OPP_04"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}			
 		}
 
 		_, err = o.Insert(&movimientoContableData)

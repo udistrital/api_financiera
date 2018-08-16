@@ -165,12 +165,13 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 	fmt.Println("hola soy la orden de pago creada", op)
 	var consulta_homologacion = make(map[string]string);
 	var consulta_movimiento_contable = make(map[string]string);
-	var consulta_rp *RegistroPresupuestal
+	var consulta_tercero = make(map[string]string);
 	var fields []string
 	var sortby []string
 	var order []string
 	var ObjetoHomologacion HomologacionComprobantes
 	var ObjetoMovimientoContable MovimientoContable
+	var ObjetoRP RegistroPresupuestal
 	var valor float64
 
  	consulta_homologacion["TipoDocumentoAfectante.CodigoAbreviacion"] = "DA-OP"
@@ -185,9 +186,9 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 	id_nuevo, err := AddComprobante(nuevo_comprobante)
 
   //BUSCAR TERCERO
-
-	consulta_rp, _ = GetRegistroPresupuestalById(op.RegistroPresupuestal.Id)
-	fmt.Println("rp de esa OP", consulta_rp)
+	//consulta_tercero["OrdenPago.Id"] = strconv.Itoa(op.RegistroPresupuestal.Id)
+	respuesta, _ = GetAllOrdenPagoRegistroPresupuestal(consulta_tercero,fields,sortby,order,0,-1)
+	ObjetoRP = respuesta[0].(RegistroPresupuestal)
 
 	if(id_nuevo != 0 && err == nil){
 		consulta_movimiento_contable["TipoDocumentoAfectante.Id"] = "1"
@@ -202,7 +203,7 @@ func CrearComprobanteOrdenPago(op OrdenPago){
 				}else{
 				 valor = float64(ObjetoMovimientoContable.Credito)
 			 }
-			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }, Valor: valor , Tercero: consulta_rp.Beneficiario}
+			 ObjetoRegistroComprobante := &RegistroComprobantes { Comprobante: &Comprobante{Id: int(id_nuevo)}, 	Movimiento: op.Id, Secuencia: i+1,	MovimientoContable: &MovimientoContable{Id:ObjetoMovimientoContable.Id }, CuentaContable: ObjetoMovimientoContable.CuentaContable.Id, TipoDocumentoAfectante: &TipoDocumentoAfectante{Id:1 }, Valor: valor , Tercero: ObjetoRP.Id}
 			 _, err := AddRegistroComprobantes(ObjetoRegistroComprobante)
 			 fmt.Println(err)
 		 }

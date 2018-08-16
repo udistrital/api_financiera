@@ -39,6 +39,13 @@ func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
 	return
 }
 
+//AddMovimientoContableArray insert an array from MovimientoContable into database
+func AddMovimientoContableArray(m *[]MovimientoContable) (id int64, err error) {
+	o := orm.NewOrm()
+	id, err = o.InsertMulti(100,m)
+	return
+}
+
 // GetMovimientoContableById retrieves MovimientoContable by Id. Returns error if
 // Id doesn't exist
 func GetMovimientoContableById(id int) (v *MovimientoContable, err error) {

@@ -15,7 +15,25 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
-				beego.NSNamespace("/etapa_avance",
+
+		beego.NSNamespace("/tipo_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.TipoAvanceLegalizacionController{},
+			),
+		),
+
+		beego.NSNamespace("/avance_legalizacion",
+			beego.NSInclude(
+				&controllers.AvanceLegalizacionController{},
+			),
+		),
+
+		beego.NSNamespace("/avance_legalizacion_cuenta_especial",
+			beego.NSInclude(
+				&controllers.AvanceLegalizacionCuentaEspecialController{},
+			),
+		),
+		beego.NSNamespace("/etapa_avance",
 			beego.NSInclude(
 				&controllers.EtapaAvanceController{},
 			),
@@ -695,9 +713,198 @@ func init() {
 				&controllers.InversionEstadoInversionController{},
 			),
 		),
+		beego.NSNamespace("/titulo_inversion",
+			beego.NSInclude(
+				&controllers.TituloInversionController{},
+			),
+		),
 		beego.NSNamespace("/inversion_concepto",
 			beego.NSInclude(
 				&controllers.InversionConceptoController{},
+			),
+		),
+		beego.NSNamespace("/historico_inversion",
+			beego.NSInclude(
+				&controllers.HistoricoInversionController{},
+			),
+		),
+		beego.NSNamespace("/orden_devolucion",
+			beego.NSInclude(
+				&controllers.OrdenDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/documento_devolucion",
+			beego.NSInclude(
+				&controllers.DocumentoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/cuenta_devolucion",
+			beego.NSInclude(
+				&controllers.CuentaDevolucionController{},
+			),
+		),
+
+		beego.NSNamespace("/acta_devolucion",
+			beego.NSInclude(
+				&controllers.ActaDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_devolucion",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/devolucion_estado_devolucion",
+			beego.NSInclude(
+				&controllers.DevolucionEstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/razon_devolucion",
+			beego.NSInclude(
+				&controllers.RazonDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/tipo_devolucion",
+			beego.NSInclude(
+				&controllers.TipoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/estado_devolucion",
+			beego.NSInclude(
+				&controllers.EstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_devolucion_estado_devolucion",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionEstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_devolucion_concepto",
+			beego.NSInclude(
+				&controllers.SolicitudDevolucionConceptoController{},
+			),
+		),
+		beego.NSNamespace("/orden_devolucion_solicitud_devolucion",
+			beego.NSInclude(
+				&controllers.OrdenDevolucionSolicitudDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/orden_devolucion_estado_devolucion",
+			beego.NSInclude(
+				&controllers.OrdenDevolucionEstadoDevolucionController{},
+			),
+		),
+		beego.NSNamespace("/devolucion_tributaria_movimiento",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaMovimientoController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_estado_devolucion",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaEstadoDevolucionController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_concepto",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaConceptoController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaController{},
+			),
+		),
+
+		beego.NSNamespace("/devolucion_tributaria_orden_pago",
+			beego.NSInclude(
+				&controllers.DevolucionTributariaOrdenPagoController{},
+			),
+		),
+		beego.NSNamespace("/ingreso_sin_situacion_fondos",
+			beego.NSInclude(
+				&controllers.IngresoSinSituacionFondosController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_ingreso_sin_situacion_fondos",
+			beego.NSInclude(
+				&controllers.EstadoIngresoSinSituacionFondosController{},
+			),
+		),
+
+		beego.NSNamespace("/ingreso_sin_situacion_fondos_estado",
+			beego.NSInclude(
+				&controllers.IngresoSinSituacionFondosEstadoController{},
+			),
+		),
+		beego.NSNamespace("/orden_pago_registro_presupuestal",
+			beego.NSInclude(
+				&controllers.OrdenPagoRegistroPresupuestalController{},
+			),
+		),
+
+		beego.NSNamespace("/orden_pago_cuenta_especial",
+			beego.NSInclude(
+				&controllers.OrdenPagoCuentaEspecialController{},
+			),
+		),
+
+		beego.NSNamespace("/informacion_adicional_banco",
+			beego.NSInclude(
+				&controllers.InformacionAdicionalBancoController{},
+			),
+		),
+		beego.NSNamespace("/rubro_homologado_rubro",
+			beego.NSInclude(
+				&controllers.RubroHomologadoRubroController{},
+			),
+		),
+		beego.NSNamespace("/cancelacion_inversion_inversion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionInversionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_cancelacion_inversion",
+			beego.NSInclude(
+				&controllers.EstadoCancelacionInversionController{},
+			),
+		),
+
+		beego.NSNamespace("/cancelacion_inversion_estado_cancelacion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionEstadoCancelacionController{},
+			),
+		),
+
+		beego.NSNamespace("/cancelacion_inversion",
+			beego.NSInclude(
+				&controllers.CancelacionInversionController{},
+			),
+		),
+		beego.NSNamespace("/cancelacion_inversion_concepto",
+			beego.NSInclude(
+				&controllers.CancelacionInversionConceptoController{},
+			),
+		),
+		beego.NSNamespace("/causal_reintegro",
+			beego.NSInclude(
+				&controllers.CausalReintegroController{},
+			),
+		),
+
+		beego.NSNamespace("/reintegro",
+			beego.NSInclude(
+				&controllers.ReintegroController{},
+			),
+		),
+
+		beego.NSNamespace("/reintegro_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.ReintegroAvanceLegalizacionController{},
 			),
 		),
 	)
