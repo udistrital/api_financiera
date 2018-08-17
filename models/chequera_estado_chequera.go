@@ -160,7 +160,7 @@ func DeleteChequeraEstadoChequera(id int) (err error) {
 func AddNewEstadoChequera (request map[string]interface{})(estadoChequera ChequeraEstadoChequera, err error){
 	var chequera Chequera
 	err = formatdata.FillStruct(request["Estado"], &estadoChequera)
-	err = formatdata.FillStruct(request["chequera"], &chequera)
+	err = formatdata.FillStruct(request["Chequera"], &chequera)
 
 	if err != nil {
 		beego.Error(err.Error())

@@ -12,7 +12,7 @@ import (
 )
 
 type Chequera struct {
-	Id                  int             `orm:"column(id);pk"`
+	Id                  int             `orm:"column(id);pk;auto"`
 	Consecutivo         int             `orm:"column(consecutivo)"`
 	UnidadEjecutora     int             `orm:"column(unidad_ejecutora)"`
 	Responsable         int             `orm:"column(responsable)"`
@@ -195,12 +195,13 @@ func AddChequeraEstado(m map[string]interface{}) (id int64, err error) {
 	idChequera, err = o.Insert(&chequera)
 	if err == nil {
 		chequera.Id = int(idChequera)
+		m["Chequera"]=chequera
 		err = o.QueryTable("estado_chequera").
 			Filter("numeroOrden", 1).
 			One(&estadoChequera)
 		if err == nil {
 			chequeraEstadoChequera := &ChequeraEstadoChequera{Chequera:&chequera,Activo:true,Estado:&estadoChequera,Usuario:int(usuario)}
-			_,err = o.Insert(&chequeraEstadoChequera)
+			_,err = o.Insert(chequeraEstadoChequera)
 			if err != nil {
 				beego.Error(err.Error())
 				o.Rollback()
@@ -216,5 +217,6 @@ func AddChequeraEstado(m map[string]interface{}) (id int64, err error) {
 		o.Rollback()
 		return
 	}
+	o.Commit()
 	return
 }

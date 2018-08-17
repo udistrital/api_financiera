@@ -183,17 +183,19 @@ func (c *ChequeraController) Delete() {
 func (c *ChequeraController) CreateChequeraEstado() {
 	var v map[string]interface{}
 	defer c.ServeJSON()
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, v); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddChequeraEstado(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
 		} else {
+			beego.Error("Error",err)
 			var code string
 			alertdb:=structs.Map(err)
 			formatdata.FillStruct(alertdb["Code"],&code)
 			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+code,Body:err}
 		}
 	} else {
+		beego.Error("Error",err)
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 
