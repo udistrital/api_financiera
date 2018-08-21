@@ -108,6 +108,11 @@ func GetAllChequeraEstadoChequera(query map[string]string, fields []string, sort
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				err := o.Read(&v)
+				_, err = o.LoadRelated(&v, "estado")
+				if err != nil {
+					return nil, err
+				}
 				ml = append(ml, v)
 			}
 		} else {
@@ -159,7 +164,7 @@ func DeleteChequeraEstadoChequera(id int) (err error) {
 // as no active
 func AddNewEstadoChequera (request map[string]interface{})(estadoChequera ChequeraEstadoChequera, err error){
 	var chequera Chequera
-	err = formatdata.FillStruct(request["Estado"], &estadoChequera)
+	err = formatdata.FillStruct(request["ChequeraEstadoChequera"], &estadoChequera)
 	err = formatdata.FillStruct(request["Chequera"], &chequera)
 
 	if err != nil {
@@ -180,11 +185,13 @@ func AddNewEstadoChequera (request map[string]interface{})(estadoChequera Cheque
 			return
 		}
 		estadoChequera.Chequera = &chequera
+
 		_, err = o.Insert(&estadoChequera)
 		if err != nil {
 			beego.Error(err.Error())
 			o.Rollback()
 			return
 		}
+		o.Commit()
 		return
 }

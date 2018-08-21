@@ -959,6 +959,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraController"],
+		beego.ControllerComments{
+			Method: "GetChequeraRecordsNumber",
+			Router: `/GetChequeraRecordsNumber/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -972,14 +980,6 @@ func init() {
 			Method: "GetAll",
 			Router: `/`,
 			AllowHTTPMethods: []string{"get"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"],
-		beego.ControllerComments{
-			Method: "AddEstadoChequera",
-			Router: `/`,
-			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -1004,6 +1004,14 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ChequeraEstadoChequeraController"],
+		beego.ControllerComments{
+			Method: "AddEstadoChequera",
+			Router: `/AddEstadoChequera/`,
+			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
 

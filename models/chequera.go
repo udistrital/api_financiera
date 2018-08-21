@@ -55,7 +55,7 @@ func GetChequeraById(id int) (v *Chequera, err error) {
 func GetAllChequera(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Chequera))
+	qs := o.QueryTable(new(Chequera)).RelatedSel(1)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -126,6 +126,27 @@ func GetAllChequera(query map[string]string, fields []string, sortby []string, o
 		return ml, nil
 	}
 	return nil, err
+}
+
+
+// GetRecordsChequera retrieves quantity of records in Chequera s table
+// Id doesn't exist
+func GetRecordsChequera(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(Chequera))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
+	return
 }
 
 // UpdateChequera updates Chequera by Id and returns error if

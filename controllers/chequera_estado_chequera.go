@@ -179,7 +179,7 @@ func (c *ChequeraEstadoChequeraController) Delete() {
 // @Param	body		body 	models.ChequeraEstadoChequera	true		"body for ChequeraEstadoChequera content"
 // @Success 201 {int} models.ChequeraEstadoChequera
 // @Failure 403 body is empty
-// @router / [post]
+// @router /AddEstadoChequera/ [post]
 func (c *ChequeraEstadoChequeraController) AddEstadoChequera() {
 	defer c.ServeJSON()
 	var v map[string]interface{}
