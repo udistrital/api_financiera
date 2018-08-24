@@ -21,6 +21,7 @@ type Chequera struct {
 	NumeroChequeInicial int             `orm:"column(numero_cheque_inicial)"`
 	NumeroChequeFinal   int             `orm:"column(numero_cheque_final)"`
 	CuentaBancaria      *CuentaBancaria `orm:"column(cuenta_bancaria);rel(fk)"`
+	ChequesDisponibles	int							`orm:"column(cheques_disponibles)"`
 }
 
 func (t *Chequera) TableName() string {
@@ -45,6 +46,7 @@ func GetChequeraById(id int) (v *Chequera, err error) {
 	o := orm.NewOrm()
 	v = &Chequera{Id: id}
 	if err = o.Read(v); err == nil {
+		_, err = o.LoadRelated(v, "cuenta_bancaria")
 		return v, nil
 	}
 	return nil, err
