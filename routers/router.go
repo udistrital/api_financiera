@@ -937,7 +937,23 @@ func init() {
 				&controllers.ChequeraEstadoChequeraController{},
 			),
 		),
-		
+		beego.NSNamespace("/cheque",
+			beego.NSInclude(
+				&controllers.ChequeController{},
+			),
+		),
+
+		beego.NSNamespace("/cheque_estado_cheque",
+			beego.NSInclude(
+				&controllers.ChequeEstadoChequeController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_cheque",
+			beego.NSInclude(
+				&controllers.EstadoChequeController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
