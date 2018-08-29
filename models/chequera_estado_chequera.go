@@ -5,51 +5,55 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type ReintegroAvanceLegalizacion struct {
-	Id        int              `orm:"column(id);pk;auto"`
-	Reintegro *Reintegro       `orm:"column(reintegro);rel(fk)"`
-	Avance    *SolicitudAvance `orm:"column(avance);rel(fk)"`
+type ChequeraEstadoChequera struct {
+	Id            int             `orm:"column(id);pk;auto"`
+	Chequera      *Chequera       `orm:"column(chequera);rel(fk)"`
+	Activo        bool            `orm:"column(activo)"`
+	FechaRegistro time.Time       `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Estado        *EstadoChequera `orm:"column(estado);rel(fk)"`
+	Usuario       int             `orm:"column(usuario);null"`
 }
 
-func (t *ReintegroAvanceLegalizacion) TableName() string {
-	return "reintegro_avance_legalizacion"
+func (t *ChequeraEstadoChequera) TableName() string {
+	return "chequera_estado_chequera"
 }
 
 func init() {
-	orm.RegisterModel(new(ReintegroAvanceLegalizacion))
+	orm.RegisterModel(new(ChequeraEstadoChequera))
 }
 
-// AddReintegroAvanceLegalizacion insert a new ReintegroAvanceLegalizacion into database and returns
+// AddChequeraEstadoChequera insert a new ChequeraEstadoChequera into database and returns
 // last inserted Id on success.
-func AddReintegroAvanceLegalizacion(m *ReintegroAvanceLegalizacion) (id int64, err error) {
+func AddChequeraEstadoChequera(m *ChequeraEstadoChequera) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetReintegroAvanceLegalizacionById retrieves ReintegroAvanceLegalizacion by Id. Returns error if
+// GetChequeraEstadoChequeraById retrieves ChequeraEstadoChequera by Id. Returns error if
 // Id doesn't exist
-func GetReintegroAvanceLegalizacionById(id int) (v *ReintegroAvanceLegalizacion, err error) {
+func GetChequeraEstadoChequeraById(id int) (v *ChequeraEstadoChequera, err error) {
 	o := orm.NewOrm()
-	v = &ReintegroAvanceLegalizacion{Id: id}
+	v = &ChequeraEstadoChequera{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllReintegroAvanceLegalizacion retrieves all ReintegroAvanceLegalizacion matches certain condition. Returns empty list if
+// GetAllChequeraEstadoChequera retrieves all ChequeraEstadoChequera matches certain condition. Returns empty list if
 // no records exist
-func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllChequeraEstadoChequera(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ReintegroAvanceLegalizacion)).RelatedSel()
+	qs := o.QueryTable(new(ChequeraEstadoChequera))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,11 +103,16 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 		}
 	}
 
-	var l []ReintegroAvanceLegalizacion
+	var l []ChequeraEstadoChequera
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				err := o.Read(&v)
+				_, err = o.LoadRelated(&v, "estado")
+				if err != nil {
+					return nil, err
+				}
 				ml = append(ml, v)
 			}
 		} else {
@@ -122,11 +131,11 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 	return nil, err
 }
 
-// UpdateReintegroAvanceLegalizacion updates ReintegroAvanceLegalizacion by Id and returns error if
+// UpdateChequeraEstadoChequera updates ChequeraEstadoChequera by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err error) {
+func UpdateChequeraEstadoChequeraById(m *ChequeraEstadoChequera) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: m.Id}
+	v := ChequeraEstadoChequera{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,52 +146,52 @@ func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err 
 	return
 }
 
-// DeleteReintegroAvanceLegalizacion deletes ReintegroAvanceLegalizacion by Id and returns error if
+// DeleteChequeraEstadoChequera deletes ChequeraEstadoChequera by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteReintegroAvanceLegalizacion(id int) (err error) {
+func DeleteChequeraEstadoChequera(id int) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: id}
+	v := ChequeraEstadoChequera{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ReintegroAvanceLegalizacion{Id: id}); err == nil {
+		if num, err = o.Delete(&ChequeraEstadoChequera{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
 	return
 }
+//Insert active state for checker, update another states
+// as no active
+func AddNewEstadoChequera (request map[string]interface{})(estadoChequera ChequeraEstadoChequera, err error){
+	var chequera Chequera
+	err = formatdata.FillStruct(request["ChequeraEstadoChequera"], &estadoChequera)
+	err = formatdata.FillStruct(request["Chequera"], &chequera)
 
-//Add all reinintegro avance relations returns error
-//if any insert fails
-func AddReintegroAvance(request map[string]interface{}) (successNums int64, err error) {
-	var reintegrosAvance []ReintegroAvanceLegalizacion
-	err = formatdata.FillStruct(request["reintegroAvance"], &reintegrosAvance)
-	o := orm.NewOrm()
-	if err == nil {
-
-		o.Begin()
-
-		for _, element := range reintegrosAvance {
-			_, err = o.QueryTable("reintegro").Filter("id", element.Reintegro.Id).Update(orm.Params{
-				"disponible": false,
-			})
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-			successNums, err = o.InsertMulti(100, reintegrosAvance)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-		}
-
-	} else {
+	if err != nil {
 		beego.Error(err.Error())
 		return
 	}
-	o.Commit()
-	return
+	o := orm.NewOrm()
+	o.Begin()
+	_, err = o.QueryTable("chequera_estado_chequera").
+		Filter("chequera", chequera.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		estadoChequera.Chequera = &chequera
+
+		_, err = o.Insert(&estadoChequera)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		return
 }

@@ -907,6 +907,53 @@ func init() {
 				&controllers.ReintegroAvanceLegalizacionController{},
 			),
 		),
+
+		beego.NSNamespace("/orden_pago_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.OrdenPagoAvanceLegalizacionController{},
+			),
+		),
+
+		beego.NSNamespace("/concepto_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.ConceptoAvanceLegalizacionController{},
+			),
+		),
+
+		beego.NSNamespace("/chequera",
+			beego.NSInclude(
+				&controllers.ChequeraController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_chequera",
+			beego.NSInclude(
+				&controllers.EstadoChequeraController{},
+			),
+		),
+
+		beego.NSNamespace("/chequera_estado_chequera",
+			beego.NSInclude(
+				&controllers.ChequeraEstadoChequeraController{},
+			),
+		),
+		beego.NSNamespace("/cheque",
+			beego.NSInclude(
+				&controllers.ChequeController{},
+			),
+		),
+
+		beego.NSNamespace("/cheque_estado_cheque",
+			beego.NSInclude(
+				&controllers.ChequeEstadoChequeController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_cheque",
+			beego.NSInclude(
+				&controllers.EstadoChequeController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

@@ -5,51 +5,55 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type ReintegroAvanceLegalizacion struct {
-	Id        int              `orm:"column(id);pk;auto"`
-	Reintegro *Reintegro       `orm:"column(reintegro);rel(fk)"`
-	Avance    *SolicitudAvance `orm:"column(avance);rel(fk)"`
+type Cheque struct {
+	Id               int        `orm:"column(id);pk"`
+	Consecutivo      int        `orm:"column(consecutivo)"`
+	OrdenPago        *OrdenPago `orm:"column(orden_pago);rel(fk)"`
+	Chequera         *Chequera  `orm:"column(chequera);rel(fk)"`
+	Observaciones    string     `orm:"column(observaciones)"`
+	Beneficiario     int        `orm:"column(beneficiario)"`
+	FechaVencimiento time.Time  `orm:"column(fecha_vencimiento);type(date)"`
+	Valor            float64    `orm:"column(valor)"`
 }
 
-func (t *ReintegroAvanceLegalizacion) TableName() string {
-	return "reintegro_avance_legalizacion"
+func (t *Cheque) TableName() string {
+	return "cheque"
 }
 
 func init() {
-	orm.RegisterModel(new(ReintegroAvanceLegalizacion))
+	orm.RegisterModel(new(Cheque))
 }
 
-// AddReintegroAvanceLegalizacion insert a new ReintegroAvanceLegalizacion into database and returns
+// AddCheque insert a new Cheque into database and returns
 // last inserted Id on success.
-func AddReintegroAvanceLegalizacion(m *ReintegroAvanceLegalizacion) (id int64, err error) {
+func AddCheque(m *Cheque) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetReintegroAvanceLegalizacionById retrieves ReintegroAvanceLegalizacion by Id. Returns error if
+// GetChequeById retrieves Cheque by Id. Returns error if
 // Id doesn't exist
-func GetReintegroAvanceLegalizacionById(id int) (v *ReintegroAvanceLegalizacion, err error) {
+func GetChequeById(id int) (v *Cheque, err error) {
 	o := orm.NewOrm()
-	v = &ReintegroAvanceLegalizacion{Id: id}
+	v = &Cheque{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllReintegroAvanceLegalizacion retrieves all ReintegroAvanceLegalizacion matches certain condition. Returns empty list if
+// GetAllCheque retrieves all Cheque matches certain condition. Returns empty list if
 // no records exist
-func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllCheque(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(ReintegroAvanceLegalizacion)).RelatedSel()
+	qs := o.QueryTable(new(Cheque))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +103,7 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 		}
 	}
 
-	var l []ReintegroAvanceLegalizacion
+	var l []Cheque
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +126,11 @@ func GetAllReintegroAvanceLegalizacion(query map[string]string, fields []string,
 	return nil, err
 }
 
-// UpdateReintegroAvanceLegalizacion updates ReintegroAvanceLegalizacion by Id and returns error if
+// UpdateCheque updates Cheque by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err error) {
+func UpdateChequeById(m *Cheque) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: m.Id}
+	v := Cheque{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,52 +141,36 @@ func UpdateReintegroAvanceLegalizacionById(m *ReintegroAvanceLegalizacion) (err 
 	return
 }
 
-// DeleteReintegroAvanceLegalizacion deletes ReintegroAvanceLegalizacion by Id and returns error if
+// DeleteCheque deletes Cheque by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteReintegroAvanceLegalizacion(id int) (err error) {
+func DeleteCheque(id int) (err error) {
 	o := orm.NewOrm()
-	v := ReintegroAvanceLegalizacion{Id: id}
+	v := Cheque{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&ReintegroAvanceLegalizacion{Id: id}); err == nil {
+		if num, err = o.Delete(&Cheque{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
 	return
 }
+//Gets the value of sum for all cheque related to a pay order
+//return zero value if not exists
+func GetChequeSumaOP(idOP int)(value int64,err error){
+	o:= orm.NewOrm()
 
-//Add all reinintegro avance relations returns error
-//if any insert fails
-func AddReintegroAvance(request map[string]interface{}) (successNums int64, err error) {
-	var reintegrosAvance []ReintegroAvanceLegalizacion
-	err = formatdata.FillStruct(request["reintegroAvance"], &reintegrosAvance)
-	o := orm.NewOrm()
-	if err == nil {
+	qb, _ := orm.NewQueryBuilder("mysql")
 
-		o.Begin()
+	qb.Select("COALESCE(sum(ch.valor),0)").
+		InnerJoin("cheque_estado_cheque cec").On("ch.id = cec.cheque and cec.activo = true").
+		InnerJoin("estado_cheque ec").On("ec.id = cec.estado and ec.numero_orden <= 5").
+		Where("ch.orden_pago = ?")
 
-		for _, element := range reintegrosAvance {
-			_, err = o.QueryTable("reintegro").Filter("id", element.Reintegro.Id).Update(orm.Params{
-				"disponible": false,
-			})
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-			successNums, err = o.InsertMulti(100, reintegrosAvance)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-		}
+	sql := qb.String()
 
-	} else {
-		beego.Error(err.Error())
-		return
-	}
-	o.Commit()
+	err = o.Raw(sql, idOP).QueryRow(&value)
+
 	return
+
 }
