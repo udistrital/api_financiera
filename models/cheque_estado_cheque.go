@@ -11,10 +11,10 @@ import (
 )
 
 type ChequeEstadoCheque struct {
-	Id            int           `orm:"column(id);pk"`
+	Id            int           `orm:"column(id);pk;auto"`
 	Cheque        *Cheque       `orm:"column(cheque);rel(fk)"`
 	Activo        bool          `orm:"column(activo)"`
-	FechaRegistro time.Time     `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro time.Time     `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Estado        *EstadoCheque `orm:"column(estado);rel(fk)"`
 	Usuario       int           `orm:"column(usuario);null"`
 }

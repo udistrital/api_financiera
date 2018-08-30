@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // ChequeController operations for Cheque
@@ -181,11 +183,61 @@ func (c *ChequeController) GetChequeSumaOP() {
 	idStr := c.Ctx.Input.Param(":idOP")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetChequeSumaOP(id)
-	if err != nil {
+	if err == nil {
 		c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
 	} else {
 		beego.Error("Error",err)
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
+}
+
+// GetNextChequeNumber ...
+// @Title Get Consecutivo Cheque
+// @Description get number of cheques for chequera
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.Cheque
+// @Failure 403 :id is empty
+// @router /GetNextChequeNumber/:idChequera [get]
+func (c *ChequeController) GetNextChequeNumber() {
+	idStr := c.Ctx.Input.Param(":idChequera")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetNextChequeNumber(id)
+	if err == nil {
+		c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+	} else {
+		beego.Error("Error",err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
+	}
+	c.ServeJSON()
+}
+
+// Post ...
+// @Title CreateChequeState
+// @Description creates cheque and adds state itself
+// @Param	body		body 	models.Cheque	true		"body for Cheque content"
+// @Success 201 {int} models.Cheque
+// @Failure 403 body is empty
+// @router /CreateChequeEstado [post]
+func (c *ChequeController) CreateChequeEstado() {
+	var v map[string]interface{}
+	defer c.ServeJSON()
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		beego.Error("valor llega ",v);
+		if _, err := models.AddChequeEstado(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+		} else {
+			beego.Error("Error",err)
+			var code string
+			alertdb:=structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"],&code)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+code,Body:err}
+		}
+	} else {
+		beego.Error("Error",err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
+	}
+
 }
