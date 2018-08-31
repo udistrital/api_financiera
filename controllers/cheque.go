@@ -130,6 +130,45 @@ func (c *ChequeController) GetAll() {
 	c.ServeJSON()
 }
 
+// GetChequeRecordsNumber ...
+// @Title GetChequeRecordsNumber
+// @Description get Cheque
+// @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
+// @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
+// @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
+// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
+// @Success 200 {object} models.Cheque
+// @Failure 403
+// @router /GetChequeRecordsNumber/ [get]
+func (c *ChequeController) GetChequeRecordsNumber() {
+	var query = make(map[string]string)
+	// query: k:v,k:v
+	if v := c.GetString("query"); v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid query key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			query[k] = v
+		}
+	}
+
+	l, err := models.GetRecordsCheque(query)
+	if err != nil {
+		alertdb := structs.Map(err);
+		c.Data["json"] = &models.Alert{Code:"E_"+alertdb["Code"].(string),Type:"error",Body:err.Error()}
+	} else {
+		c.Data["json"] = &models.Alert{Code:"E_S545",Type:"succes",Body:l}
+	}
+	c.ServeJSON()
+}
+
+
 // Put ...
 // @Title Put
 // @Description update the Cheque
@@ -224,7 +263,6 @@ func (c *ChequeController) CreateChequeEstado() {
 	defer c.ServeJSON()
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		beego.Error("valor llega ",v);
 		if _, err := models.AddChequeEstado(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}

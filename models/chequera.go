@@ -151,6 +151,49 @@ func GetRecordsChequera(query map[string]string) (cnt int64, err error) {
 	return
 }
 
+// validates if checker hasn't aviable items if not
+// changes checker state
+func ValidateSpentChecker(parameter ...interface{}) (err interface{}) {
+	var estadoChequera EstadoChequera
+	beego.Error("parameters ",parameter[0])
+	beego.Error("parameters ",parameter[1])
+
+	chequera := parameter[0].(Chequera)
+	usuario := parameter[1].(int)
+
+	o := orm.NewOrm()
+	o.Begin()
+	if (chequera.ChequesDisponibles - 1) <= 0 {
+		err = o.QueryTable("estado_chequera").
+			Filter("numeroOrden", 1).
+			One(&estadoChequera)
+			if err != nil {
+				beego.Error(err)
+				return
+			}
+			chequeraEstadoChequera := &ChequeraEstadoChequera{Chequera:&chequera,Activo:true,Estado:&estadoChequera,Usuario:usuario}
+			_,err = o.Insert(chequeraEstadoChequera)
+			if err != nil {
+				beego.Error(err)
+				o.Rollback()
+				return
+			}
+			_, err = o.QueryTable("chequera_estado_chequera").
+				Filter("chequera", chequera.Id).
+				Filter("activo", true).
+				Update(orm.Params{
+					"activo": "false",
+				})
+				if err != nil {
+					beego.Error(err)
+					o.Rollback()
+					return
+				}
+				o.Commit()
+	}
+				return
+}
+
 // UpdateChequera updates Chequera by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateChequeraById(m *Chequera) (err error) {

@@ -224,6 +224,16 @@ func AddChequeEstado(m map[string]interface{}) (id int64, err error) {
 				o.Rollback()
 				return
 			}
+			_, err = o.QueryTable("chequera").
+				Filter("Id", cheque.Chequera.Id).
+				Update(orm.Params{
+					"cheques_disponibles": orm.ColValue(orm.ColMinus, 1),
+				})
+				if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
 		}else{
 			beego.Error(err.Error())
 			o.Rollback()
@@ -235,5 +245,25 @@ func AddChequeEstado(m map[string]interface{}) (id int64, err error) {
 		return
 	}
 	o.Commit()
+	return
+}
+
+// GetRecordsCheque retrieves quantity of records in Cheque s table
+// returns zero value Id doesn't exist
+func GetRecordsCheque(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(Cheque))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
 	return
 }
