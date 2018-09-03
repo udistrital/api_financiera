@@ -55,7 +55,7 @@ func GetChequeById(id int) (v *Cheque, err error) {
 func GetAllCheque(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Cheque)).RelatedSel()
+	qs := o.QueryTable(new(Cheque))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
