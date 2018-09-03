@@ -41,7 +41,7 @@ func FunctionAfterExecCreateCheque(ctx *context.Context) {
 	var paramsChequera []interface{}
 	var tipo string
 	if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u); err == nil {
-		if err = formatdata.FillStruct(u["Body"], &cheque); err == nil && cheque.Id != 0 {
+		if err = formatdata.FillStruct(u["Body"].(map[string]interface{})["Cheque"], &cheque); err == nil && cheque.Id > 0 {
 			chequera = cheque.Chequera
 			usuario = u["Body"].(map[string]interface{})["Usuario"]
 			if err = formatdata.FillStruct(u["Type"], &tipo); err == nil && tipo == "success" {
@@ -50,14 +50,17 @@ func FunctionAfterExecCreateCheque(ctx *context.Context) {
 				beego.Error("parametros creacion cheque", paramsChequera)
 				work := optimize.WorkRequest{JobParameter: paramsChequera, Job: (models.ValidateSpentChecker)}
 				optimize.WorkQueue <- work
+			} else {
+				beego.Error("Error", err)
 			}
 
+		} else {
+			beego.Error("Error", err)
 		}
 
+	} else {
+		beego.Error("Error", err)
 	}
-	//work := WorkRequest{JobParameter: ingreso, Job: FunctionJobExample}
-
-	beego.Info("Work request queued")
 }
 
 func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
@@ -117,6 +120,6 @@ func Init() {
 	optimize.StartDispatcher(1, 200)
 
 	beego.InsertFilter("/v1/ingreso/AprobacionPresupuestalIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
-	beego.InsertFilter("/v1//cheque/CreateChequeEstado", beego.AfterExec, FunctionAfterExecCreateCheque, false)
+	beego.InsertFilter("/v1/cheque/CreateChequeEstado", beego.AfterExec, FunctionAfterExecCreateCheque, false)
 	beego.InsertFilter("/v1/orden_pago_estado_orden_pago/WorkFlowOrdenPago", beego.AfterExec, FunctionAfterExecEstadoOrdenP, false)
 }
