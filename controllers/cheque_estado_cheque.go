@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // ChequeEstadoChequeController operations for ChequeEstadoCheque
@@ -168,4 +170,31 @@ func (c *ChequeEstadoChequeController) Delete() {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+
+// Post ...
+// @Title AddEstadoCheque
+// @Description create estate for cheque
+// @Param	body		body 	models.ChequeraEstadoChequera	true		"body for ChequeraEstadoChequera content"
+// @Success 201 {int} models.ChequeraEstadoChequera
+// @Failure 403 body is empty
+// @router /AddEstadoCheque/ [post]
+func (c *ChequeEstadoChequeController) AddEstadoCheque() {
+	defer c.ServeJSON()
+	var v map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if estadoCheque, err := models.AddNewEstadoCheque(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:estadoCheque}
+		} else {
+			var code string
+			alertdb:=structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"],&code)
+			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+code,Body:err}
+		}
+	} else {
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
+	}
+
 }

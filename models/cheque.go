@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type Cheque struct {
-	Id               int        `orm:"column(id);pk"`
+	Id               int        `orm:"column(id);pk;auto"`
 	Consecutivo      int        `orm:"column(consecutivo)"`
 	OrdenPago        *OrdenPago `orm:"column(orden_pago);rel(fk)"`
 	Chequera         *Chequera  `orm:"column(chequera);rel(fk)"`
@@ -53,7 +55,7 @@ func GetChequeById(id int) (v *Cheque, err error) {
 func GetAllCheque(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Cheque))
+	qs := o.QueryTable(new(Cheque)).RelatedSel()
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -155,14 +157,16 @@ func DeleteCheque(id int) (err error) {
 	}
 	return
 }
+
 //Gets the value of sum for all cheque related to a pay order
 //return zero value if not exists
-func GetChequeSumaOP(idOP int)(value int64,err error){
-	o:= orm.NewOrm()
+func GetChequeSumaOP(idOP int) (value int64, err error) {
+	o := orm.NewOrm()
 
 	qb, _ := orm.NewQueryBuilder("mysql")
 
 	qb.Select("COALESCE(sum(ch.valor),0)").
+		From("cheque ch").
 		InnerJoin("cheque_estado_cheque cec").On("ch.id = cec.cheque and cec.activo = true").
 		InnerJoin("estado_cheque ec").On("ec.id = cec.estado and ec.numero_orden <= 5").
 		Where("ch.orden_pago = ?")
@@ -173,4 +177,94 @@ func GetChequeSumaOP(idOP int)(value int64,err error){
 
 	return
 
+}
+
+//counts  cheque number and returns one more; given a checker
+//return one if not exists
+func GetNextChequeNumber(idChequera int) (value int64, err error) {
+	o := orm.NewOrm()
+
+	qs := o.QueryTable(new(Cheque))
+	qs = qs.Filter("chequera", idChequera)
+	value, err = qs.Count()
+
+	return
+
+}
+
+// AddCheque insert a new Cheque into database and returns
+// last inserted Id on success.
+func AddChequeEstado(m map[string]interface{}) (id int64, err error) {
+	var cheque Cheque
+	var estadoCheque EstadoCheque
+	var usuario float64
+	var idCheque int64
+	o := orm.NewOrm()
+	beego.Error("arrives get cheque estado")
+	err = formatdata.FillStruct(m["Cheque"], &cheque)
+	err = formatdata.FillStruct(m["Usuario"], &usuario)
+
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+	o.Begin()
+
+	idCheque, err = o.Insert(&cheque)
+	if err == nil {
+		cheque.Id = int(idCheque)
+		m["Cheque"] = cheque
+		err = o.QueryTable(new(EstadoCheque)).
+			Filter("numeroOrden", 1).
+			One(&estadoCheque)
+		if err == nil {
+			chequeEstadoCheque := &ChequeEstadoCheque{Cheque: &cheque, Activo: true, Estado: &estadoCheque, Usuario: int(usuario)}
+			_, err = o.Insert(chequeEstadoCheque)
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			_, err = o.QueryTable("chequera").
+				Filter("Id", cheque.Chequera.Id).
+				Update(orm.Params{
+					"cheques_disponibles": orm.ColValue(orm.ColMinus, 1),
+				})
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+		} else {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+	} else {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+// GetRecordsCheque retrieves quantity of records in Cheque s table
+// returns zero value Id doesn't exist
+func GetRecordsCheque(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(Cheque))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
+	return
 }

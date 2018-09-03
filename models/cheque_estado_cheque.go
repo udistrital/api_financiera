@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type ChequeEstadoCheque struct {
-	Id            int           `orm:"column(id);pk"`
+	Id            int           `orm:"column(id);pk;auto"`
 	Cheque        *Cheque       `orm:"column(cheque);rel(fk)"`
 	Activo        bool          `orm:"column(activo)"`
-	FechaRegistro time.Time     `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro time.Time     `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Estado        *EstadoCheque `orm:"column(estado);rel(fk)"`
 	Usuario       int           `orm:"column(usuario);null"`
 }
@@ -152,4 +154,42 @@ func DeleteChequeEstadoCheque(id int) (err error) {
 		}
 	}
 	return
+}
+
+
+
+//Insert active state for cheque, update another states
+// as no active, change disponible cheque number on checker
+func AddNewEstadoCheque(request map[string]interface{})(estadoCheque ChequeEstadoCheque, err error){
+	var cheque Cheque
+	err = formatdata.FillStruct(request["ChequeEstadoCheque"], &estadoCheque)
+	err = formatdata.FillStruct(request["Cheque"], &cheque)
+
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+	o := orm.NewOrm()
+	o.Begin()
+	_, err = o.QueryTable("cheque_estado_cheque").
+		Filter("cheque", cheque.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		estadoCheque.Cheque = &cheque
+
+		_, err = o.Insert(&estadoCheque)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		return
 }
