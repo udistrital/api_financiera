@@ -200,7 +200,6 @@ func AddChequeEstado(m map[string]interface{}) (id int64, err error) {
 	var usuario float64
 	var idCheque int64
 	o := orm.NewOrm()
-	beego.Error("arrives get cheque estado")
 	err = formatdata.FillStruct(m["Cheque"], &cheque)
 	err = formatdata.FillStruct(m["Usuario"], &usuario)
 

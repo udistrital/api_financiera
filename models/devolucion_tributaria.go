@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -169,19 +168,23 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	var Id int64
 	var idDevol int64
 	var cuentaDevol CuentaDevolucion
+  var estadoDevolucion EstadoDevolucion
+	var movimientosAsoc  []DevolucionTributariaMovimientoAsociado
 
 	var concepto []map[string]interface{}
 	var mov []MovimientoContable
-	var totalInv float64
 
 	o := orm.NewOrm()
 
 	err = formatdata.FillStruct(request["DevolucionTributaria"], &tributariaDevol)
 	err = formatdata.FillStruct(request["Movimientos"], &mov)
-	err = formatdata.FillStruct(request["TotalInversion"], &totalInv)
+	err = formatdata.FillStruct(request["MovimientosAsociados"], &movimientosAsoc)
 	err = formatdata.FillStruct(request["Concepto"], &concepto)
 
-	if err == nil {
+	if err != nil {
+		beego.Error(err)
+		return
+	}
 		o.Begin()
 
 		err = o.QueryTable("cuenta_bancaria_ente").
@@ -190,36 +193,60 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
 			One(&cuentaDevol)
 
-		if err == nil {
-			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
-		} else if err == orm.ErrMultiRows {
-			beego.Error("Returned Multi Rows Not One")
-			return
-		} else if err == orm.ErrNoRows {
-			Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
-			if err != nil {
-				beego.Error(err)
-				o.Rollback()
+			if err == nil {
+				tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
+			} else if err == orm.ErrMultiRows {
+				beego.Error("Returned Multi Rows Not One")
 				return
-			} else {
-				tributariaDevol.CuentaDevolucion.Id = int(Id)
-			}
-		}
-
-		lll, _ := json.Marshal(&tributariaDevol)
-		beego.Info(string(lll))
+			} else if err == orm.ErrNoRows {
+				Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
+				if err != nil {
+					beego.Error(err)
+					o.Rollback()
+					return
+				} else {
+					tributariaDevol.CuentaDevolucion.Id = int(Id)
+				}
+	}
 		idDevol, err = o.Insert(&tributariaDevol)
 		if err != nil {
 			beego.Error(err)
 			o.Rollback()
 			return
 		}
-		beego.Error("id devolucion", idDevol)
 		tributariaDevol.Id = int(idDevol)
 		if err != nil {
 			o.Rollback()
 			return
 		}
+
+		err = o.QueryTable(new(EstadoDevolucion)).
+			Filter("numeroOrden", 1).
+			Filter("tipo", 3).
+			One(&estadoDevolucion)
+
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+			devolucionEstadoDevolucion := &DevolucionTributariaEstadoDevolucion{Devolucion: &tributariaDevol, Activo: true, EstadoDevolucion: &estadoDevolucion}
+			_, err = o.Insert(devolucionEstadoDevolucion)
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			for i,_ := range movimientosAsoc {
+				movimientosAsoc[i].Devolucion = &tributariaDevol;
+			}
+			_, err = o.InsertMulti(100, movimientosAsoc)
+
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
 
 		for _, element := range concepto {
 			conceptoDevol := &Concepto{Id: int(element["Id"].(float64))}
@@ -249,10 +276,6 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 				return
 			}
 		}
-
-	} else {
-		return
-	}
 	o.Commit()
 	return
 }
