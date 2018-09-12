@@ -13,17 +13,16 @@ import (
 )
 
 type DevolucionTributaria struct {
-	Id               int               `orm:"column(id);pk;auto"`
-	Vigencia         float64           `orm:"column(vigencia)"`
-	UnidadEjecutora  *UnidadEjecutora  `orm:"column(unidad_ejecutora);rel(fk)"`
-	Acta             int               `orm:"column(acta)"`
-	Oficio           int               `orm:"column(oficio)"`
-	FechaOficio      time.Time         `orm:"column(fecha_oficio);type(date)"`
-	Solicitante      int               `orm:"column(solicitante)"`
-	FormaPago        *FormaPago        `orm:"column(forma_pago);rel(fk)"`
-	CuentaDevolucion *CuentaDevolucion `orm:"column(cuenta_devolucion);rel(fk)"`
-	Justificacion    string            `orm:"column(justificacion)"`
-	FechaRegistro    time.Time         `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Id               		 int               			 `orm:"column(id);pk;auto"`
+	Vigencia         		 float64           			 `orm:"column(vigencia)"`
+	UnidadEjecutora  		 *UnidadEjecutora  			 `orm:"column(unidad_ejecutora);rel(fk)"`
+	Acta             		 int               			 `orm:"column(acta)"`
+	Solicitante      		 int               			 `orm:"column(solicitante)"`
+	FormaPago        		 *FormaPago        			 `orm:"column(forma_pago);rel(fk)"`
+	CuentaDevolucion 		 *CuentaDevolucion 			 `orm:"column(cuenta_devolucion);rel(fk)"`
+	Justificacion    		 string            			 `orm:"column(justificacion)"`
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk);null"`
+	FechaRegistro    		 time.Time         			 `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 }
 
 func (t *DevolucionTributaria) TableName() string {
@@ -58,7 +57,7 @@ func GetDevolucionTributariaById(id int) (v *DevolucionTributaria, err error) {
 func GetAllDevolucionTributaria(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(DevolucionTributaria)).RelatedSel()
+	qs := o.QueryTable(new(DevolucionTributaria)).RelatedSel(2)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -170,6 +169,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	var cuentaDevol CuentaDevolucion
   var estadoDevolucion EstadoDevolucion
 	var movimientosAsoc  []DevolucionTributariaMovimientoAsociado
+	var docGen DocumentoGenerador
 
 	var concepto []map[string]interface{}
 	var mov []MovimientoContable
@@ -180,12 +180,20 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	err = formatdata.FillStruct(request["Movimientos"], &mov)
 	err = formatdata.FillStruct(request["MovimientosAsociados"], &movimientosAsoc)
 	err = formatdata.FillStruct(request["Concepto"], &concepto)
+	err = formatdata.FillStruct(request["DocumentoGenerador"], &docGen)
 
 	if err != nil {
 		beego.Error(err)
 		return
 	}
 		o.Begin()
+
+	idDocgenerador, err := o.Insert(&docGen)
+			if err != nil {
+				beego.Info(err)
+				o.Rollback()
+				return
+			}
 
 		err = o.QueryTable("cuenta_bancaria_ente").
 			Filter("banco", tributariaDevol.CuentaDevolucion.Banco).
@@ -208,6 +216,9 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 					tributariaDevol.CuentaDevolucion.Id = int(Id)
 				}
 	}
+
+		tributariaDevol.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+
 		idDevol, err = o.Insert(&tributariaDevol)
 		if err != nil {
 			beego.Error(err)
@@ -277,5 +288,25 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			}
 		}
 	o.Commit()
+	return
+}
+
+// GetRecordsChequera retrieves quantity of records in tibutary devolutions table
+// Id doesn't exist returns 0
+func GetRecordsNumberDevolucion(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(DevolucionTributaria))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
 	return
 }

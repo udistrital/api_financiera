@@ -6,7 +6,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"sort"
 )
 
 type DevolucionTributariaConcepto struct {
@@ -100,7 +102,7 @@ func GetAllDevolucionTributariaConcepto(query map[string]string, fields []string
 
 	var l []DevolucionTributariaConcepto
 	qs = qs.OrderBy(sortFields...)
-	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
+	if _, err = qs.Limit(limit, offset).All(&l,fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
 				ml = append(ml, v)
@@ -109,6 +111,12 @@ func GetAllDevolucionTributariaConcepto(query map[string]string, fields []string
 			// trim unused fields
 			for _, v := range l {
 				m := make(map[string]interface{})
+				beego.Error("Fields",fields,"tam",len(fields))
+				is:=sort.Search(len(fields), func(i int) bool { return strings.Compare(fields[i],"Concepto")==0})
+				beego.Error("Existe concepto ",is)
+				if is < len(fields) && fields[is] == "Concepto" {
+								_, err = o.LoadRelated(&v, "Concepto",2)
+					}
 				val := reflect.ValueOf(v)
 				for _, fname := range fields {
 					m[fname] = val.FieldByName(fname).Interface()
