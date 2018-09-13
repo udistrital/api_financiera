@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// DevolucionTributariaMovimientoController operations for DevolucionTributariaMovimiento
-type DevolucionTributariaMovimientoController struct {
+// DevolucionTributariaMovimientoAsociadoController operations for DevolucionTributariaMovimientoAsociado
+type DevolucionTributariaMovimientoAsociadoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *DevolucionTributariaMovimientoController) URLMapping() {
+func (c *DevolucionTributariaMovimientoAsociadoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,13 +26,13 @@ func (c *DevolucionTributariaMovimientoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create DevolucionTributariaMovimiento
-// @Param	body		body 	models.DevolucionTributariaMovimiento	true		"body for DevolucionTributariaMovimiento content"
-// @Success 201 {int} models.DevolucionTributariaMovimiento
+// @Description create DevolucionTributariaMovimientoAsociado
+// @Param	body		body 	models.DevolucionTributariaMovimientoAsociado	true		"body for DevolucionTributariaMovimientoAsociado content"
+// @Success 201 {int} models.DevolucionTributariaMovimientoAsociado
 // @Failure 403 body is empty
 // @router / [post]
-func (c *DevolucionTributariaMovimientoController) Post() {
-	var v models.DevolucionTributariaMovimiento
+func (c *DevolucionTributariaMovimientoAsociadoController) Post() {
+	var v models.DevolucionTributariaMovimientoAsociado
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddDevolucionTributariaMovimiento(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
@@ -48,12 +48,12 @@ func (c *DevolucionTributariaMovimientoController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get DevolucionTributariaMovimiento by id
+// @Description get DevolucionTributariaMovimientoAsociado by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.DevolucionTributariaMovimiento
+// @Success 200 {object} models.DevolucionTributariaMovimientoAsociado
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *DevolucionTributariaMovimientoController) GetOne() {
+func (c *DevolucionTributariaMovimientoAsociadoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetDevolucionTributariaMovimientoById(id)
@@ -67,17 +67,17 @@ func (c *DevolucionTributariaMovimientoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get DevolucionTributariaMovimiento
+// @Description get DevolucionTributariaMovimientoAsociado
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.DevolucionTributariaMovimiento
+// @Success 200 {object} models.DevolucionTributariaMovimientoAsociado
 // @Failure 403
 // @router / [get]
-func (c *DevolucionTributariaMovimientoController) GetAll() {
+func (c *DevolucionTributariaMovimientoAsociadoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -130,16 +130,16 @@ func (c *DevolucionTributariaMovimientoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the DevolucionTributariaMovimiento
+// @Description update the DevolucionTributariaMovimientoAsociado
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.DevolucionTributariaMovimiento	true		"body for DevolucionTributariaMovimiento content"
-// @Success 200 {object} models.DevolucionTributariaMovimiento
+// @Param	body		body 	models.DevolucionTributariaMovimientoAsociado	true		"body for DevolucionTributariaMovimientoAsociado content"
+// @Success 200 {object} models.DevolucionTributariaMovimientoAsociado
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *DevolucionTributariaMovimientoController) Put() {
+func (c *DevolucionTributariaMovimientoAsociadoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.DevolucionTributariaMovimiento{Id: id}
+	v := models.DevolucionTributariaMovimientoAsociado{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateDevolucionTributariaMovimientoById(&v); err == nil {
 			c.Data["json"] = "OK"
@@ -154,12 +154,12 @@ func (c *DevolucionTributariaMovimientoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the DevolucionTributariaMovimiento
+// @Description delete the DevolucionTributariaMovimientoAsociado
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *DevolucionTributariaMovimientoController) Delete() {
+func (c *DevolucionTributariaMovimientoAsociadoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteDevolucionTributariaMovimiento(id); err == nil {

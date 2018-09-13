@@ -55,7 +55,7 @@ func GetChequeById(id int) (v *Cheque, err error) {
 func GetAllCheque(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Cheque)).RelatedSel()
+	qs := o.QueryTable(new(Cheque))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -200,7 +200,6 @@ func AddChequeEstado(m map[string]interface{}) (id int64, err error) {
 	var usuario float64
 	var idCheque int64
 	o := orm.NewOrm()
-	beego.Error("arrives get cheque estado")
 	err = formatdata.FillStruct(m["Cheque"], &cheque)
 	err = formatdata.FillStruct(m["Usuario"], &usuario)
 

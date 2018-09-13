@@ -796,7 +796,7 @@ func init() {
 		),
 		beego.NSNamespace("/devolucion_tributaria_movimiento",
 			beego.NSInclude(
-				&controllers.DevolucionTributariaMovimientoController{},
+				&controllers.DevolucionTributariaMovimientoAsociadoController{},
 			),
 		),
 
@@ -815,12 +815,6 @@ func init() {
 		beego.NSNamespace("/devolucion_tributaria",
 			beego.NSInclude(
 				&controllers.DevolucionTributariaController{},
-			),
-		),
-
-		beego.NSNamespace("/devolucion_tributaria_orden_pago",
-			beego.NSInclude(
-				&controllers.DevolucionTributariaOrdenPagoController{},
 			),
 		),
 		beego.NSNamespace("/ingreso_sin_situacion_fondos",
