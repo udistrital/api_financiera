@@ -538,24 +538,30 @@ func (c *RubroController) GetRubroPac() {
 func (c *RubroController) GetArbolMigracion() {
 	v, err := models.ArbolRubrosMigracion()
 
+	if err != nil {
+		beego.Info("err: ", err.Error())
+	}
+
+	// beego.Info(v)
+
 	// absPath, _ := filepath.Abs("file.txt")
 	//
 	// // d1 := []byte(v)
 	// d1, _ := json.Marshal(v)
 
 	info := &mgo.DialInfo{
-		Addrs:    []string{"127.0.0.1:27016"},
+		Addrs:    []string{"10.20.0.254:27017"},
 		Timeout:  60 * time.Second,
 		Database: "admin",
-		Username: "admin",
-		Password: "admin",
+		Username: "kronos_app",
+		Password: "SOPORTE2018",
 	}
 
 	session, err := mgo.DialWithInfo(info)
 
 	// session, err := mgo.Dial("127.0.0.1:27016")
 	session.SetMode(mgo.Monotonic, true)
-	w := session.DB("admin").C("arbol_rubro")
+	w := session.DB("kronos").C("arbol_rubro")
 
 	// err = ioutil.WriteFile(absPath, d1, 0644)
 	// f, err := os.Create(absPath)
@@ -564,11 +570,13 @@ func (c *RubroController) GetArbolMigracion() {
 		err = w.Insert(v1)
 		if err != nil {
 			panic(err)
-		} else {
-			fmt.Println(err)
 		}
+		// } else {
+		// 	// fmt.Println(err)
+		// }
 	}
 
+	beego.Info("migracion...")
 	// n3, err := f.WriteString(string(d1))
 	//
 	//   fmt.Printf("wrote %d bytes\n", n3)
@@ -577,9 +585,11 @@ func (c *RubroController) GetArbolMigracion() {
 	// }
 
 	if err != nil {
+		beego.Error("error controlador")
 		c.Data["json"] = err.Error()
 	} else {
 		c.Data["json"] = v
 	}
+	// c.Data["json"] = v
 	c.ServeJSON()
 }
