@@ -350,3 +350,21 @@ func (c *RegistroPresupuestalController) TotalRp() {
 
 	c.ServeJSON()
 }
+
+// DeleteRpData ...
+// @Title DeleteRpData
+// @Description delete the Disponibilidad
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteRpData/:id [delete]
+func (c *RegistroPresupuestalController) DeleteRpData() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if err := models.DeleteRpData(id); err == nil {
+		c.Data["json"] = models.Alert{Code: "S_554", Body: nil, Type: "success"}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+	c.ServeJSON()
+}

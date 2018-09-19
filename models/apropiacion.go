@@ -553,3 +553,14 @@ func AprobarPresupuesto(UnidadEjecutora int, Vigencia int) (err error) {
 	o.Commit()
 	return
 }
+
+//UpdateApropiacionValue... Actualiza la apropiacion inicial de un rubro dado un id
+func UpdateApropiacionValue(id int, valor float64) (err error) {
+	o := orm.NewOrm()
+	apropiacion := &Apropiacion{Id: id, Valor: valor}
+	_, err = o.Update(apropiacion, "Valor")
+	if err != nil {
+		panic(err.Error())
+	}
+	return
+}

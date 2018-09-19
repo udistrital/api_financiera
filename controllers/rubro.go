@@ -52,7 +52,7 @@ func (c *RubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
-			go genRubrosTreeFile(int(v.UnidadEjecutora))
+			//go genRubrosTreeFile(int(v.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
@@ -232,12 +232,12 @@ func (c *RubroController) Put() {
 func (c *RubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err1 := models.GetRubroById(id)
+	//v, err1 := models.GetRubroById(id)
 	if err := models.DeleteRubro(id); err == nil {
 		alert := models.Alert{Type: "success", Code: "S_554", Body: nil}
-		if err1 == nil {
-			go genRubrosTreeFile(int(v.UnidadEjecutora))
-		}
+		// if err1 == nil {
+		// 	//go genRubrosTreeFile(int(v.UnidadEjecutora))
+		// }
 		c.Data["json"] = alert
 	} else {
 		alertdb := structs.Map(err)
@@ -398,7 +398,7 @@ func (c *RubroController) GetIngresoCierre() {
 		c.ServeJSON()
 	}
 
-	mes,err := c.GetInt("mes")
+	mes, err := c.GetInt("mes")
 
 	if err != nil {
 		e := models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
@@ -406,9 +406,9 @@ func (c *RubroController) GetIngresoCierre() {
 		c.ServeJSON()
 	}
 
-	finicioStr := time.Date(int(vigencia),time.Month(mes),1,0,0,0,0,time.UTC).Format("2006-01-02")
+	finicioStr := time.Date(int(vigencia), time.Month(mes), 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
-	ffinStr := time.Date(int(vigencia),time.Month(mes) + 1 ,0,0,0,0,0,time.UTC).Format("2006-01-02")
+	ffinStr := time.Date(int(vigencia), time.Month(mes)+1, 0, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
 	finicio, err := time.ParseInLocation("2006-01-02", finicioStr, time.Local)
 	if err != nil {

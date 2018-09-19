@@ -39,7 +39,7 @@ func (c *RubroRubroController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroRubro(&v); err == nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: v}
-			go genRubrosTreeFile(int(v.RubroHijo.UnidadEjecutora))
+			//go genRubrosTreeFile(int(v.RubroHijo.UnidadEjecutora))
 			c.Data["json"] = alert
 		} else {
 			alertdb := structs.Map(err)
@@ -172,6 +172,27 @@ func (c *RubroRubroController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteRubroRubro(id); err == nil {
+		c.Data["json"] = "OK"
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// DeleteRubroRelation ...
+// @Title DeleteRubroRelation
+// @Description delete the RubroRubro
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteRubroRelation/:id/:ue [delete]
+func (c *RubroRubroController) DeleteRubroRelation() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	ueStr := c.Ctx.Input.Param(":ue")
+	ue, _ := strconv.Atoi(ueStr)
+	if err := models.DeleteRubroRelation(id); err == nil {
+		go genRubrosTreeFile(int(ue))
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
