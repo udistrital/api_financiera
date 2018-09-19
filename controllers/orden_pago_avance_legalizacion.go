@@ -3,20 +3,23 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/fatih/structs"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
-// DevolucionTributariaOrdenPagoController operations for DevolucionTributariaOrdenPago
-type DevolucionTributariaOrdenPagoController struct {
+// OrdenPagoAvanceLegalizacionController operations for OrdenPagoAvanceLegalizacion
+type OrdenPagoAvanceLegalizacionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *DevolucionTributariaOrdenPagoController) URLMapping() {
+func (c *OrdenPagoAvanceLegalizacionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +29,15 @@ func (c *DevolucionTributariaOrdenPagoController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create DevolucionTributariaOrdenPago
-// @Param	body		body 	models.DevolucionTributariaOrdenPago	true		"body for DevolucionTributariaOrdenPago content"
-// @Success 201 {int} models.DevolucionTributariaOrdenPago
+// @Description create OrdenPagoAvanceLegalizacion
+// @Param	body		body 	models.OrdenPagoAvanceLegalizacion	true		"body for OrdenPagoAvanceLegalizacion content"
+// @Success 201 {int} models.OrdenPagoAvanceLegalizacion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *DevolucionTributariaOrdenPagoController) Post() {
-	var v models.DevolucionTributariaOrdenPago
+func (c *OrdenPagoAvanceLegalizacionController) Post() {
+	var v models.OrdenPagoAvanceLegalizacion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddDevolucionTributariaOrdenPago(&v); err == nil {
+		if _, err := models.AddOrdenPagoAvanceLegalizacion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +51,15 @@ func (c *DevolucionTributariaOrdenPagoController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get DevolucionTributariaOrdenPago by id
+// @Description get OrdenPagoAvanceLegalizacion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.DevolucionTributariaOrdenPago
+// @Success 200 {object} models.OrdenPagoAvanceLegalizacion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *DevolucionTributariaOrdenPagoController) GetOne() {
+func (c *OrdenPagoAvanceLegalizacionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetDevolucionTributariaOrdenPagoById(id)
+	v, err := models.GetOrdenPagoAvanceLegalizacionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +70,17 @@ func (c *DevolucionTributariaOrdenPagoController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get DevolucionTributariaOrdenPago
+// @Description get OrdenPagoAvanceLegalizacion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.DevolucionTributariaOrdenPago
+// @Success 200 {object} models.OrdenPagoAvanceLegalizacion
 // @Failure 403
 // @router / [get]
-func (c *DevolucionTributariaOrdenPagoController) GetAll() {
+func (c *OrdenPagoAvanceLegalizacionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +122,7 @@ func (c *DevolucionTributariaOrdenPagoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllDevolucionTributariaOrdenPago(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllOrdenPagoAvanceLegalizacion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +133,18 @@ func (c *DevolucionTributariaOrdenPagoController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the DevolucionTributariaOrdenPago
+// @Description update the OrdenPagoAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.DevolucionTributariaOrdenPago	true		"body for DevolucionTributariaOrdenPago content"
-// @Success 200 {object} models.DevolucionTributariaOrdenPago
+// @Param	body		body 	models.OrdenPagoAvanceLegalizacion	true		"body for OrdenPagoAvanceLegalizacion content"
+// @Success 200 {object} models.OrdenPagoAvanceLegalizacion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *DevolucionTributariaOrdenPagoController) Put() {
+func (c *OrdenPagoAvanceLegalizacionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.DevolucionTributariaOrdenPago{Id: id}
+	v := models.OrdenPagoAvanceLegalizacion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateDevolucionTributariaOrdenPagoById(&v); err == nil {
+		if err := models.UpdateOrdenPagoAvanceLegalizacionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,18 +157,45 @@ func (c *DevolucionTributariaOrdenPagoController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the DevolucionTributariaOrdenPago
+// @Description delete the OrdenPagoAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *DevolucionTributariaOrdenPagoController) Delete() {
+func (c *OrdenPagoAvanceLegalizacionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteDevolucionTributariaOrdenPago(id); err == nil {
+	if err := models.DeleteOrdenPagoAvanceLegalizacion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// Post ...
+// @Title Post
+// @Description insert entire pay array for a devolution
+// @Param	body		body 	models.DevolucionTributaria	true		"body for OrdenPagoAvance content"
+// @Success 201 {int} models.OrdenPagoAvanceLegalizacion
+// @Failure 403 body is empty
+// @router /AddOPAvance [post]
+func (c *OrdenPagoAvanceLegalizacionController) AddOPAvance() {
+	var request map[string]interface{}
+	var code string
+	defer c.ServeJSON()
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
+		if rowNum, err := models.AddOPAvance(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: "records update " + strconv.Itoa(int(rowNum))}
+			c.Data["json"] = alert
+		} else {
+			beego.Info(err.Error())
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
+		}
+	} else {
+		beego.Error(err.Error())
+	}
 }

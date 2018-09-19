@@ -3,23 +3,22 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
-	"github.com/udistrital/api_financiera/models"
-
 	"github.com/astaxie/beego"
-	"github.com/fatih/structs"
 	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/fatih/structs"
 )
 
-// DevolucionTributariaController operations for DevolucionTributaria
-type DevolucionTributariaController struct {
+// ConceptoAvanceLegalizacionController operations for ConceptoAvanceLegalizacion
+type ConceptoAvanceLegalizacionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *DevolucionTributariaController) URLMapping() {
+func (c *ConceptoAvanceLegalizacionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -29,15 +28,15 @@ func (c *DevolucionTributariaController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create DevolucionTributaria
-// @Param	body		body 	models.DevolucionTributaria	true		"body for DevolucionTributaria content"
-// @Success 201 {int} models.DevolucionTributaria
+// @Description create ConceptoAvanceLegalizacion
+// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for ConceptoAvanceLegalizacion content"
+// @Success 201 {int} models.ConceptoAvanceLegalizacion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *DevolucionTributariaController) Post() {
-	var v models.DevolucionTributaria
+func (c *ConceptoAvanceLegalizacionController) Post() {
+	var v models.ConceptoAvanceLegalizacion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddDevolucionTributaria(&v); err == nil {
+		if _, err := models.AddConceptoAvanceLegalizacion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -51,15 +50,15 @@ func (c *DevolucionTributariaController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get DevolucionTributaria by id
+// @Description get ConceptoAvanceLegalizacion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.DevolucionTributaria
+// @Success 200 {object} models.ConceptoAvanceLegalizacion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *DevolucionTributariaController) GetOne() {
+func (c *ConceptoAvanceLegalizacionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetDevolucionTributariaById(id)
+	v, err := models.GetConceptoAvanceLegalizacionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -70,17 +69,17 @@ func (c *DevolucionTributariaController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get DevolucionTributaria
+// @Description get ConceptoAvanceLegalizacion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.DevolucionTributaria
+// @Success 200 {object} models.ConceptoAvanceLegalizacion
 // @Failure 403
 // @router / [get]
-func (c *DevolucionTributariaController) GetAll() {
+func (c *ConceptoAvanceLegalizacionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -122,7 +121,7 @@ func (c *DevolucionTributariaController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllDevolucionTributaria(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllConceptoAvanceLegalizacion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -133,18 +132,18 @@ func (c *DevolucionTributariaController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the DevolucionTributaria
+// @Description update the ConceptoAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.DevolucionTributaria	true		"body for DevolucionTributaria content"
-// @Success 200 {object} models.DevolucionTributaria
+// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for ConceptoAvanceLegalizacion content"
+// @Success 200 {object} models.ConceptoAvanceLegalizacion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *DevolucionTributariaController) Put() {
+func (c *ConceptoAvanceLegalizacionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.DevolucionTributaria{Id: id}
+	v := models.ConceptoAvanceLegalizacion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateDevolucionTributariaById(&v); err == nil {
+		if err := models.UpdateConceptoAvanceLegalizacionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -157,15 +156,15 @@ func (c *DevolucionTributariaController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the DevolucionTributaria
+// @Description delete the ConceptoAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *DevolucionTributariaController) Delete() {
+func (c *ConceptoAvanceLegalizacionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteDevolucionTributaria(id); err == nil {
+	if err := models.DeleteConceptoAvanceLegalizacion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
@@ -173,21 +172,22 @@ func (c *DevolucionTributariaController) Delete() {
 	c.ServeJSON()
 }
 
+
 // Post ...
-// @Title Post
-// @Description insert tributary devolution wit all its relations
-// @Param	body		body 	models.DevolucionTributaria	true		"body for OrdenDevolucion content"
-// @Success 201 {int} models.OrdenDevolucion
+// @Title CreateAccountantInfo
+// @Description Creates Accountant Information
+// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for InversionesActaInversion content"
+// @Success 201 {int} models.InversionesActaInversion
 // @Failure 403 body is empty
-// @router /AddDevolucionTributaria [post]
-func (c *DevolucionTributariaController) AddDevolucionTributaria() {
+// @router /CreateLegalizacionAccountantInfo [post]
+func (c *ConceptoAvanceLegalizacionController) CreateLegalizacionAccountantInfo() {
 	var request map[string]interface{}
 	var code string
 	defer c.ServeJSON()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
 
-		if devolucion, err := models.AddDevolucionTr(request); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: devolucion}
+		if inversion, err := models.CreateLegalizacionAccountantInfo(request); err == nil {
+			alert := models.Alert{Type: "success", Code: "S_543", Body: inversion}
 			c.Data["json"] = alert
 		} else {
 			beego.Info(err.Error())
@@ -202,42 +202,4 @@ func (c *DevolucionTributariaController) AddDevolucionTributaria() {
 		c.Data["json"] = alert
 	}
 
-}
-
-
-// GetAll ...
-// @Title Get All
-// @Description get DevolucionTributaria
-// @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
-// @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
-// @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
-// @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
-// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
-// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.DevolucionTributaria
-// @Failure 403
-// @router /GetDevolucionRecordsNumber/ [get]
-func (c *DevolucionTributariaController) GetDevolucionRecordsNumber() {
-	var query = make(map[string]string)
-	// query: k:v,k:v
-	if v := c.GetString("query"); v != "" {
-		for _, cond := range strings.Split(v, ",") {
-			kv := strings.SplitN(cond, ":", 2)
-			if len(kv) != 2 {
-				c.Data["json"] = errors.New("Error: invalid query key/value pair")
-				c.ServeJSON()
-				return
-			}
-			k, v := kv[0], kv[1]
-			query[k] = v
-		}
-	}
-	l, err := models.GetRecordsNumberDevolucion(query)
-	if err != nil {
-		alertdb := structs.Map(err);
-		c.Data["json"] = &models.Alert{Code:"E_"+alertdb["Code"].(string),Type:"error",Body:err.Error()}
-	} else {
-		c.Data["json"] = &models.Alert{Code:"E_S545",Type:"success",Body:l}
-	}
-	c.ServeJSON()
 }

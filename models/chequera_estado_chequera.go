@@ -5,49 +5,55 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type DevolucionTributariaOrdenPago struct {
-	Id         int                   `orm:"column(id);pk;auto"`
-	OrdenPago  *OrdenPago            `orm:"column(orden_pago);rel(fk)"`
-	Devolucion *DevolucionTributaria `orm:"column(devolucion);rel(fk)"`
+type ChequeraEstadoChequera struct {
+	Id            int             `orm:"column(id);pk;auto"`
+	Chequera      *Chequera       `orm:"column(chequera);rel(fk)"`
+	Activo        bool            `orm:"column(activo)"`
+	FechaRegistro time.Time       `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Estado        *EstadoChequera `orm:"column(estado);rel(fk)"`
+	Usuario       int             `orm:"column(usuario);null"`
 }
 
-func (t *DevolucionTributariaOrdenPago) TableName() string {
-	return "devolucion_tributaria_orden_pago"
+func (t *ChequeraEstadoChequera) TableName() string {
+	return "chequera_estado_chequera"
 }
 
 func init() {
-	orm.RegisterModel(new(DevolucionTributariaOrdenPago))
+	orm.RegisterModel(new(ChequeraEstadoChequera))
 }
 
-// AddDevolucionTributariaOrdenPago insert a new DevolucionTributariaOrdenPago into database and returns
+// AddChequeraEstadoChequera insert a new ChequeraEstadoChequera into database and returns
 // last inserted Id on success.
-func AddDevolucionTributariaOrdenPago(m *DevolucionTributariaOrdenPago) (id int64, err error) {
+func AddChequeraEstadoChequera(m *ChequeraEstadoChequera) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetDevolucionTributariaOrdenPagoById retrieves DevolucionTributariaOrdenPago by Id. Returns error if
+// GetChequeraEstadoChequeraById retrieves ChequeraEstadoChequera by Id. Returns error if
 // Id doesn't exist
-func GetDevolucionTributariaOrdenPagoById(id int) (v *DevolucionTributariaOrdenPago, err error) {
+func GetChequeraEstadoChequeraById(id int) (v *ChequeraEstadoChequera, err error) {
 	o := orm.NewOrm()
-	v = &DevolucionTributariaOrdenPago{Id: id}
+	v = &ChequeraEstadoChequera{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllDevolucionTributariaOrdenPago retrieves all DevolucionTributariaOrdenPago matches certain condition. Returns empty list if
+// GetAllChequeraEstadoChequera retrieves all ChequeraEstadoChequera matches certain condition. Returns empty list if
 // no records exist
-func GetAllDevolucionTributariaOrdenPago(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllChequeraEstadoChequera(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(DevolucionTributariaOrdenPago))
+	qs := o.QueryTable(new(ChequeraEstadoChequera))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -97,11 +103,16 @@ func GetAllDevolucionTributariaOrdenPago(query map[string]string, fields []strin
 		}
 	}
 
-	var l []DevolucionTributariaOrdenPago
+	var l []ChequeraEstadoChequera
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				err := o.Read(&v)
+				_, err = o.LoadRelated(&v, "estado")
+				if err != nil {
+					return nil, err
+				}
 				ml = append(ml, v)
 			}
 		} else {
@@ -120,11 +131,11 @@ func GetAllDevolucionTributariaOrdenPago(query map[string]string, fields []strin
 	return nil, err
 }
 
-// UpdateDevolucionTributariaOrdenPago updates DevolucionTributariaOrdenPago by Id and returns error if
+// UpdateChequeraEstadoChequera updates ChequeraEstadoChequera by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateDevolucionTributariaOrdenPagoById(m *DevolucionTributariaOrdenPago) (err error) {
+func UpdateChequeraEstadoChequeraById(m *ChequeraEstadoChequera) (err error) {
 	o := orm.NewOrm()
-	v := DevolucionTributariaOrdenPago{Id: m.Id}
+	v := ChequeraEstadoChequera{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -135,17 +146,52 @@ func UpdateDevolucionTributariaOrdenPagoById(m *DevolucionTributariaOrdenPago) (
 	return
 }
 
-// DeleteDevolucionTributariaOrdenPago deletes DevolucionTributariaOrdenPago by Id and returns error if
+// DeleteChequeraEstadoChequera deletes ChequeraEstadoChequera by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteDevolucionTributariaOrdenPago(id int) (err error) {
+func DeleteChequeraEstadoChequera(id int) (err error) {
 	o := orm.NewOrm()
-	v := DevolucionTributariaOrdenPago{Id: id}
+	v := ChequeraEstadoChequera{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&DevolucionTributariaOrdenPago{Id: id}); err == nil {
+		if num, err = o.Delete(&ChequeraEstadoChequera{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
 	return
+}
+//Insert active state for checker, update another states
+// as no active
+func AddNewEstadoChequera (request map[string]interface{})(estadoChequera ChequeraEstadoChequera, err error){
+	var chequera Chequera
+	err = formatdata.FillStruct(request["ChequeraEstadoChequera"], &estadoChequera)
+	err = formatdata.FillStruct(request["Chequera"], &chequera)
+
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+	o := orm.NewOrm()
+	o.Begin()
+	_, err = o.QueryTable("chequera_estado_chequera").
+		Filter("chequera", chequera.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		estadoChequera.Chequera = &chequera
+
+		_, err = o.Insert(&estadoChequera)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		return
 }

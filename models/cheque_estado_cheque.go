@@ -8,51 +8,52 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type OrdenPagoCuentaEspecial struct {
-	Id             int             `orm:"column(id);pk;auto"`
-	OrdenPago      *OrdenPago      `orm:"column(orden_pago);rel(fk)"`
-	CuentaEspecial *CuentaEspecial `orm:"column(cuenta_especial);rel(fk)"`
-	FormaPago      *FormaPago      `orm:"column(forma_pago);rel(fk)"`
-	ValorBase      float64         `orm:"column(valor_base)"`
-	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(timestamp without time zone)"`
-	Usuario        int             `orm:"column(usuario)"`
+type ChequeEstadoCheque struct {
+	Id            int           `orm:"column(id);pk;auto"`
+	Cheque        *Cheque       `orm:"column(cheque);rel(fk)"`
+	Activo        bool          `orm:"column(activo)"`
+	FechaRegistro time.Time     `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Estado        *EstadoCheque `orm:"column(estado);rel(fk)"`
+	Usuario       int           `orm:"column(usuario);null"`
 }
 
-func (t *OrdenPagoCuentaEspecial) TableName() string {
-	return "orden_pago_cuenta_especial"
+func (t *ChequeEstadoCheque) TableName() string {
+	return "cheque_estado_cheque"
 }
 
 func init() {
-	orm.RegisterModel(new(OrdenPagoCuentaEspecial))
+	orm.RegisterModel(new(ChequeEstadoCheque))
 }
 
-// AddOrdenPagoCuentaEspecial insert a new OrdenPagoCuentaEspecial into database and returns
+// AddChequeEstadoCheque insert a new ChequeEstadoCheque into database and returns
 // last inserted Id on success.
-func AddOrdenPagoCuentaEspecial(m *OrdenPagoCuentaEspecial) (id int64, err error) {
+func AddChequeEstadoCheque(m *ChequeEstadoCheque) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetOrdenPagoCuentaEspecialById retrieves OrdenPagoCuentaEspecial by Id. Returns error if
+// GetChequeEstadoChequeById retrieves ChequeEstadoCheque by Id. Returns error if
 // Id doesn't exist
-func GetOrdenPagoCuentaEspecialById(id int) (v *OrdenPagoCuentaEspecial, err error) {
+func GetChequeEstadoChequeById(id int) (v *ChequeEstadoCheque, err error) {
 	o := orm.NewOrm()
-	v = &OrdenPagoCuentaEspecial{Id: id}
+	v = &ChequeEstadoCheque{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllOrdenPagoCuentaEspecial retrieves all OrdenPagoCuentaEspecial matches certain condition. Returns empty list if
+// GetAllChequeEstadoCheque retrieves all ChequeEstadoCheque matches certain condition. Returns empty list if
 // no records exist
-func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllChequeEstadoCheque(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenPagoCuentaEspecial)).RelatedSel(1)
+	qs := o.QueryTable(new(ChequeEstadoCheque))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +103,7 @@ func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sor
 		}
 	}
 
-	var l []OrdenPagoCuentaEspecial
+	var l []ChequeEstadoCheque
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +126,11 @@ func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sor
 	return nil, err
 }
 
-// UpdateOrdenPagoCuentaEspecial updates OrdenPagoCuentaEspecial by Id and returns error if
+// UpdateChequeEstadoCheque updates ChequeEstadoCheque by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateOrdenPagoCuentaEspecialById(m *OrdenPagoCuentaEspecial) (err error) {
+func UpdateChequeEstadoChequeById(m *ChequeEstadoCheque) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPagoCuentaEspecial{Id: m.Id}
+	v := ChequeEstadoCheque{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,17 +141,55 @@ func UpdateOrdenPagoCuentaEspecialById(m *OrdenPagoCuentaEspecial) (err error) {
 	return
 }
 
-// DeleteOrdenPagoCuentaEspecial deletes OrdenPagoCuentaEspecial by Id and returns error if
+// DeleteChequeEstadoCheque deletes ChequeEstadoCheque by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteOrdenPagoCuentaEspecial(id int) (err error) {
+func DeleteChequeEstadoCheque(id int) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPagoCuentaEspecial{Id: id}
+	v := ChequeEstadoCheque{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&OrdenPagoCuentaEspecial{Id: id}); err == nil {
+		if num, err = o.Delete(&ChequeEstadoCheque{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
 	return
+}
+
+
+
+//Insert active state for cheque, update another states
+// as no active, change disponible cheque number on checker
+func AddNewEstadoCheque(request map[string]interface{})(estadoCheque ChequeEstadoCheque, err error){
+	var cheque Cheque
+	err = formatdata.FillStruct(request["ChequeEstadoCheque"], &estadoCheque)
+	err = formatdata.FillStruct(request["Cheque"], &cheque)
+
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+	o := orm.NewOrm()
+	o.Begin()
+	_, err = o.QueryTable("cheque_estado_cheque").
+		Filter("cheque", cheque.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		estadoCheque.Cheque = &cheque
+
+		_, err = o.Insert(&estadoCheque)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		return
 }

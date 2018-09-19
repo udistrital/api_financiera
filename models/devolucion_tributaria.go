@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -14,17 +13,16 @@ import (
 )
 
 type DevolucionTributaria struct {
-	Id               int               `orm:"column(id);pk;auto"`
-	Vigencia         float64           `orm:"column(vigencia)"`
-	UnidadEjecutora  *UnidadEjecutora  `orm:"column(unidad_ejecutora);rel(fk)"`
-	Acta             int               `orm:"column(acta)"`
-	Oficio           int               `orm:"column(oficio)"`
-	FechaOficio      time.Time         `orm:"column(fecha_oficio);type(date)"`
-	Solicitante      int               `orm:"column(solicitante)"`
-	FormaPago        *FormaPago        `orm:"column(forma_pago);rel(fk)"`
-	CuentaDevolucion *CuentaDevolucion `orm:"column(cuenta_devolucion);rel(fk)"`
-	Justificacion    string            `orm:"column(justificacion)"`
-	FechaRegistro    time.Time         `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Id               		 int               			 `orm:"column(id);pk;auto"`
+	Vigencia         		 float64           			 `orm:"column(vigencia)"`
+	UnidadEjecutora  		 *UnidadEjecutora  			 `orm:"column(unidad_ejecutora);rel(fk)"`
+	Acta             		 int               			 `orm:"column(acta)"`
+	Solicitante      		 int               			 `orm:"column(solicitante)"`
+	FormaPago        		 *FormaPago        			 `orm:"column(forma_pago);rel(fk)"`
+	CuentaDevolucion 		 *CuentaDevolucion 			 `orm:"column(cuenta_devolucion);rel(fk)"`
+	Justificacion    		 string            			 `orm:"column(justificacion)"`
+	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk);null"`
+	FechaRegistro    		 time.Time         			 `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 }
 
 func (t *DevolucionTributaria) TableName() string {
@@ -59,7 +57,7 @@ func GetDevolucionTributariaById(id int) (v *DevolucionTributaria, err error) {
 func GetAllDevolucionTributaria(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(DevolucionTributaria)).RelatedSel()
+	qs := o.QueryTable(new(DevolucionTributaria)).RelatedSel(2)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -169,20 +167,33 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	var Id int64
 	var idDevol int64
 	var cuentaDevol CuentaDevolucion
+  var estadoDevolucion EstadoDevolucion
+	var movimientosAsoc  []DevolucionTributariaMovimientoAsociado
+	var docGen DocumentoGenerador
 
 	var concepto []map[string]interface{}
 	var mov []MovimientoContable
-	var totalInv float64
 
 	o := orm.NewOrm()
 
 	err = formatdata.FillStruct(request["DevolucionTributaria"], &tributariaDevol)
 	err = formatdata.FillStruct(request["Movimientos"], &mov)
-	err = formatdata.FillStruct(request["TotalInversion"], &totalInv)
+	err = formatdata.FillStruct(request["MovimientosAsociados"], &movimientosAsoc)
 	err = formatdata.FillStruct(request["Concepto"], &concepto)
+	err = formatdata.FillStruct(request["DocumentoGenerador"], &docGen)
 
-	if err == nil {
+	if err != nil {
+		beego.Error(err)
+		return
+	}
 		o.Begin()
+
+	idDocgenerador, err := o.Insert(&docGen)
+			if err != nil {
+				beego.Info(err)
+				o.Rollback()
+				return
+			}
 
 		err = o.QueryTable("cuenta_bancaria_ente").
 			Filter("banco", tributariaDevol.CuentaDevolucion.Banco).
@@ -190,36 +201,63 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
 			One(&cuentaDevol)
 
-		if err == nil {
-			tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
-		} else if err == orm.ErrMultiRows {
-			beego.Error("Returned Multi Rows Not One")
-			return
-		} else if err == orm.ErrNoRows {
-			Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
-			if err != nil {
-				beego.Error(err)
-				o.Rollback()
+			if err == nil {
+				tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
+			} else if err == orm.ErrMultiRows {
+				beego.Error("Returned Multi Rows Not One")
 				return
-			} else {
-				tributariaDevol.CuentaDevolucion.Id = int(Id)
-			}
-		}
+			} else if err == orm.ErrNoRows {
+				Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
+				if err != nil {
+					beego.Error(err)
+					o.Rollback()
+					return
+				} else {
+					tributariaDevol.CuentaDevolucion.Id = int(Id)
+				}
+	}
 
-		lll, _ := json.Marshal(&tributariaDevol)
-		beego.Info(string(lll))
+		tributariaDevol.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+
 		idDevol, err = o.Insert(&tributariaDevol)
 		if err != nil {
 			beego.Error(err)
 			o.Rollback()
 			return
 		}
-		beego.Error("id devolucion", idDevol)
 		tributariaDevol.Id = int(idDevol)
 		if err != nil {
 			o.Rollback()
 			return
 		}
+
+		err = o.QueryTable(new(EstadoDevolucion)).
+			Filter("numeroOrden", 1).
+			Filter("tipo", 3).
+			One(&estadoDevolucion)
+
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+			devolucionEstadoDevolucion := &DevolucionTributariaEstadoDevolucion{Devolucion: &tributariaDevol, Activo: true, EstadoDevolucion: &estadoDevolucion}
+			_, err = o.Insert(devolucionEstadoDevolucion)
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+			for i,_ := range movimientosAsoc {
+				movimientosAsoc[i].Devolucion = &tributariaDevol;
+			}
+			_, err = o.InsertMulti(100, movimientosAsoc)
+
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
 
 		for _, element := range concepto {
 			conceptoDevol := &Concepto{Id: int(element["Id"].(float64))}
@@ -249,10 +287,26 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 				return
 			}
 		}
-
-	} else {
-		return
-	}
 	o.Commit()
+	return
+}
+
+// GetRecordsChequera retrieves quantity of records in tibutary devolutions table
+// Id doesn't exist returns 0
+func GetRecordsNumberDevolucion(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(DevolucionTributaria))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
 	return
 }

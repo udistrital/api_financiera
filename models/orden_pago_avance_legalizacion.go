@@ -5,54 +5,51 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
-type OrdenPagoCuentaEspecial struct {
-	Id             int             `orm:"column(id);pk;auto"`
-	OrdenPago      *OrdenPago      `orm:"column(orden_pago);rel(fk)"`
-	CuentaEspecial *CuentaEspecial `orm:"column(cuenta_especial);rel(fk)"`
-	FormaPago      *FormaPago      `orm:"column(forma_pago);rel(fk)"`
-	ValorBase      float64         `orm:"column(valor_base)"`
-	FechaRegistro  time.Time       `orm:"column(fecha_registro);type(timestamp without time zone)"`
-	Usuario        int             `orm:"column(usuario)"`
+type OrdenPagoAvanceLegalizacion struct {
+	Id        int              `orm:"column(id);pk;auto"`
+	Avance    *SolicitudAvance `orm:"column(avance);rel(fk)"`
+	OrdenPago *OrdenPago       `orm:"column(orden_pago);rel(fk)"`
 }
 
-func (t *OrdenPagoCuentaEspecial) TableName() string {
-	return "orden_pago_cuenta_especial"
+func (t *OrdenPagoAvanceLegalizacion) TableName() string {
+	return "orden_pago_avance_legalizacion"
 }
 
 func init() {
-	orm.RegisterModel(new(OrdenPagoCuentaEspecial))
+	orm.RegisterModel(new(OrdenPagoAvanceLegalizacion))
 }
 
-// AddOrdenPagoCuentaEspecial insert a new OrdenPagoCuentaEspecial into database and returns
+// AddOrdenPagoAvanceLegalizacion insert a new OrdenPagoAvanceLegalizacion into database and returns
 // last inserted Id on success.
-func AddOrdenPagoCuentaEspecial(m *OrdenPagoCuentaEspecial) (id int64, err error) {
+func AddOrdenPagoAvanceLegalizacion(m *OrdenPagoAvanceLegalizacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetOrdenPagoCuentaEspecialById retrieves OrdenPagoCuentaEspecial by Id. Returns error if
+// GetOrdenPagoAvanceLegalizacionById retrieves OrdenPagoAvanceLegalizacion by Id. Returns error if
 // Id doesn't exist
-func GetOrdenPagoCuentaEspecialById(id int) (v *OrdenPagoCuentaEspecial, err error) {
+func GetOrdenPagoAvanceLegalizacionById(id int) (v *OrdenPagoAvanceLegalizacion, err error) {
 	o := orm.NewOrm()
-	v = &OrdenPagoCuentaEspecial{Id: id}
+	v = &OrdenPagoAvanceLegalizacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllOrdenPagoCuentaEspecial retrieves all OrdenPagoCuentaEspecial matches certain condition. Returns empty list if
+// GetAllOrdenPagoAvanceLegalizacion retrieves all OrdenPagoAvanceLegalizacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllOrdenPagoAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(OrdenPagoCuentaEspecial)).RelatedSel(1)
+	qs := o.QueryTable(new(OrdenPagoAvanceLegalizacion)).RelatedSel(4)
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +99,7 @@ func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sor
 		}
 	}
 
-	var l []OrdenPagoCuentaEspecial
+	var l []OrdenPagoAvanceLegalizacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +122,11 @@ func GetAllOrdenPagoCuentaEspecial(query map[string]string, fields []string, sor
 	return nil, err
 }
 
-// UpdateOrdenPagoCuentaEspecial updates OrdenPagoCuentaEspecial by Id and returns error if
+// UpdateOrdenPagoAvanceLegalizacion updates OrdenPagoAvanceLegalizacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateOrdenPagoCuentaEspecialById(m *OrdenPagoCuentaEspecial) (err error) {
+func UpdateOrdenPagoAvanceLegalizacionById(m *OrdenPagoAvanceLegalizacion) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPagoCuentaEspecial{Id: m.Id}
+	v := OrdenPagoAvanceLegalizacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,17 +137,61 @@ func UpdateOrdenPagoCuentaEspecialById(m *OrdenPagoCuentaEspecial) (err error) {
 	return
 }
 
-// DeleteOrdenPagoCuentaEspecial deletes OrdenPagoCuentaEspecial by Id and returns error if
+// DeleteOrdenPagoAvanceLegalizacion deletes OrdenPagoAvanceLegalizacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteOrdenPagoCuentaEspecial(id int) (err error) {
+func DeleteOrdenPagoAvanceLegalizacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := OrdenPagoCuentaEspecial{Id: id}
+	v := OrdenPagoAvanceLegalizacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&OrdenPagoCuentaEspecial{Id: id}); err == nil {
+		if num, err = o.Delete(&OrdenPagoAvanceLegalizacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+//Add all OP avance relations returns error
+//if any insert fails
+func AddOPAvance(request map[string]interface{}) (successNums int64, err error) {
+	var OPAvance []OrdenPagoAvanceLegalizacion
+
+	var cnt int64
+	var tamArray int
+	err = formatdata.FillStruct(request["OPAvance"], &OPAvance)
+	o := orm.NewOrm()
+	if err == nil {
+
+		o.Begin()
+		tamArray = len(OPAvance)
+		for i := 0; i < tamArray; i += 1 {
+
+			qs := o.QueryTable(new(OrdenPagoAvanceLegalizacion))
+			qs = qs.Filter("avance", OPAvance[i].Avance.Id)
+			qs = qs.Filter("orden_pago", OPAvance[i].OrdenPago.Id)
+			cnt, err = qs.Count()
+
+			if err != nil {
+				beego.Error(err.Error())
+				return
+			} else {
+				if cnt > 0 {
+					OPAvance = append(OPAvance[:i], OPAvance[i+1:]...)
+					tamArray -= 1
+				}
+			}
+		}
+		successNums, err = o.InsertMulti(100, OPAvance)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+	} else {
+		beego.Error(err.Error())
+		return
+	}
+	o.Commit()
 	return
 }
