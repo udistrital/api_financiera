@@ -6,19 +6,19 @@ import (
 	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/fatih/structs"
 
 	"github.com/astaxie/beego"
-
-
 )
 
-// AvanceLegalizacionController operations for AvanceLegalizacion
-type AvanceLegalizacionController struct {
+// AvanceLegalizacionTipoController operations for AvanceLegalizacionTipo
+type AvanceLegalizacionTipoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *AvanceLegalizacionController) URLMapping() {
+func (c *AvanceLegalizacionTipoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,18 +26,17 @@ func (c *AvanceLegalizacionController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 }
 
-
 // Post ...
 // @Title Post
-// @Description create AvanceLegalizacion
-// @Param	body		body 	models.AvanceLegalizacion	true		"body for AvanceLegalizacion content"
-// @Success 201 {int} models.AvanceLegalizacion
+// @Description create AvanceLegalizacionTipo
+// @Param	body		body 	models.AvanceLegalizacionTipo	true		"body for AvanceLegalizacionTipo content"
+// @Success 201 {int} models.AvanceLegalizacionTipo
 // @Failure 403 body is empty
 // @router / [post]
-func (c *AvanceLegalizacionController) Post() {
-	var v models.AvanceLegalizacion
+func (c *AvanceLegalizacionTipoController) Post() {
+	var v models.AvanceLegalizacionTipo
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddAvanceLegalizacion(&v); err == nil {
+		if _, err := models.AddAvanceLegalizacionTipo(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -51,15 +50,15 @@ func (c *AvanceLegalizacionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get AvanceLegalizacion by id
+// @Description get AvanceLegalizacionTipo by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.AvanceLegalizacion
+// @Success 200 {object} models.AvanceLegalizacionTipo
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *AvanceLegalizacionController) GetOne() {
+func (c *AvanceLegalizacionTipoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetAvanceLegalizacionById(id)
+	v, err := models.GetAvanceLegalizacionTipoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -70,17 +69,17 @@ func (c *AvanceLegalizacionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get AvanceLegalizacion
+// @Description get AvanceLegalizacionTipo
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.AvanceLegalizacion
+// @Success 200 {object} models.AvanceLegalizacionTipo
 // @Failure 403
 // @router / [get]
-func (c *AvanceLegalizacionController) GetAll() {
+func (c *AvanceLegalizacionTipoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -122,7 +121,7 @@ func (c *AvanceLegalizacionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllAvanceLegalizacion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllAvanceLegalizacionTipo(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -133,18 +132,18 @@ func (c *AvanceLegalizacionController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the AvanceLegalizacion
+// @Description update the AvanceLegalizacionTipo
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.AvanceLegalizacion	true		"body for AvanceLegalizacion content"
-// @Success 200 {object} models.AvanceLegalizacion
+// @Param	body		body 	models.AvanceLegalizacionTipo	true		"body for AvanceLegalizacionTipo content"
+// @Success 200 {object} models.AvanceLegalizacionTipo
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *AvanceLegalizacionController) Put() {
+func (c *AvanceLegalizacionTipoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.AvanceLegalizacion{Id: id}
+	v := models.AvanceLegalizacionTipo{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateAvanceLegalizacionById(&v); err == nil {
+		if err := models.UpdateAvanceLegalizacionTipoById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -157,18 +156,46 @@ func (c *AvanceLegalizacionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the AvanceLegalizacion
+// @Description delete the AvanceLegalizacionTipo
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *AvanceLegalizacionController) Delete() {
+func (c *AvanceLegalizacionTipoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteAvanceLegalizacion(id); err == nil {
+	if err := models.DeleteAvanceLegalizacionTipo(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// AddAvanceLegalizacionTipo ...
+// @Title AddAvanceLegalizacionTipo
+// @Description create AvanceLegalizacion
+// @Param	body		body 	models.AvanceLegalizacionTipo	true		"body for AvanceLegalizacionTipo content"
+// @Success 201 {int} models.AvanceLegalizacionTipo
+// @Failure 403 body is empty
+// @router /AddEntireAvanceLegalizacionTipo [post]
+func (c *AvanceLegalizacionTipoController) AddEntireAvanceLegalizacionTipo () {
+	defer c.ServeJSON();
+	var v map[string]interface{}
+	var alerta interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if alerta, err = models.AddAllAvanceLegalizacionTipo(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: alerta}
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
+		c.Data["json"] = alert
+	}
 }

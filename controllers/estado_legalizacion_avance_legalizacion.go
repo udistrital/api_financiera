@@ -8,17 +8,15 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
-	"github.com/udistrital/utils_oas/formatdata"
-	"github.com/fatih/structs"
 )
 
-// ConceptoAvanceLegalizacionController operations for ConceptoAvanceLegalizacion
-type ConceptoAvanceLegalizacionController struct {
+// EstadoLegalizacionAvanceLegalizacionController operations for EstadoLegalizacionAvanceLegalizacion
+type EstadoLegalizacionAvanceLegalizacionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *ConceptoAvanceLegalizacionController) URLMapping() {
+func (c *EstadoLegalizacionAvanceLegalizacionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -28,15 +26,15 @@ func (c *ConceptoAvanceLegalizacionController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create ConceptoAvanceLegalizacion
-// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for ConceptoAvanceLegalizacion content"
-// @Success 201 {int} models.ConceptoAvanceLegalizacion
+// @Description create EstadoLegalizacionAvanceLegalizacion
+// @Param	body		body 	models.EstadoLegalizacionAvanceLegalizacion	true		"body for EstadoLegalizacionAvanceLegalizacion content"
+// @Success 201 {int} models.EstadoLegalizacionAvanceLegalizacion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *ConceptoAvanceLegalizacionController) Post() {
-	var v models.ConceptoAvanceLegalizacion
+func (c *EstadoLegalizacionAvanceLegalizacionController) Post() {
+	var v models.EstadoLegalizacionAvanceLegalizacion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddConceptoAvanceLegalizacion(&v); err == nil {
+		if _, err := models.AddEstadoLegalizacionAvanceLegalizacion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -50,15 +48,15 @@ func (c *ConceptoAvanceLegalizacionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get ConceptoAvanceLegalizacion by id
+// @Description get EstadoLegalizacionAvanceLegalizacion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ConceptoAvanceLegalizacion
+// @Success 200 {object} models.EstadoLegalizacionAvanceLegalizacion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *ConceptoAvanceLegalizacionController) GetOne() {
+func (c *EstadoLegalizacionAvanceLegalizacionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetConceptoAvanceLegalizacionById(id)
+	v, err := models.GetEstadoLegalizacionAvanceLegalizacionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -69,17 +67,17 @@ func (c *ConceptoAvanceLegalizacionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get ConceptoAvanceLegalizacion
+// @Description get EstadoLegalizacionAvanceLegalizacion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.ConceptoAvanceLegalizacion
+// @Success 200 {object} models.EstadoLegalizacionAvanceLegalizacion
 // @Failure 403
 // @router / [get]
-func (c *ConceptoAvanceLegalizacionController) GetAll() {
+func (c *EstadoLegalizacionAvanceLegalizacionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -121,7 +119,7 @@ func (c *ConceptoAvanceLegalizacionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllConceptoAvanceLegalizacion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllEstadoLegalizacionAvanceLegalizacion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -132,18 +130,18 @@ func (c *ConceptoAvanceLegalizacionController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the ConceptoAvanceLegalizacion
+// @Description update the EstadoLegalizacionAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for ConceptoAvanceLegalizacion content"
-// @Success 200 {object} models.ConceptoAvanceLegalizacion
+// @Param	body		body 	models.EstadoLegalizacionAvanceLegalizacion	true		"body for EstadoLegalizacionAvanceLegalizacion content"
+// @Success 200 {object} models.EstadoLegalizacionAvanceLegalizacion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *ConceptoAvanceLegalizacionController) Put() {
+func (c *EstadoLegalizacionAvanceLegalizacionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.ConceptoAvanceLegalizacion{Id: id}
+	v := models.EstadoLegalizacionAvanceLegalizacion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateConceptoAvanceLegalizacionById(&v); err == nil {
+		if err := models.UpdateEstadoLegalizacionAvanceLegalizacionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -156,50 +154,18 @@ func (c *ConceptoAvanceLegalizacionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the ConceptoAvanceLegalizacion
+// @Description delete the EstadoLegalizacionAvanceLegalizacion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *ConceptoAvanceLegalizacionController) Delete() {
+func (c *EstadoLegalizacionAvanceLegalizacionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteConceptoAvanceLegalizacion(id); err == nil {
+	if err := models.DeleteEstadoLegalizacionAvanceLegalizacion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
-}
-
-
-// Post ...
-// @Title CreateAccountantInfo
-// @Description Creates Accountant Information
-// @Param	body		body 	models.ConceptoAvanceLegalizacion	true		"body for InversionesActaInversion content"
-// @Success 201 {int} models.InversionesActaInversion
-// @Failure 403 body is empty
-// @router /CreateLegalizacionAccountantInfo [post]
-func (c *ConceptoAvanceLegalizacionController) CreateLegalizacionAccountantInfo() {
-	var request map[string]interface{}
-	var code string
-	defer c.ServeJSON()
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &request); err == nil {
-
-		if inversion, err := models.CreateLegalizacionAccountantInfo(request); err == nil {
-			alert := models.Alert{Type: "success", Code: "S_543", Body: inversion}
-			c.Data["json"] = alert
-		} else {
-			beego.Info(err.Error())
-			alertdb := structs.Map(err)
-			formatdata.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
-			c.Data["json"] = alert
-		}
-	} else {
-		beego.Info(err.Error())
-		alert := models.Alert{Type: "error", Code: "E_0458" + code, Body: err.Error()}
-		c.Data["json"] = alert
-	}
-
 }

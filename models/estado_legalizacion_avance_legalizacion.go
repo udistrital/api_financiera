@@ -1,54 +1,57 @@
 package models
 
 import (
-
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
+
 	"github.com/astaxie/beego/orm"
 )
 
-type AvanceLegalizacion struct {
-	Id                     int                     `orm:"column(id);pk;auto"`
-	Avance                 *SolicitudAvance        `orm:"column(avance);rel(fk)"`
-	Legalizacion						int										 `orm:"column(legalizacion)"`
+type EstadoLegalizacionAvanceLegalizacion struct {
+	Id                 int                 `orm:"column(id);pk;auto"`
+	AvanceLegalizacion *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
+	Activo             bool                `orm:"column(activo)"`
+	FechaRegistro      time.Time           `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	Estado             *EstadoLegalizacion `orm:"column(estado);rel(fk)"`
+	Usuario            int                 `orm:"column(usuario);null"`
 }
 
-func (t *AvanceLegalizacion) TableName() string {
-	return "avance_legalizacion"
+func (t *EstadoLegalizacionAvanceLegalizacion) TableName() string {
+	return "estado_legalizacion_avance_legalizacion"
 }
 
 func init() {
-	orm.RegisterModel(new(AvanceLegalizacion))
+	orm.RegisterModel(new(EstadoLegalizacionAvanceLegalizacion))
 }
 
-// AddAvanceLegalizacion insert a new AvanceLegalizacion into database and returns
+// AddEstadoLegalizacionAvanceLegalizacion insert a new EstadoLegalizacionAvanceLegalizacion into database and returns
 // last inserted Id on success.
-func AddAvanceLegalizacion(m *AvanceLegalizacion) (id int64, err error) {
+func AddEstadoLegalizacionAvanceLegalizacion(m *EstadoLegalizacionAvanceLegalizacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAvanceLegalizacionById retrieves AvanceLegalizacion by Id. Returns error if
+// GetEstadoLegalizacionAvanceLegalizacionById retrieves EstadoLegalizacionAvanceLegalizacion by Id. Returns error if
 // Id doesn't exist
-func GetAvanceLegalizacionById(id int) (v *AvanceLegalizacion, err error) {
+func GetEstadoLegalizacionAvanceLegalizacionById(id int) (v *EstadoLegalizacionAvanceLegalizacion, err error) {
 	o := orm.NewOrm()
-	v = &AvanceLegalizacion{Id: id}
+	v = &EstadoLegalizacionAvanceLegalizacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-
-// GetAllAvanceLegalizacion retrieves all AvanceLegalizacion matches certain condition. Returns empty list if
+// GetAllEstadoLegalizacionAvanceLegalizacion retrieves all EstadoLegalizacionAvanceLegalizacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoLegalizacionAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AvanceLegalizacion)).RelatedSel()
+	qs := o.QueryTable(new(EstadoLegalizacionAvanceLegalizacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,12 +101,11 @@ func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []AvanceLegalizacion
+	var l []EstadoLegalizacionAvanceLegalizacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
-				o.LoadRelated(&v, "AvanceLegalizacionCuentaEspecial", 5)
 				ml = append(ml, v)
 			}
 		} else {
@@ -122,11 +124,11 @@ func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateAvanceLegalizacion updates AvanceLegalizacion by Id and returns error if
+// UpdateEstadoLegalizacionAvanceLegalizacion updates EstadoLegalizacionAvanceLegalizacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAvanceLegalizacionById(m *AvanceLegalizacion) (err error) {
+func UpdateEstadoLegalizacionAvanceLegalizacionById(m *EstadoLegalizacionAvanceLegalizacion) (err error) {
 	o := orm.NewOrm()
-	v := AvanceLegalizacion{Id: m.Id}
+	v := EstadoLegalizacionAvanceLegalizacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +139,15 @@ func UpdateAvanceLegalizacionById(m *AvanceLegalizacion) (err error) {
 	return
 }
 
-// DeleteAvanceLegalizacion deletes AvanceLegalizacion by Id and returns error if
+// DeleteEstadoLegalizacionAvanceLegalizacion deletes EstadoLegalizacionAvanceLegalizacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAvanceLegalizacion(id int) (err error) {
+func DeleteEstadoLegalizacionAvanceLegalizacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := AvanceLegalizacion{Id: id}
+	v := EstadoLegalizacionAvanceLegalizacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AvanceLegalizacion{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoLegalizacionAvanceLegalizacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
