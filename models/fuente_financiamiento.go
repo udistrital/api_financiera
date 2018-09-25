@@ -172,14 +172,16 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamien
 					panic(errAux.Error())
 				}
 				afectacion.FuenteFinanciamiento.Id = int(idFuente)
-				if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux != nil {
+				if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
 					afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
 					if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
 						fmt.Println("Error3: ", errAux.Error())
+						errAux = errors.New("error afectacion 2")
 						panic(errAux.Error())
 					}
 				} else {
 					fmt.Println("Error2: ", errAux.Error())
+					errAux = errors.New("error afectacion 1")
 					panic(errAux.Error())
 				}
 
