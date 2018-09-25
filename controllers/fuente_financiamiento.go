@@ -192,3 +192,25 @@ func (c *FuenteFinanciamientoController) RegistrarFuenteFinanciamientoTr() {
 	}
 	c.ServeJSON()
 }
+
+// MovimientoFuenteFinanciamientoTr ...
+// @Title MovimientoFuenteFinanciamientoTr
+// @Description create FuenteFinanciamiento with Tr
+// @Param	body		body 	models.FuenteFinanciamiento	true		"body for FuenteFinanciamiento content"
+// @Success 201 {int} models.FuenteFinanciamiento
+// @Failure 403 body is empty
+// @router /MovimientoFuenteFinanciamientoTr [post]
+func (c *FuenteFinanciamientoController) MovimientoFuenteFinanciamientoTr() {
+	var v []map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if data, err := models.AddMovimientoFuenteFinanciamientoTr(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			c.Data["json"] = data
+		} else {
+			c.Data["json"] = err.Error()
+		}
+	} else {
+		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}

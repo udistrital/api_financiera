@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/manucorporat/try"
@@ -174,6 +175,7 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamien
 				afectacion.FuenteFinanciamiento.Id = int(idFuente)
 				if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
 					afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
+					afectacion.MovimientoFuenteFinanciamientoApropiacion[0].Fecha = time.Now()
 					if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
 						fmt.Println("Error3: ", errAux.Error())
 						errAux = errors.New("error afectacion 2")
@@ -197,4 +199,38 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamien
 	})
 	o.Commit()
 	return FuenteData, err
+}
+
+// AddMovimientoFuenteFinanciamientoTr insert a new MovimientoFuenteFinanciamientoTr into database and returns
+// last inserted Id on success.
+func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res interface{}, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	try.This(func() {
+		for _, m := range arr {
+			afectacion := FuenteFinanciamientoApropiacion{}
+			if errAux := formatdata.FillStruct(m, &afectacion); errAux != nil {
+				panic(errAux.Error())
+			}
+			if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
+				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
+				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].Fecha = time.Now()
+				if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
+					fmt.Println("Error3: ", errAux.Error())
+					errAux = errors.New("error afectacion 2")
+					panic(errAux.Error())
+				}
+			} else {
+				fmt.Println("Error2: ", errAux.Error())
+				errAux = errors.New("error afectacion 1")
+				panic(errAux.Error())
+			}
+		}
+	}).Catch(func(e try.E) {
+		fmt.Println("Err ", e)
+		o.Rollback()
+		err = errors.New("transaction error !")
+	})
+	o.Commit()
+	return arr, err
 }
