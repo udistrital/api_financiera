@@ -17,18 +17,20 @@ type Usuario struct {
 }
 
 type OrdenPago struct {
-	Id                       int                         `orm:"column(id);pk;auto"`
-	Vigencia                 float64                     `orm:"column(vigencia)"`
-	ValorBase                float64                     `orm:"column(valor_base)"`
-	Convenio                 int                         `orm:"column(convenio);null"`
-	SubTipoOrdenPago         *SubTipoOrdenPago           `orm:"column(sub_tipo_orden_pago);rel(fk)"`
-	UnidadEjecutora          *UnidadEjecutora            `orm:"column(unidad_ejecutora);rel(fk)"`
-	Liquidacion              int                         `orm:"column(liquidacion);null"`
-	EntradaAlmacen           int                         `orm:"column(entrada_almacen);null"`
-	Consecutivo              int                         `orm:"column(consecutivo)"`
-	Documento                int                         `orm:"column(documento)"`
-	FormaPago                *FormaPago                  `orm:"column(forma_pago);rel(fk);null"`
-	OrdenPagoEstadoOrdenPago []*OrdenPagoEstadoOrdenPago `orm:"reverse(many)"`
+	Id               int               `orm:"column(id);pk;auto"`
+	Vigencia         float64           `orm:"column(vigencia)"`
+	ValorBase        float64           `orm:"column(valor_base)"`
+	Convenio         int               `orm:"column(convenio);null"`
+	SubTipoOrdenPago *SubTipoOrdenPago `orm:"column(sub_tipo_orden_pago);rel(fk)"`
+	UnidadEjecutora  *UnidadEjecutora  `orm:"column(unidad_ejecutora);rel(fk)"`
+	Liquidacion      int               `orm:"column(liquidacion);null"`
+	EntradaAlmacen   int               `orm:"column(entrada_almacen);null"`
+	Consecutivo      int               `orm:"column(consecutivo)"`
+	Documento        int               `orm:"column(documento)"`
+	FormaPago        *FormaPago        `orm:"column(forma_pago);rel(fk);null"`
+
+	OrdenPagoEstadoOrdenPago      []*OrdenPagoEstadoOrdenPago      `orm:"reverse(many)"`
+	OrdenPagoRegistroPresupuestal []*OrdenPagoRegistroPresupuestal `orm:"reverse(many)"`
 }
 
 func (t *OrdenPago) TableName() string {
@@ -119,6 +121,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "OrdenPagoEstadoOrdenPago", 5, 1, 0, "-Id")
+				o.LoadRelated(&v, "OrdenPagoRegistroPresupuestal", 2, -1, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {
@@ -201,7 +204,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
 	err5 := formatdata.FillStruct(DataOpProveedor["RegistroPresupuestal"], &ordenPagoRegistroPresupuestal)
 	err6 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &ordenPagoCuentaEspecial)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil{
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
 		alerta.Body = "Erro en la estructura de parametro de entrada en RegistrarOpProveedor"
@@ -289,9 +292,9 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 	for i := 0; i < len(ordenPagoRegistroPresupuestal); i++ {
 		ordenPagoRegistroPresupuestalData := OrdenPagoRegistroPresupuestal{
-		    OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
-		    RegistroPresupuestal: &RegistroPresupuestal{Id: int(ordenPagoRegistroPresupuestal[i].Id)},
-		    FechaRegistro: time.Now(),
+			OrdenPago:            &OrdenPago{Id: int(idOrdenPago)},
+			RegistroPresupuestal: &RegistroPresupuestal{Id: int(ordenPagoRegistroPresupuestal[i].Id)},
+			FechaRegistro:        time.Now(),
 		}
 		_, err = o.Insert(&ordenPagoRegistroPresupuestalData)
 		if err != nil {
@@ -300,8 +303,8 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
-		}	
-	}	
+		}
+	}
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(movimientoContable); i++ {
 		movimientoContableData := MovimientoContable{
@@ -317,12 +320,12 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 		if movimientoContable[i].CuentaEspecial != nil {
 			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
 			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
-				OrdenPago: &OrdenPago{Id: int(idOrdenPago)},
+				OrdenPago:      &OrdenPago{Id: int(idOrdenPago)},
 				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
-				FormaPago: &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
-				ValorBase: ordenPagoCuentaEspecial[i].ValorBase,
-				FechaRegistro: time.Now(),
-				Usuario: usuario.Id,
+				FormaPago:      &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
+				ValorBase:      ordenPagoCuentaEspecial[i].ValorBase,
+				FechaRegistro:  time.Now(),
+				Usuario:        usuario.Id,
 			}
 			_, err = o.Insert(&ordenPagoCuentaEspecialData)
 			if err != nil {
@@ -331,7 +334,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 				alerta.Body = err.Error()
 				o.Rollback()
 				return
-			}			
+			}
 		}
 
 		_, err = o.Insert(&movimientoContableData)
@@ -500,18 +503,19 @@ func GetEstadoOrdenPago(CodeEstado string) (outputIdEstado EstadoOrdenPago, aler
 func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string) (outputOrdenes []interface{}, alerta Alert) {
 	var ordenes []OrdenPago
 	o := orm.NewOrm()
-	o.Begin()
-	_, err := o.Raw(`SELECT DISTINCT OP.*
-			FROM orden_pago OP,orden_pago_estado_orden_pago OPEOP, estado_orden_pago OPE, tipo_orden_pago TOP,  sub_tipo_orden_pago STOP
-			WHERE OP.id = OPEOP.orden_pago
-			AND OPEOP.id=(SELECT MAX(opeop2.id) from orden_pago_estado_orden_pago opeop2 where opeop2.orden_pago = OP.id group by opeop2.orden_pago)
-			AND OPEOP.estado_orden_pago = OPE.id
-			AND TOP.id = STOP.tipo_orden_pago
-			AND STOP.id = OP.sub_tipo_orden_pago
-			AND OPE.codigo_abreviacion = ?
-			AND OP.vigencia = ?
-			AND OP.forma_pago = ?
-			AND TOP.id = ?`, codeEstdoOrdenPago, vigencia, tipoOp, formaPago).QueryRows(&ordenes)
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("DISTINCT OP.*").
+		From("orden_pago OP,orden_pago_estado_orden_pago OPEOP, estado_orden_pago OPE, tipo_orden_pago TOP, sub_tipo_orden_pago STOP").
+		Where("OP.id = OPEOP.orden_pago").
+		And("OPEOP.id=(SELECT MAX(opeop2.id) from orden_pago_estado_orden_pago opeop2 where opeop2.orden_pago = OP.id group by opeop2.orden_pago)").
+		And("OPEOP.estado_orden_pago = OPE.id").
+		And("TOP.id = STOP.tipo_orden_pago").
+		And("STOP.id = OP.sub_tipo_orden_pago").
+		And("OPE.codigo_abreviacion = ?").
+		And("OP.vigencia = ?").
+		And("TOP.id = ?").
+		And("OP.forma_pago = ?")
+	_, err := o.Raw(qb.String(), codeEstdoOrdenPago, vigencia, tipoOp, formaPago).QueryRows(&ordenes)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
