@@ -95,7 +95,6 @@ func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 
 	parameters = append(parameters, egreso)
 	parameters = append(parameters, idEstado)
-	beego.Error("valor u  ", u)
 	if idEstado == 4 && egreso.Id != 0 {
 		if err := formatdata.FillStruct(ctx.Input.Data()["json"], &u2); err == nil {
 			if err := formatdata.FillStruct(u2["Type"], &tipo); err == nil && tipo == "success" {
@@ -110,6 +109,30 @@ func FunctionAfterExecEstadoOrdenP(ctx *context.Context) {
 		beego.Error("tipo ", tipo)
 	}
 }
+func FunctionAfterExecAddLegalice(ctx *context.Context) {
+	var request map[string]interface{}
+	var valorLegalizado float64
+	var valorAvance float64
+	var valorLegalizacion float64
+	if err := json.Unmarshal(ctx.Input.RequestBody, &request); err == nil {
+		valorLegalizado = request["ValorLegalizadoAvance"].(float64)
+		valorAvance = request["ValorTotalAvance"].(float64)
+		valorLegalizacion = request["Valor"].(float64)
+		beego.Error("request ",request);
+	}else{
+		beego.Error("Error al leer context input legalizacion",err)
+		return
+	}
+
+	response := ctx.Input.Data()["json"].(models.Alert)
+
+	if response.Type == "success"{
+		if valorLegalizado + valorLegalizacion == valorAvance{
+			avanceLegalizacion := response.Body.(models.AvanceLegalizacion)
+			beego.Error("avance legalizacion tipo ",avanceLegalizacion)
+		}
+	}
+}
 
 func FunctionJobExample(parameter ...interface{}) (res interface{}) {
 	beego.Info("Job's Parameter: ", parameter[0].(models.Ingreso).Id)
@@ -122,4 +145,5 @@ func Init() {
 	beego.InsertFilter("/v1/ingreso/AprobacionPresupuestalIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
 	beego.InsertFilter("/v1/cheque/CreateChequeEstado", beego.AfterExec, FunctionAfterExecCreateCheque, false)
 	beego.InsertFilter("/v1/orden_pago_estado_orden_pago/WorkFlowOrdenPago", beego.AfterExec, FunctionAfterExecEstadoOrdenP, false)
+	beego.InsertFilter("/v1/avance_legalizacion_tipo/AddEntireAvanceLegalizacionTipo", beego.AfterExec, FunctionAfterExecAddLegalice, false)
 }

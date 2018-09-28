@@ -13,6 +13,7 @@ type ConceptoAvanceLegalizacionTipo struct {
 	Id                 int                     `orm:"column(id);pk;auto"`
 	AvanceLegalizacion *AvanceLegalizacionTipo `orm:"column(avance_legalizacion);rel(fk)"`
 	Concepto           *Concepto        			 `orm:"column(concepto);rel(fk)"`
+	Valor							 float64               	 `orm:"column(valor)"`
 }
 
 func (t *ConceptoAvanceLegalizacionTipo) TableName() string {
@@ -102,6 +103,7 @@ func GetAllConceptoAvanceLegalizacionTipo(query map[string]string, fields []stri
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v,"Concepto",2)
 				ml = append(ml, v)
 			}
 		} else {

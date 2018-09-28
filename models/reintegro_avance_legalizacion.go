@@ -12,9 +12,9 @@ import (
 )
 
 type ReintegroAvanceLegalizacion struct {
-	Id        int              `orm:"column(id);pk;auto"`
-	Reintegro *Reintegro       `orm:"column(reintegro);rel(fk)"`
-	Avance    *SolicitudAvance `orm:"column(avance);rel(fk)"`
+	Id        						int              `orm:"column(id);pk;auto"`
+	Reintegro 						*Reintegro       `orm:"column(reintegro);rel(fk)"`
+	AvanceLegalizacion    *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
 }
 
 func (t *ReintegroAvanceLegalizacion) TableName() string {

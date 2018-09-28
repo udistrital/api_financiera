@@ -183,19 +183,98 @@ func (c *AvanceLegalizacionTipoController) AddEntireAvanceLegalizacionTipo () {
 	defer c.ServeJSON();
 	var v map[string]interface{}
 	var alerta interface{}
+	var valorLegalizado float64
+	var valorAvance float64
+	var valorLegalizacion float64
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if alerta, err = models.AddAllAvanceLegalizacionTipo(v); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: alerta}
-		} else {
-			alertdb := structs.Map(err)
-			var code string
-			formatdata.FillStruct(alertdb["Code"], &code)
-			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		valorLegalizado = v["ValorLegalizadoAvance"].(float64)
+		valorAvance = v["ValorTotalAvance"].(float64)
+		valorLegalizacion = v["Valor"].(float64)
+		if valorLegalizado + valorLegalizacion <= valorAvance{
+			if alerta, err = models.AddAllAvanceLegalizacionTipo(v); err == nil {
+				c.Ctx.Output.SetStatus(201)
+				c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: alerta}
+				} else {
+					alertdb := structs.Map(err)
+					var code string
+					formatdata.FillStruct(alertdb["Code"], &code)
+					alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+					c.Data["json"] = alert
+					c.Ctx.Output.SetStatus(500)
+				}
+		}else{
+			alert := models.Alert{Type: "error", Code: "E_LA0001", Body: "Bad Request"}
 			c.Data["json"] = alert
+			c.Ctx.Output.SetStatus(400)
 		}
 	} else {
-		alert := models.Alert{Type: "error", Code: "E_0458", Body: "No Id defined"}
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
 		c.Data["json"] = alert
+		c.Ctx.Output.SetStatus(400)
 	}
+}
+
+// GetLegalizationValue ...
+// @Title Get One
+// @Description get sum from all legalization advance payment including refunds
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.AvanceLegalizacion
+// @Failure 403 :id is empty
+// @router /GetLegalizationValue/:id [get]
+func (c *AvanceLegalizacionTipoController) GetLegalizationValue() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetLegalizationValue(id)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
+//GetTaxesMovLegalization
+// @Title GetTaxesLegalization
+// @Description get taxes and movs for legalizationTipo given an id
+// @Param	noTipoDoc	query	string 	true		"param for TipoDocumentoAfectante"
+// @Param	idLegTipo	query 	string	true	"param for id legalizacion table"
+// @Success 200 {object} models.Legalizacion_avance
+// @Failure 403 :id is empty
+// @router /GetTaxesMovsLegalization [get]
+func (c *AvanceLegalizacionTipoController) GetTaxesMovsLegalization() {
+	defer c.ServeJSON();
+ var legTipo int
+ var tipoDoc int
+ respuesta:=make(map[string]interface{})
+	if v, err := c.GetInt("idLegTipo"); err == nil {
+		legTipo = v
+	}
+	if v, err := c.GetInt("noTipoDoc"); err == nil {
+		tipoDoc = v
+	}
+	v, err := models.GetTaxesLegalization(legTipo,tipoDoc)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		respuesta["impuestos"]  = alert
+	} else {
+		respuesta["impuestos"] = v
+	}
+	v, err = models.GetMovsLegalization(legTipo,tipoDoc)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		respuesta["movimientos"] = alert
+	} else {
+		respuesta["movimientos"] = v
+	}
+	c.Data["json"]=respuesta
 }
