@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/manucorporat/try"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type FuenteFinanciamiento struct {
-	Id          						int    `orm:"column(id);pk;auto"`
-	Descripcion 						string `orm:"column(descripcion);null"`
-	Nombre       						string `orm:"column(nombre)"`
-	Codigo      						string `orm:"column(codigo)"`
+	Id                       int                       `orm:"column(id);pk;auto"`
+	Descripcion              string                    `orm:"column(descripcion);null"`
+	Nombre                   string                    `orm:"column(nombre)"`
+	Codigo                   string                    `orm:"column(codigo)"`
 	TipoFuenteFinanciamiento *TipoFuenteFinanciamiento `orm:"column(tipo_fuente_financiamiento);rel(fk)"`
 }
 
@@ -150,4 +153,84 @@ func DeleteFuenteFinanciamiento(id int) (err error) {
 		}
 	}
 	return
+}
+
+// AddFuenteFinanciamientoTr insert a new FuenteFinanciamiento into database and returns
+// last inserted Id on success.
+func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamiento, err error) {
+	o := orm.NewOrm()
+	var FuenteData = FuenteFinanciamiento{}
+	o.Begin()
+	try.This(func() {
+		if errAux := formatdata.FillStruct(m["FuenteFinanciamiento"], &FuenteData); errAux != nil {
+			panic(errAux.Error())
+		}
+		var AfectacionFuenteData = m["AfectacionFuente"].([]interface{})
+		if idFuente, errAux := AddFuenteFinanciamiento(&FuenteData); errAux == nil {
+			for _, afectacionIntfc := range AfectacionFuenteData {
+				afectacion := FuenteFinanciamientoApropiacion{}
+				if errAux := formatdata.FillStruct(afectacionIntfc, &afectacion); errAux != nil {
+					panic(errAux.Error())
+				}
+				afectacion.FuenteFinanciamiento.Id = int(idFuente)
+				if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
+					afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
+					afectacion.MovimientoFuenteFinanciamientoApropiacion[0].Fecha = time.Now()
+					if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
+						fmt.Println("Error3: ", errAux.Error())
+						errAux = errors.New("error afectacion 2")
+						panic(errAux.Error())
+					}
+				} else {
+					fmt.Println("Error2: ", errAux.Error())
+					errAux = errors.New("error afectacion 1")
+					panic(errAux.Error())
+				}
+
+			}
+		} else {
+			fmt.Println("Error1: ", errAux.Error())
+			panic(errAux.Error())
+		}
+	}).Catch(func(e try.E) {
+		fmt.Println("Err ", e)
+		o.Rollback()
+		err = errors.New("transaction error !")
+	})
+	o.Commit()
+	return FuenteData, err
+}
+
+// AddMovimientoFuenteFinanciamientoTr insert a new MovimientoFuenteFinanciamientoTr into database and returns
+// last inserted Id on success.
+func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res interface{}, err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	try.This(func() {
+		for _, m := range arr {
+			afectacion := FuenteFinanciamientoApropiacion{}
+			if errAux := formatdata.FillStruct(m, &afectacion); errAux != nil {
+				panic(errAux.Error())
+			}
+			if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
+				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
+				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].Fecha = time.Now()
+				if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
+					fmt.Println("Error3: ", errAux.Error())
+					errAux = errors.New("error afectacion 2")
+					panic(errAux.Error())
+				}
+			} else {
+				fmt.Println("Error2: ", errAux.Error())
+				errAux = errors.New("error afectacion 1")
+				panic(errAux.Error())
+			}
+		}
+	}).Catch(func(e try.E) {
+		fmt.Println("Err ", e)
+		o.Rollback()
+		err = errors.New("transaction error !")
+	})
+	o.Commit()
+	return arr, err
 }
