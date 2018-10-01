@@ -6,7 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
+	"github.com/udistrital/utils_oas/formatdata"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -14,7 +15,7 @@ type EstadoLegalizacionAvanceLegalizacion struct {
 	Id                 int                 `orm:"column(id);pk;auto"`
 	AvanceLegalizacion *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
 	Activo             bool                `orm:"column(activo)"`
-	FechaRegistro      time.Time           `orm:"column(fecha_registro);type(timestamp without time zone)"`
+	FechaRegistro      time.Time           `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Estado             *EstadoLegalizacion `orm:"column(estado);rel(fk)"`
 	Usuario            int                 `orm:"column(usuario);null"`
 }
@@ -152,4 +153,53 @@ func DeleteEstadoLegalizacionAvanceLegalizacion(id int) (err error) {
 		}
 	}
 	return
+}
+
+func CreateEstadoIniAvanceLegalizacion (request map[string]interface{}) (err error){
+	var avanceLegalizacion AvanceLegalizacion
+	var usuario int64
+	var estadoLegalizacion EstadoLegalizacion
+	var estadoLegalizacionAvance EstadoLegalizacionAvanceLegalizacion
+	o := orm.NewOrm()
+	err = formatdata.FillStruct(request["AvanceLegalizacion"], &avanceLegalizacion)
+	beego.Error("request ",request)
+	usuario = request["Usuario"].(int64)
+	beego.Error("usuario  ",usuario)
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+		o.Begin()
+		_, err = o.QueryTable("estado_legalizacion_avance_legalizacion").
+			Filter("avance_legalizacion", avanceLegalizacion.Id).
+			Filter("activo", true).
+			Update(orm.Params{
+				"activo": "false",
+			})
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+		err = o.QueryTable(new(EstadoLegalizacion)).
+			Filter("NumeroOrden", 1).
+			One(&estadoLegalizacion)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+
+		estadoLegalizacionAvance.AvanceLegalizacion = &avanceLegalizacion
+		estadoLegalizacionAvance.Activo = true
+		estadoLegalizacionAvance.Usuario = int(usuario)
+		estadoLegalizacionAvance.Estado = &estadoLegalizacion
+		_, err = o.Insert(&estadoLegalizacionAvance)
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+		o.Commit()
+		return
 }

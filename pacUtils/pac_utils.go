@@ -114,10 +114,13 @@ func FunctionAfterExecAddLegalice(ctx *context.Context) {
 	var valorLegalizado float64
 	var valorAvance float64
 	var valorLegalizacion float64
+	var avanceLegalizacion models.AvanceLegalizacion
+	var usuario int64
 	if err := json.Unmarshal(ctx.Input.RequestBody, &request); err == nil {
 		valorLegalizado = request["ValorLegalizadoAvance"].(float64)
 		valorAvance = request["ValorTotalAvance"].(float64)
 		valorLegalizacion = request["Valor"].(float64)
+		usuario = int64(request["Usuario"].(float64))
 		beego.Error("request ",request);
 	}else{
 		beego.Error("Error al leer context input legalizacion",err)
@@ -126,11 +129,26 @@ func FunctionAfterExecAddLegalice(ctx *context.Context) {
 
 	response := ctx.Input.Data()["json"].(models.Alert)
 
+
+
 	if response.Type == "success"{
 		if valorLegalizado + valorLegalizacion == valorAvance{
-			avanceLegalizacion := response.Body.(models.AvanceLegalizacion)
-			beego.Error("avance legalizacion tipo ",avanceLegalizacion)
+
 		}
+			avanceLegalizacionTipo := response.Body.(models.AvanceLegalizacionTipo)
+			requestAvanceLeg := make(map[string]interface{})
+			err := formatdata.FillStruct(avanceLegalizacionTipo.AvanceLegalizacion,&avanceLegalizacion)
+			if err != nil {
+				beego.Error("Error ",err)
+			}
+			requestAvanceLeg["AvanceLegalizacion"] = avanceLegalizacion
+			requestAvanceLeg["Usuario"] = usuario
+			beego.Error("reques avance estado ",requestAvanceLeg)
+			if err:=models.CreateEstadoIniAvanceLegalizacion(requestAvanceLeg);err != nil {
+				beego.Error("Error al crear estado legalizacion ",err)
+			}
+			beego.Error("avance legalizacion tipo ",avanceLegalizacionTipo)
+		//}
 	}
 }
 
