@@ -731,3 +731,45 @@ func GetTotalRp(vigencia int, UnidadEjecutora int, finicio string, ffin string) 
 	return
 
 }
+
+//DeleteRpData... Elimina el RP dado su id
+// y todos los datos que esta representa.
+func DeleteRpData(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+
+	qb, _ := orm.NewQueryBuilder("mysql")
+	
+
+	var dispApr []orm.Params
+	qb, _ = orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.registro_presupuestal_disponibilidad_apropiacion").
+		Where("registro_presupuestal = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&dispApr); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range dispApr {
+		if idDispExt, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&RegistroPresupuestalDisponibilidadApropiacion{Id: idDispExt}); err != nil {
+				o.Rollback()
+				return err
+			}
+
+		} else {
+			o.Rollback()
+			return err
+		}
+
+	}
+
+	if _, err = o.Delete(&RegistroPresupuestal{Id: id}); err != nil {
+		o.Rollback()
+		return
+	}
+
+	o.Commit()
+	return
+}

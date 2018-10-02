@@ -176,3 +176,26 @@ func DeleteRubroRubro(id int) (err error) {
 	}
 	return
 }
+
+//DeleteRubroRelation Delete relation rubro_rubro by id
+func DeleteRubroRelation(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+	v := RubroRubro{Id: id}
+	// ascertain id exists in the database
+	if err = o.Read(&v); err == nil {
+		if _, err = o.Delete(&RubroRubro{Id: id}); err == nil {
+			if _, err = o.Delete(v.RubroHijo); err == nil {
+
+				o.Commit()
+			} else {
+				o.Rollback()
+			}
+		} else {
+			o.Rollback()
+		}
+	} else {
+		o.Rollback()
+	}
+	return
+}

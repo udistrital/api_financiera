@@ -296,4 +296,61 @@ func (c *DisponibilidadController) TotalDisponibilidades() {
 	c.ServeJSON()
 }
 
+// GetPrincDisponibilidadInfo ...
+// @Title GetPrincDisponibilidadInfo
+// @Description get Disponibilidad by id
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.Disponibilidad
+// @Failure 403 :id is empty
+// @router /GetPrincDisponibilidadInfo/:id [get]
+func (c *DisponibilidadController) GetPrincDisponibilidadInfo() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetPrincDisponibilidadInfo(id)
+	if err != nil {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	} else {
+		c.Data["json"] = v
+	}
+	c.ServeJSON()
+}
+
+// DeleteDisponibilidadData ...
+// @Title DeleteDisponibilidadData
+// @Description delete the Disponibilidad
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteDisponibilidadData/:id [delete]
+func (c *DisponibilidadController) DeleteDisponibilidadData() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if err := models.DeleteDisponibilidadData(id); err == nil {
+		c.Data["json"] = models.Alert{Code: "S_554", Body: nil, Type: "success"}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+	c.ServeJSON()
+}
+
+//-------------------
+
+// DeleteDisponibilidadMovimiento ...
+// @Title DeleteDisponibilidadMovimiento
+// @Description delete the Disponibilidad
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router /DeleteDisponibilidadMovimiento/:id [delete]
+func (c *DisponibilidadController) DeleteDisponibilidadMovimiento() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if err := models.DeleteDisponibilidadMovimiento(id); err == nil {
+		c.Data["json"] = models.Alert{Code: "S_554", Body: nil, Type: "success"}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: err.Error(), Type: "error"}
+	}
+	c.ServeJSON()
+}
+
 //-------------------
