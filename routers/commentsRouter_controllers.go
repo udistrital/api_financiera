@@ -2967,6 +2967,14 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:EstadoLegalizacionAvanceLegalizacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:EstadoLegalizacionAvanceLegalizacionController"],
+		beego.ControllerComments{
+			Method: "AddEstadoLegalizacion",
+			Router: `/AddEstadoLegalizacion`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:EstadoLegalizacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:EstadoLegalizacionController"],
 		beego.ControllerComments{
 			Method: "Post",

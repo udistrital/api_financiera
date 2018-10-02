@@ -6,9 +6,10 @@ import (
 	"reflect"
 	"strings"
 	"time"
-	"github.com/udistrital/utils_oas/formatdata"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type EstadoLegalizacionAvanceLegalizacion struct {
@@ -107,6 +108,7 @@ func GetAllEstadoLegalizacionAvanceLegalizacion(query map[string]string, fields 
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				_, err = o.LoadRelated(&v, "estado")
 				ml = append(ml, v)
 			}
 		} else {
@@ -155,51 +157,131 @@ func DeleteEstadoLegalizacionAvanceLegalizacion(id int) (err error) {
 	return
 }
 
-func CreateEstadoIniAvanceLegalizacion (request map[string]interface{}) (err error){
+func CreateEstadoIniAvanceLegalizacion(request map[string]interface{}) (err error) {
 	var avanceLegalizacion AvanceLegalizacion
 	var usuario int64
 	var estadoLegalizacion EstadoLegalizacion
 	var estadoLegalizacionAvance EstadoLegalizacionAvanceLegalizacion
 	o := orm.NewOrm()
 	err = formatdata.FillStruct(request["AvanceLegalizacion"], &avanceLegalizacion)
-	beego.Error("request ",request)
+	beego.Error("request ", request)
 	usuario = request["Usuario"].(int64)
-	beego.Error("usuario  ",usuario)
+	beego.Error("usuario  ", usuario)
 	if err != nil {
 		beego.Error(err.Error())
 		return
 	}
-		o.Begin()
-		_, err = o.QueryTable("estado_legalizacion_avance_legalizacion").
-			Filter("avance_legalizacion", avanceLegalizacion.Id).
-			Filter("activo", true).
-			Update(orm.Params{
-				"activo": "false",
-			})
-		if err != nil {
-			beego.Error(err)
-			o.Rollback()
-			return
-		}
-		err = o.QueryTable(new(EstadoLegalizacion)).
-			Filter("NumeroOrden", 1).
-			One(&estadoLegalizacion)
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
-		}
-
-		estadoLegalizacionAvance.AvanceLegalizacion = &avanceLegalizacion
-		estadoLegalizacionAvance.Activo = true
-		estadoLegalizacionAvance.Usuario = int(usuario)
-		estadoLegalizacionAvance.Estado = &estadoLegalizacion
-		_, err = o.Insert(&estadoLegalizacionAvance)
-		if err != nil {
-			beego.Error(err)
-			o.Rollback()
-			return
-		}
-		o.Commit()
+	o.Begin()
+	_, err = o.QueryTable("estado_legalizacion_avance_legalizacion").
+		Filter("avance_legalizacion", avanceLegalizacion.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+	if err != nil {
+		beego.Error(err)
+		o.Rollback()
 		return
+	}
+	err = o.QueryTable(new(EstadoLegalizacion)).
+		Filter("NumeroOrden", 1).
+		One(&estadoLegalizacion)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+
+	estadoLegalizacionAvance.AvanceLegalizacion = &avanceLegalizacion
+	estadoLegalizacionAvance.Activo = true
+	estadoLegalizacionAvance.Usuario = int(usuario)
+	estadoLegalizacionAvance.Estado = &estadoLegalizacion
+	_, err = o.Insert(&estadoLegalizacionAvance)
+	if err != nil {
+		beego.Error(err)
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+func AddEstadoLegalizacionTipo(request map[string]interface{}) (legalizacionEstado EstadoLegalizacionAvanceLegalizacion, err error) {
+	var usuario float64
+	var avanceLegalizacion AvanceLegalizacion
+	var legalizacionesTipo []AvanceLegalizacionTipo
+	var noDocAfectante int
+	var tipoDocAfectante TipoDocumentoAfectante
+	o := orm.NewOrm()
+
+	err = formatdata.FillStruct(request["EstadoLegalizacion"], &legalizacionEstado)
+	err = formatdata.FillStruct(request["AvanceLegalizacion"], &avanceLegalizacion)
+	usuario = request["Usuario"].(float64)
+	if err != nil {
+		beego.Error(err)
+		return
+	}
+	o.Begin()
+	_, err = o.QueryTable("estado_legalizacion_avance_legalizacion").
+		Filter("avance_legalizacion", avanceLegalizacion.Id).
+		Filter("activo", true).
+		Update(orm.Params{
+			"activo": "false",
+		})
+	if err != nil {
+		beego.Error(err)
+		o.Rollback()
+		return
+	}
+	legalizacionEstado.AvanceLegalizacion = &avanceLegalizacion
+	legalizacionEstado.Activo = true
+	legalizacionEstado.Usuario = int(usuario)
+	_, err = o.Insert(&legalizacionEstado)
+	if err != nil {
+		beego.Error(err)
+		o.Rollback()
+		return
+	}
+
+	if legalizacionEstado.Estado.Id == 2 {
+		_, err = o.QueryTable("avance_legalizacion_tipo").
+			Filter("avance_legalizacion", avanceLegalizacion.Id).
+			All(&legalizacionesTipo)
+
+		if err != nil {
+			beego.Error(err)
+			o.Rollback()
+			return
+		}
+		for _, avanceLegTipo := range legalizacionesTipo {
+			switch avanceLegTipo.TipoAvanceLegalizacion.Id {
+			case 1:
+				noDocAfectante = 9
+			case 2:
+				noDocAfectante = 8
+			}
+
+			err = o.QueryTable("tipo_documento_afectante").
+				Filter("numeroOrden", noDocAfectante).
+				One(&tipoDocAfectante)
+			if err != nil {
+				beego.Error("Error", err)
+				return
+			}
+			beego.Info("Aprobacion contable")
+			_, err = o.QueryTable("movimiento_contable").
+				Filter("tipo_documento_afectante", tipoDocAfectante.Id).
+				Filter("codigo_documento_afectante", avanceLegTipo.Id).Update(orm.Params{
+				"estado_movimiento_contable": 2,
+			})
+			if err != nil {
+				beego.Error(err.Error())
+				o.Rollback()
+				return
+			}
+		}
+	}
+
+	o.Commit()
+	return
 }
