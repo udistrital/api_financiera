@@ -908,12 +908,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/concepto_avance_legalizacion",
-			beego.NSInclude(
-				&controllers.ConceptoAvanceLegalizacionController{},
-			),
-		),
-
 		beego.NSNamespace("/chequera",
 			beego.NSInclude(
 				&controllers.ChequeraController{},
@@ -946,6 +940,29 @@ func init() {
 		beego.NSNamespace("/estado_cheque",
 			beego.NSInclude(
 				&controllers.EstadoChequeController{},
+			),
+		),
+		beego.NSNamespace("/avance_legalizacion_tipo",
+			beego.NSInclude(
+				&controllers.AvanceLegalizacionTipoController{},
+			),
+		),
+
+		beego.NSNamespace("/concepto_avance_legalizacion_tipo",
+			beego.NSInclude(
+				&controllers.ConceptoAvanceLegalizacionTipoController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_legalizacion",
+			beego.NSInclude(
+				&controllers.EstadoLegalizacionController{},
+			),
+		),
+
+		beego.NSNamespace("/estado_legalizacion_avance_legalizacion",
+			beego.NSInclude(
+				&controllers.EstadoLegalizacionAvanceLegalizacionController{},
 			),
 		),
 	)

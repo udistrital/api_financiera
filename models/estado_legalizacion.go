@@ -1,54 +1,56 @@
 package models
 
 import (
-
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
+
 	"github.com/astaxie/beego/orm"
 )
 
-type AvanceLegalizacion struct {
-	Id                     int                     `orm:"column(id);pk;auto"`
-	Avance                 *SolicitudAvance        `orm:"column(avance);rel(fk)"`
-	Legalizacion						int										 `orm:"column(legalizacion)"`
+type EstadoLegalizacion struct {
+	Id                int     `orm:"column(id);pk;auto"`
+	Nombre            string  `orm:"column(nombre)"`
+	Descripcion       string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden       float64 `orm:"column(numero_orden)"`
+	Activo            bool    `orm:"column(activo)"`
 }
 
-func (t *AvanceLegalizacion) TableName() string {
-	return "avance_legalizacion"
+func (t *EstadoLegalizacion) TableName() string {
+	return "estado_legalizacion"
 }
 
 func init() {
-	orm.RegisterModel(new(AvanceLegalizacion))
+	orm.RegisterModel(new(EstadoLegalizacion))
 }
 
-// AddAvanceLegalizacion insert a new AvanceLegalizacion into database and returns
+// AddEstadoLegalizacion insert a new EstadoLegalizacion into database and returns
 // last inserted Id on success.
-func AddAvanceLegalizacion(m *AvanceLegalizacion) (id int64, err error) {
+func AddEstadoLegalizacion(m *EstadoLegalizacion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetAvanceLegalizacionById retrieves AvanceLegalizacion by Id. Returns error if
+// GetEstadoLegalizacionById retrieves EstadoLegalizacion by Id. Returns error if
 // Id doesn't exist
-func GetAvanceLegalizacionById(id int) (v *AvanceLegalizacion, err error) {
+func GetEstadoLegalizacionById(id int) (v *EstadoLegalizacion, err error) {
 	o := orm.NewOrm()
-	v = &AvanceLegalizacion{Id: id}
+	v = &EstadoLegalizacion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-
-// GetAllAvanceLegalizacion retrieves all AvanceLegalizacion matches certain condition. Returns empty list if
+// GetAllEstadoLegalizacion retrieves all EstadoLegalizacion matches certain condition. Returns empty list if
 // no records exist
-func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllEstadoLegalizacion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(AvanceLegalizacion)).RelatedSel()
+	qs := o.QueryTable(new(EstadoLegalizacion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,7 +100,7 @@ func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby [
 		}
 	}
 
-	var l []AvanceLegalizacion
+	var l []EstadoLegalizacion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -121,11 +123,11 @@ func GetAllAvanceLegalizacion(query map[string]string, fields []string, sortby [
 	return nil, err
 }
 
-// UpdateAvanceLegalizacion updates AvanceLegalizacion by Id and returns error if
+// UpdateEstadoLegalizacion updates EstadoLegalizacion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateAvanceLegalizacionById(m *AvanceLegalizacion) (err error) {
+func UpdateEstadoLegalizacionById(m *EstadoLegalizacion) (err error) {
 	o := orm.NewOrm()
-	v := AvanceLegalizacion{Id: m.Id}
+	v := EstadoLegalizacion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,37 +138,17 @@ func UpdateAvanceLegalizacionById(m *AvanceLegalizacion) (err error) {
 	return
 }
 
-// DeleteAvanceLegalizacion deletes AvanceLegalizacion by Id and returns error if
+// DeleteEstadoLegalizacion deletes EstadoLegalizacion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteAvanceLegalizacion(id int) (err error) {
+func DeleteEstadoLegalizacion(id int) (err error) {
 	o := orm.NewOrm()
-	v := AvanceLegalizacion{Id: id}
+	v := EstadoLegalizacion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&AvanceLegalizacion{Id: id}); err == nil {
+		if num, err = o.Delete(&EstadoLegalizacion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
-	return
-}
-
-// GetRecordsNumberDevolucion retrieves quantity of records in tibutary devolutions table
-// Id doesn't exist returns 0
-func GetRecordsNumberAvanceLegalizacion(query map[string]string) (cnt int64, err error) {
-	o := orm.NewOrm()
-	qs := o.QueryTable(new(AvanceLegalizacion))
-
-	// query k=v
-	for k, v := range query {
-		// rewrite dot-notation to Object__Attribute
-		k = strings.Replace(k, ".", "__", -1)
-		if strings.Contains(k, "isnull") {
-			qs = qs.Filter(k, (v == "true" || v == "1"))
-		} else {
-			qs = qs.Filter(k, v)
-		}
-	}
-	cnt, err = qs.Count()
 	return
 }

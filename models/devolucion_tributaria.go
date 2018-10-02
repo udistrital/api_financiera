@@ -291,7 +291,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	return
 }
 
-// GetRecordsChequera retrieves quantity of records in tibutary devolutions table
+// GetRecordsNumberDevolucion retrieves quantity of records in tibutary devolutions table
 // Id doesn't exist returns 0
 func GetRecordsNumberDevolucion(query map[string]string) (cnt int64, err error) {
 	o := orm.NewOrm()
