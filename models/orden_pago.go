@@ -116,7 +116,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 	}
 
 	var l []OrdenPago
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).Filter("OrdenPagoRegistroPresupuestal__isnull", false)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -524,7 +524,7 @@ func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string
 		return
 	}
 	for i := 0; i < len(ordenes); i++ {
-		println("Id: ", ordenes[i].Id)
+		/* println("Id: ", ordenes[i].Id) */
 		var query = make(map[string]string)
 		query["Id"] = strconv.Itoa(ordenes[i].Id)
 		v, err := GetAllOrdenPago(query, nil, nil, nil, 0, 10)
