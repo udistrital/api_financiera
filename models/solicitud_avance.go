@@ -12,16 +12,18 @@ import (
 )
 
 type SolicitudAvance struct {
-	Id                       int     `orm:"column(id);pk;auto"`
-	Beneficiario             float64 `orm:"column(beneficiario)"`
-	Vigencia                 int     `orm:"column(vigencia)"`
-	Consecutivo              int     `orm:"column(consecutivo)"`
-	Objetivo                 string  `orm:"column(objetivo)"`
-	Justificacion            string  `orm:"column(justificacion)"`
-	CodigoConvenio           string  `orm:"column(codigo_convenio);null"`
-	Convenio                 string  `orm:"column(convenio);null"`
-	CodigoProyectoInv        string  `orm:"column(codigo_proyecto_inv);null"`
-	ProyectoInv              string  `orm:"column(proyecto_inv);null"`
+	Id                       int     	`orm:"column(id);pk;auto"`
+	Beneficiario             float64 	`orm:"column(beneficiario)"`
+	Vigencia                 int     	`orm:"column(vigencia)"`
+	Consecutivo              int     	`orm:"column(consecutivo)"`
+	Objetivo                 string  	`orm:"column(objetivo)"`
+	Justificacion            string  	`orm:"column(justificacion)"`
+	CodigoConvenio           string  	`orm:"column(codigo_convenio);null"`
+	Convenio                 string  	`orm:"column(convenio);null"`
+	CodigoProyectoInv        string  	`orm:"column(codigo_proyecto_inv);null"`
+	ProyectoInv              string  	`orm:"column(proyecto_inv);null"`
+	FechaRegistro      			time.Time	`orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Usuario            			int       `orm:"column(usuario);null"`
 }
 
 func (t *SolicitudAvance) TableName() string {

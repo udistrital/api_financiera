@@ -965,6 +965,11 @@ func init() {
 				&controllers.EstadoLegalizacionAvanceLegalizacionController{},
 			),
 		),
+		beego.NSNamespace("/avance_legalizacion_sub_tipo",
+			beego.NSInclude(
+				&controllers.AvanceLegalizacionSubTipoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
