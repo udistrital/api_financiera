@@ -10,9 +10,10 @@ import (
 )
 
 type GiroDetalle struct {
-	Id        int        `orm:"column(id);pk;auto"`
-	Giro      *Giro      `orm:"column(giro);rel(fk)"`
-	OrdenPago *OrdenPago `orm:"column(orden_pago);rel(fk)"`
+	Id                 int                 `orm:"column(id);pk;auto"`
+	Giro               *Giro               `orm:"column(giro);rel(fk)"`
+	OrdenPago          *OrdenPago          `orm:"column(orden_pago);rel(fk)"`
+	CuentaBancariaEnte *CuentaBancariaEnte `orm:"column(cuenta_bancaria_ente);rel(fk)"`
 }
 
 func (t *GiroDetalle) TableName() string {
