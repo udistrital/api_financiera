@@ -165,8 +165,10 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	o.Begin()
 	newGiro := Giro{}
 	OrdenesPago := []OrdenPago{}
+	Terceros := []CuentaBancariaEnte{}
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
+	// err3 := formatdata.FillStruct(dataGiro["Tercero"], &Terceros)
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada
