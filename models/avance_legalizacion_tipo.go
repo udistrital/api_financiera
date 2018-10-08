@@ -225,7 +225,19 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 			return
 		}
 	}
+	err = o.QueryTable("tipo_documento_afectante").
+		Filter("numeroOrden", tipoDocumentoAfectante).
+		One(&tipoDocAfectante)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
+		}
+
+		avanceLegalizacionTipo.TipoDocumentoAfectante = &tipoDocAfectante
+
 		avanceLegalizacionTipo.AvanceLegalizacion = &legalizacionAvance
+
 		idavanceLegT, err = o.Insert(&avanceLegalizacionTipo)
 		if err != nil {
 			beego.Error(err.Error())
@@ -241,15 +253,6 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 			o.Rollback()
 			return
 		}
-		err = o.QueryTable("tipo_documento_afectante").
-			Filter("numeroOrden", tipoDocumentoAfectante).
-			One(&tipoDocAfectante)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-
 			err = o.QueryTable("estado_movimiento_contable").
 				Filter("numeroOrden", 1).
 				One(&estadoMov)
