@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaDevolucion struct {
+type CuentaBancariaEnte struct {
 	Id           int    `orm:"column(id);pk;auto"`
 	Banco        int    `orm:"column(banco)"`
 	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
@@ -17,39 +17,39 @@ type CuentaDevolucion struct {
 	Titular			 int		`orm:"column(titular)"`
 	}
 
-func (t *CuentaDevolucion) TableName() string {
+func (t *CuentaBancariaEnte) TableName() string {
 	return "cuenta_bancaria_ente"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaDevolucion))
+	orm.RegisterModel(new(CuentaBancariaEnte))
 }
 
-// AddCuentaDevolucion insert a new CuentaDevolucion into database and returns
+// AddCuentaBancariaEnte insert a new CuentaBancariaEnte into database and returns
 // last inserted Id on success.
-func AddCuentaDevolucion(m *CuentaDevolucion) (id int64, err error) {
+func AddCuentaBancariaEnte(m *CuentaBancariaEnte) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaDevolucionById retrieves CuentaDevolucion by Id. Returns error if
+// GetCuentaBancariaEnteById retrieves CuentaBancariaEnte by Id. Returns error if
 // Id doesn't exist
-func GetCuentaDevolucionById(id int) (v *CuentaDevolucion, err error) {
+func GetCuentaBancariaEnteById(id int) (v *CuentaBancariaEnte, err error) {
 	o := orm.NewOrm()
-	v = &CuentaDevolucion{Id: id}
+	v = &CuentaBancariaEnte{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaDevolucion retrieves all CuentaDevolucion matches certain condition. Returns empty list if
+// GetAllCuentaBancariaEnte retrieves all CuentaBancariaEnte matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllCuentaBancariaEnte(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaDevolucion))
+	qs := o.QueryTable(new(CuentaBancariaEnte))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -99,7 +99,7 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []CuentaDevolucion
+	var l []CuentaBancariaEnte
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +122,11 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateCuentaDevolucion updates CuentaDevolucion by Id and returns error if
+// UpdateCuentaBancariaEnte updates CuentaBancariaEnte by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
+func UpdateCuentaBancariaEnteById(m *CuentaBancariaEnte) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: m.Id}
+	v := CuentaBancariaEnte{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +137,15 @@ func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
 	return
 }
 
-// DeleteCuentaDevolucion deletes CuentaDevolucion by Id and returns error if
+// DeleteCuentaBancariaEnte deletes CuentaBancariaEnte by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaDevolucion(id int) (err error) {
+func DeleteCuentaBancariaEnte(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: id}
+	v := CuentaBancariaEnte{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&CuentaBancariaEnte{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

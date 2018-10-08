@@ -22,7 +22,7 @@ type SolicitudDevolucion struct {
 	RazonDevolucion  *RazonDevolucion     `orm:"column(razon_devolucion);rel(fk)"`
 	Vigencia         float64              `orm:"column(vigencia)"`
 	UnidadEjecutora  *UnidadEjecutora     `orm:"column(unidad_ejecutora);rel(fk)"`
-	CuentaDevolucion *CuentaDevolucion    `orm:"column(cuenta_devolucion);rel(fk)"`
+	CuentaBancariaEnte *CuentaBancariaEnte    `orm:"column(cuenta_devolucion);rel(fk)"`
 	Observaciones    string               `orm:"column(observaciones)"`
 	FechaRegistro    time.Time            `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 	Soporte          int							    `orm:"column(soporte)"`
@@ -171,7 +171,7 @@ func AddDevolution(request map[string]interface{}) (solicitudDevol SolicitudDevo
 	var idDevol int64
 	var estadoDevol *EstadoDevolucion
 	var solicitudEstado SolicitudDevolucionEstadoDevolucion
-	var cuentaDevol CuentaDevolucion
+	var cuentaDevol CuentaBancariaEnte
 
 	var concepto Concepto
 	var mov []MovimientoContable
@@ -192,9 +192,9 @@ func AddDevolution(request map[string]interface{}) (solicitudDevol SolicitudDevo
 		solicitudEstado.Activo = true
 
 		err = o.QueryTable("cuenta_bancaria_ente").
-			Filter("banco", solicitudDevol.CuentaDevolucion.Banco).
-			Filter("tipo_cuenta", solicitudDevol.CuentaDevolucion.TipoCuenta).
-			Filter("numero_cuenta", solicitudDevol.CuentaDevolucion.NumeroCuenta).
+			Filter("banco", solicitudDevol.CuentaBancariaEnte.Banco).
+			Filter("tipo_cuenta", solicitudDevol.CuentaBancariaEnte.TipoCuenta).
+			Filter("numero_cuenta", solicitudDevol.CuentaBancariaEnte.NumeroCuenta).
 			One(&cuentaDevol)
 		beego.Error(err)
 		if err == orm.ErrMultiRows {
@@ -203,17 +203,17 @@ func AddDevolution(request map[string]interface{}) (solicitudDevol SolicitudDevo
 		}
 
 		if err == orm.ErrNoRows {
-			Id, err = o.Insert(solicitudDevol.CuentaDevolucion)
+			Id, err = o.Insert(solicitudDevol.CuentaBancariaEnte)
 			beego.Error("id", Id, "error", err)
 			if err != nil {
 				beego.Error(err)
 				o.Rollback()
 				return
 			} else {
-				solicitudDevol.CuentaDevolucion.Id = int(Id)
+				solicitudDevol.CuentaBancariaEnte.Id = int(Id)
 			}
 		}else {
-			solicitudDevol.CuentaDevolucion.Id = cuentaDevol.Id
+			solicitudDevol.CuentaBancariaEnte.Id = cuentaDevol.Id
 		}
 
 		lll, _ := json.Marshal(&solicitudDevol)

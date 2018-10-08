@@ -19,7 +19,7 @@ type DevolucionTributaria struct {
 	Acta             		 int               			 `orm:"column(acta)"`
 	Solicitante      		 int               			 `orm:"column(solicitante)"`
 	FormaPago        		 *FormaPago        			 `orm:"column(forma_pago);rel(fk)"`
-	CuentaDevolucion 		 *CuentaDevolucion 			 `orm:"column(cuenta_devolucion);rel(fk)"`
+	CuentaBancariaEnte 		 *CuentaBancariaEnte 			 `orm:"column(cuenta_devolucion);rel(fk)"`
 	Justificacion    		 string            			 `orm:"column(justificacion)"`
 	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk);null"`
 	FechaRegistro    		 time.Time         			 `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
@@ -166,7 +166,7 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 
 	var Id int64
 	var idDevol int64
-	var cuentaDevol CuentaDevolucion
+	var cuentaDevol CuentaBancariaEnte
   var estadoDevolucion EstadoDevolucion
 	var movimientosAsoc  []DevolucionTributariaMovimientoAsociado
 	var docGen DocumentoGenerador
@@ -196,24 +196,24 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 			}
 
 		err = o.QueryTable("cuenta_bancaria_ente").
-			Filter("banco", tributariaDevol.CuentaDevolucion.Banco).
-			Filter("tipo_cuenta", tributariaDevol.CuentaDevolucion.TipoCuenta).
-			Filter("numero_cuenta", tributariaDevol.CuentaDevolucion.NumeroCuenta).
+			Filter("banco", tributariaDevol.CuentaBancariaEnte.Banco).
+			Filter("tipo_cuenta", tributariaDevol.CuentaBancariaEnte.TipoCuenta).
+			Filter("numero_cuenta", tributariaDevol.CuentaBancariaEnte.NumeroCuenta).
 			One(&cuentaDevol)
 
 			if err == nil {
-				tributariaDevol.CuentaDevolucion.Id = cuentaDevol.Id
+				tributariaDevol.CuentaBancariaEnte.Id = cuentaDevol.Id
 			} else if err == orm.ErrMultiRows {
 				beego.Error("Returned Multi Rows Not One")
 				return
 			} else if err == orm.ErrNoRows {
-				Id, err = o.Insert(tributariaDevol.CuentaDevolucion)
+				Id, err = o.Insert(tributariaDevol.CuentaBancariaEnte)
 				if err != nil {
 					beego.Error(err)
 					o.Rollback()
 					return
 				} else {
-					tributariaDevol.CuentaDevolucion.Id = int(Id)
+					tributariaDevol.CuentaBancariaEnte.Id = int(Id)
 				}
 	}
 

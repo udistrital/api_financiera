@@ -740,7 +740,7 @@ func init() {
 		),
 		beego.NSNamespace("/cuenta_devolucion",
 			beego.NSInclude(
-				&controllers.CuentaDevolucionController{},
+				&controllers.CuentaBancariaEnteController{},
 			),
 		),
 

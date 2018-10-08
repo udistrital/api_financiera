@@ -58,6 +58,12 @@ func GetAllAvanceLegalizacionSubTipo(query map[string]string, fields []string, s
 		k = strings.Replace(k, ".", "__", -1)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
+			k = strings.Replace(k, "__not_in", "", -1)
+			qs = qs.Exclude(k, v)
 		} else {
 			qs = qs.Filter(k, v)
 		}
