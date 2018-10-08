@@ -13,15 +13,18 @@ import (
 )
 
 type AvanceLegalizacionTipo struct {
-	Id                     int                     `orm:"column(id);pk;auto"`
-	TipoAvanceLegalizacion *TipoAvanceLegalizacion `orm:"column(tipo_avance_legalizacion);rel(fk)"`
-	AvanceLegalizacion     *AvanceLegalizacion		 `orm:"column(avance_legalizacion);rel(fk)"`
-	Tercero                string                  `orm:"column(tercero)"`
-	FechaCompra            time.Time               `orm:"column(fecha_compra);type(date);null"`
-	FechaCambioDivisa      time.Time               `orm:"column(fecha_cambio_divisa);type(date);null"`
-	Dias                   int                     `orm:"column(dias);null"`
-	TrmFechaCompra         float64                 `orm:"column(trm_fecha_compra);null"`
-	NumeroFactura          string                  `orm:"column(numero_factura);null"`
+	Id                      int                     	 `orm:"column(id);pk;auto"`
+	TipoAvanceLegalizacion  *TipoAvanceLegalizacion 	 `orm:"column(tipo_avance_legalizacion);rel(fk)"`
+	AvanceLegalizacion      *AvanceLegalizacion		 	   `orm:"column(avance_legalizacion);rel(fk)"`
+	Tercero                 string                  	 `orm:"column(tercero)"`
+	FechaCompra             time.Time               	 `orm:"column(fecha_compra);type(date);null"`
+	FechaCambioDivisa       time.Time               	 `orm:"column(fecha_cambio_divisa);type(date);null"`
+	Dias                    int                     	 `orm:"column(dias);null"`
+	TrmFechaCompra          float64                 	 `orm:"column(trm_fecha_compra);null"`
+	NumeroFactura           string                  	 `orm:"column(numero_factura);null"`
+	Subtipo								  *AvanceLegalizacionSubTipo `orm:"column(subtipo);rel(fk);null"`
+	EntradaAlmacen				  int												 `orm:"column(entrada_almacen)"`
+	TipoDocumentoAfectante  *TipoDocumentoAfectante			`orm:"column(tipo_documento_afectante);rel(fk)"`
 }
 
 func (t *AvanceLegalizacionTipo) TableName() string {

@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// CuentaDevolucionController operations for CuentaDevolucion
-type CuentaDevolucionController struct {
+// AvanceLegalizacionSubTipoController operations for AvanceLegalizacionSubTipo
+type AvanceLegalizacionSubTipoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *CuentaDevolucionController) URLMapping() {
+func (c *AvanceLegalizacionSubTipoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *CuentaDevolucionController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create CuentaDevolucion
-// @Param	body		body 	models.CuentaDevolucion	true		"body for CuentaDevolucion content"
-// @Success 201 {int} models.CuentaDevolucion
+// @Description create AvanceLegalizacionSubTipo
+// @Param	body		body 	models.AvanceLegalizacionSubTipo	true		"body for AvanceLegalizacionSubTipo content"
+// @Success 201 {int} models.AvanceLegalizacionSubTipo
 // @Failure 403 body is empty
 // @router / [post]
-func (c *CuentaDevolucionController) Post() {
-	var v models.CuentaDevolucion
+func (c *AvanceLegalizacionSubTipoController) Post() {
+	var v models.AvanceLegalizacionSubTipo
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddCuentaDevolucion(&v); err == nil {
+		if _, err := models.AddAvanceLegalizacionSubTipo(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *CuentaDevolucionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get CuentaDevolucion by id
+// @Description get AvanceLegalizacionSubTipo by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.CuentaDevolucion
+// @Success 200 {object} models.AvanceLegalizacionSubTipo
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *CuentaDevolucionController) GetOne() {
+func (c *AvanceLegalizacionSubTipoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetCuentaDevolucionById(id)
+	v, err := models.GetAvanceLegalizacionSubTipoById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *CuentaDevolucionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get CuentaDevolucion
+// @Description get AvanceLegalizacionSubTipo
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.CuentaDevolucion
+// @Success 200 {object} models.AvanceLegalizacionSubTipo
 // @Failure 403
 // @router / [get]
-func (c *CuentaDevolucionController) GetAll() {
+func (c *AvanceLegalizacionSubTipoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *CuentaDevolucionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllCuentaDevolucion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllAvanceLegalizacionSubTipo(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *CuentaDevolucionController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the CuentaDevolucion
+// @Description update the AvanceLegalizacionSubTipo
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.CuentaDevolucion	true		"body for CuentaDevolucion content"
-// @Success 200 {object} models.CuentaDevolucion
+// @Param	body		body 	models.AvanceLegalizacionSubTipo	true		"body for AvanceLegalizacionSubTipo content"
+// @Success 200 {object} models.AvanceLegalizacionSubTipo
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *CuentaDevolucionController) Put() {
+func (c *AvanceLegalizacionSubTipoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.CuentaDevolucion{Id: id}
+	v := models.AvanceLegalizacionSubTipo{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateCuentaDevolucionById(&v); err == nil {
+		if err := models.UpdateAvanceLegalizacionSubTipoById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *CuentaDevolucionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the CuentaDevolucion
+// @Description delete the AvanceLegalizacionSubTipo
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *CuentaDevolucionController) Delete() {
+func (c *AvanceLegalizacionSubTipoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteCuentaDevolucion(id); err == nil {
+	if err := models.DeleteAvanceLegalizacionSubTipo(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

@@ -9,53 +9,61 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CuentaDevolucion struct {
-	Id           int    `orm:"column(id);pk;auto"`
-	Banco        int    `orm:"column(banco)"`
-	TipoCuenta   int    `orm:"column(tipo_cuenta)"`
-	NumeroCuenta string `orm:"column(numero_cuenta)"`
-	Titular			 int		`orm:"column(titular)"`
-	}
+type AvanceLegalizacionSubTipo struct {
+	Id                   int     `orm:"column(id);pk"`
+	Nombre               string  `orm:"column(nombre)"`
+	Descripcion          string  `orm:"column(descripcion);null"`
+	CodigoAbreviacion    string  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden          float64 `orm:"column(numero_orden)"`
+	AplicaEntradaAlmacen bool    `orm:"column(aplica_entrada_almacen)"`
+	Activo               bool    `orm:"column(activo)"`
+}
 
-func (t *CuentaDevolucion) TableName() string {
-	return "cuenta_bancaria_ente"
+func (t *AvanceLegalizacionSubTipo) TableName() string {
+	return "avance_legalizacion_sub_tipo"
 }
 
 func init() {
-	orm.RegisterModel(new(CuentaDevolucion))
+	orm.RegisterModel(new(AvanceLegalizacionSubTipo))
 }
 
-// AddCuentaDevolucion insert a new CuentaDevolucion into database and returns
+// AddAvanceLegalizacionSubTipo insert a new AvanceLegalizacionSubTipo into database and returns
 // last inserted Id on success.
-func AddCuentaDevolucion(m *CuentaDevolucion) (id int64, err error) {
+func AddAvanceLegalizacionSubTipo(m *AvanceLegalizacionSubTipo) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetCuentaDevolucionById retrieves CuentaDevolucion by Id. Returns error if
+// GetAvanceLegalizacionSubTipoById retrieves AvanceLegalizacionSubTipo by Id. Returns error if
 // Id doesn't exist
-func GetCuentaDevolucionById(id int) (v *CuentaDevolucion, err error) {
+func GetAvanceLegalizacionSubTipoById(id int) (v *AvanceLegalizacionSubTipo, err error) {
 	o := orm.NewOrm()
-	v = &CuentaDevolucion{Id: id}
+	v = &AvanceLegalizacionSubTipo{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllCuentaDevolucion retrieves all CuentaDevolucion matches certain condition. Returns empty list if
+// GetAllAvanceLegalizacionSubTipo retrieves all AvanceLegalizacionSubTipo matches certain condition. Returns empty list if
 // no records exist
-func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllAvanceLegalizacionSubTipo(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(CuentaDevolucion))
+	qs := o.QueryTable(new(AvanceLegalizacionSubTipo))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
 		k = strings.Replace(k, ".", "__", -1)
 		if strings.Contains(k, "isnull") {
 			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else if strings.Contains(k, "__in") {
+			arr := strings.Split(v, "|")
+			qs = qs.Filter(k, arr)
+		} else if strings.Contains(k, "__not_in") {
+			k = strings.Replace(k, "__not_in", "", -1)
+			qs = qs.Exclude(k, v)
 		} else {
 			qs = qs.Filter(k, v)
 		}
@@ -99,7 +107,7 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 		}
 	}
 
-	var l []CuentaDevolucion
+	var l []AvanceLegalizacionSubTipo
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -122,11 +130,11 @@ func GetAllCuentaDevolucion(query map[string]string, fields []string, sortby []s
 	return nil, err
 }
 
-// UpdateCuentaDevolucion updates CuentaDevolucion by Id and returns error if
+// UpdateAvanceLegalizacionSubTipo updates AvanceLegalizacionSubTipo by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
+func UpdateAvanceLegalizacionSubTipoById(m *AvanceLegalizacionSubTipo) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: m.Id}
+	v := AvanceLegalizacionSubTipo{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -137,15 +145,15 @@ func UpdateCuentaDevolucionById(m *CuentaDevolucion) (err error) {
 	return
 }
 
-// DeleteCuentaDevolucion deletes CuentaDevolucion by Id and returns error if
+// DeleteAvanceLegalizacionSubTipo deletes AvanceLegalizacionSubTipo by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteCuentaDevolucion(id int) (err error) {
+func DeleteAvanceLegalizacionSubTipo(id int) (err error) {
 	o := orm.NewOrm()
-	v := CuentaDevolucion{Id: id}
+	v := AvanceLegalizacionSubTipo{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&CuentaDevolucion{Id: id}); err == nil {
+		if num, err = o.Delete(&AvanceLegalizacionSubTipo{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

@@ -740,7 +740,7 @@ func init() {
 		),
 		beego.NSNamespace("/cuenta_devolucion",
 			beego.NSInclude(
-				&controllers.CuentaDevolucionController{},
+				&controllers.CuentaBancariaEnteController{},
 			),
 		),
 
@@ -963,6 +963,11 @@ func init() {
 		beego.NSNamespace("/estado_legalizacion_avance_legalizacion",
 			beego.NSInclude(
 				&controllers.EstadoLegalizacionAvanceLegalizacionController{},
+			),
+		),
+		beego.NSNamespace("/avance_legalizacion_sub_tipo",
+			beego.NSInclude(
+				&controllers.AvanceLegalizacionSubTipoController{},
 			),
 		),
 	)
