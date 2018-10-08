@@ -16,6 +16,7 @@ type AvanceLegalizacionSubTipo struct {
 	CodigoAbreviacion    string  `orm:"column(codigo_abreviacion);null"`
 	NumeroOrden          float64 `orm:"column(numero_orden)"`
 	AplicaEntradaAlmacen bool    `orm:"column(aplica_entrada_almacen)"`
+	Activo               bool    `orm:"column(activo)"`
 }
 
 func (t *AvanceLegalizacionSubTipo) TableName() string {
