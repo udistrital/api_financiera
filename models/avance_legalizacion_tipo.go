@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -13,18 +13,19 @@ import (
 )
 
 type AvanceLegalizacionTipo struct {
-	Id                      int                     	 `orm:"column(id);pk;auto"`
-	TipoAvanceLegalizacion  *TipoAvanceLegalizacion 	 `orm:"column(tipo_avance_legalizacion);rel(fk)"`
-	AvanceLegalizacion      *AvanceLegalizacion		 	   `orm:"column(avance_legalizacion);rel(fk)"`
-	Tercero                 string                  	 `orm:"column(tercero)"`
-	FechaCompra             time.Time               	 `orm:"column(fecha_compra);type(date);null"`
-	FechaCambioDivisa       time.Time               	 `orm:"column(fecha_cambio_divisa);type(date);null"`
-	Dias                    int                     	 `orm:"column(dias);null"`
-	TrmFechaCompra          float64                 	 `orm:"column(trm_fecha_compra);null"`
-	NumeroFactura           string                  	 `orm:"column(numero_factura);null"`
-	Subtipo								  *AvanceLegalizacionSubTipo `orm:"column(subtipo);rel(fk);null"`
-	EntradaAlmacen				  int												 `orm:"column(entrada_almacen)"`
-	TipoDocumentoAfectante  *TipoDocumentoAfectante			`orm:"column(tipo_documento_afectante);rel(fk)"`
+	Id                           int                           `orm:"column(id);pk;auto"`
+	TipoAvanceLegalizacion       *TipoAvanceLegalizacion       `orm:"column(tipo_avance_legalizacion);rel(fk)"`
+	AvanceLegalizacion           *AvanceLegalizacion           `orm:"column(avance_legalizacion);rel(fk)"`
+	Tercero                      string                        `orm:"column(tercero)"`
+	FechaCompra                  time.Time                     `orm:"column(fecha_compra);type(date);null"`
+	FechaCambioDivisa            time.Time                     `orm:"column(fecha_cambio_divisa);type(date);null"`
+	Dias                         int                           `orm:"column(dias);null"`
+	TrmFechaCompra               float64                       `orm:"column(trm_fecha_compra);null"`
+	NumeroFactura                string                        `orm:"column(numero_factura);null"`
+	Subtipo                      *AvanceLegalizacionSubTipo    `orm:"column(subtipo);rel(fk);null"`
+	EntradaAlmacen               int                           `orm:"column(entrada_almacen)"`
+	TipoDocumentoAfectante       *TipoDocumentoAfectante       `orm:"column(tipo_documento_afectante);rel(fk)"`
+	EstadoAvanceLegalizacionTipo *EstadoAvanceLegalizacionTipo `orm:"column(estado);rel(fk)"`
 }
 
 func (t *AvanceLegalizacionTipo) TableName() string {
@@ -115,6 +116,7 @@ func GetAllAvanceLegalizacionTipo(query map[string]string, fields []string, sort
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "TipoAvanceLegalizacion")
+				o.LoadRelated(&v, "EstadoAvanceLegalizacionTipo")
 				ml = append(ml, v)
 			}
 		} else {
@@ -180,6 +182,7 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 	var consecLeg int64
 	var valorLeg float64
 	var tipoDocumentoAfectante int64
+	var estadoLegalizacionAvanceTipo EstadoAvanceLegalizacionTipo
 
 	o := orm.NewOrm()
 
@@ -197,8 +200,6 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 	conceptoLegAvanceTipo.Concepto = &concepto
 	conceptoLegAvanceTipo.Valor = valorLeg
 	o.Begin()
-
-
 
 	err = o.QueryTable("avance_legalizacion").
 		Filter("avance", solicitudAvance.Id).
@@ -219,8 +220,8 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 				return
 			}
 			legalizacionAvance.Id = int(idLegA)
-		}else{
-			beego.Error("Error",err)
+		} else {
+			beego.Error("Error", err)
 			o.Rollback()
 			return
 		}
@@ -228,67 +229,77 @@ func AddAllAvanceLegalizacionTipo(m map[string]interface{}) (avanceLegalizacionT
 	err = o.QueryTable("tipo_documento_afectante").
 		Filter("numeroOrden", tipoDocumentoAfectante).
 		One(&tipoDocAfectante)
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
-		}
-
-		avanceLegalizacionTipo.TipoDocumentoAfectante = &tipoDocAfectante
-
-		avanceLegalizacionTipo.AvanceLegalizacion = &legalizacionAvance
-
-		idavanceLegT, err = o.Insert(&avanceLegalizacionTipo)
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
-		}else{
-			avanceLegalizacionTipo.Id = int(idavanceLegT)
-		}
-		conceptoLegAvanceTipo.AvanceLegalizacion =  &avanceLegalizacionTipo
-		_, err = o.Insert(&conceptoLegAvanceTipo)
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
-		}
-			err = o.QueryTable("estado_movimiento_contable").
-				Filter("numeroOrden", 1).
-				One(&estadoMov)
-				if err != nil {
-					beego.Error(err.Error())
-					o.Rollback()
-					return
-				}
-		for i:= 0;i<len(movimientosContables);i++ {
-			 movimientosContables[i].CodigoDocumentoAfectante = int(idavanceLegT)
-			 movimientosContables[i].TipoDocumentoAfectante = &tipoDocAfectante
-			 movimientosContables[i].Fecha = time.Now()
-			 movimientosContables[i].EstadoMovimientoContable = &estadoMov
-		}
-		_, err = o.InsertMulti(100, movimientosContables)
-		if err != nil {
-			beego.Error(err.Error())
-			o.Rollback()
-			return
-		}
-		beego.Error("avance legalziacion tipo",avanceLegalizacionTipo)
-		o.Commit()
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
 		return
+	}
+
+	avanceLegalizacionTipo.TipoDocumentoAfectante = &tipoDocAfectante
+
+	avanceLegalizacionTipo.AvanceLegalizacion = &legalizacionAvance
+
+	err = o.QueryTable("estado_avance_legalizacion_tipo").
+		Filter("numeroOrden", 1).
+		One(&estadoLegalizacionAvanceTipo)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	avanceLegalizacionTipo.EstadoAvanceLegalizacionTipo = &estadoLegalizacionAvanceTipo
+
+	idavanceLegT, err = o.Insert(&avanceLegalizacionTipo)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	} else {
+		avanceLegalizacionTipo.Id = int(idavanceLegT)
+	}
+	conceptoLegAvanceTipo.AvanceLegalizacion = &avanceLegalizacionTipo
+	_, err = o.Insert(&conceptoLegAvanceTipo)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	err = o.QueryTable("estado_movimiento_contable").
+		Filter("numeroOrden", 1).
+		One(&estadoMov)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	for i := 0; i < len(movimientosContables); i++ {
+		movimientosContables[i].CodigoDocumentoAfectante = int(idavanceLegT)
+		movimientosContables[i].TipoDocumentoAfectante = &tipoDocAfectante
+		movimientosContables[i].Fecha = time.Now()
+		movimientosContables[i].EstadoMovimientoContable = &estadoMov
+	}
+	_, err = o.InsertMulti(100, movimientosContables)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	beego.Error("avance legalziacion tipo", avanceLegalizacionTipo)
+	o.Commit()
+	return
 }
 
 //get the total legalized from a advance
-func GetLegalizationValue (id int)(value float64,err error){
+func GetLegalizationValue(id int) (value float64, err error) {
 	var midValue float64
 	o := orm.NewOrm()
 
 	qb, _ := orm.NewQueryBuilder("mysql")
 
-qb.Select("COALESCE(sum(cavt.valor),0)").
-	From("avance_legalizacion_tipo avt").
-	InnerJoin("concepto_avance_legalizacion_tipo cavt").On("cavt.avance_legalizacion = avt.id").
-	Where("avt.avance_legalizacion = ?")
+	qb.Select("COALESCE(sum(cavt.valor),0)").
+		From("avance_legalizacion_tipo avt").
+		InnerJoin("concepto_avance_legalizacion_tipo cavt").On("cavt.avance_legalizacion = avt.id").
+		Where("avt.avance_legalizacion = ?").And("avt.estado = 1")
 
 	sql := qb.String()
 
@@ -314,7 +325,7 @@ qb.Select("COALESCE(sum(cavt.valor),0)").
 }
 
 //get taxes from legalizacioTIpo according to movimientosContables
-func GetTaxesLegalization(documento int,noTipoDocumento int)(response []interface{},err error){
+func GetTaxesLegalization(documento int, noTipoDocumento int) (response []interface{}, err error) {
 	var movimientosContables []MovimientoContable
 	var tipoDocAfectante TipoDocumentoAfectante
 	o := orm.NewOrm()
@@ -322,14 +333,14 @@ func GetTaxesLegalization(documento int,noTipoDocumento int)(response []interfac
 	err = o.QueryTable("tipo_documento_afectante").
 		Filter("numeroOrden", noTipoDocumento).
 		One(&tipoDocAfectante)
-	if err!=nil {
-		beego.Error("Error",err)
+	if err != nil {
+		beego.Error("Error", err)
 		return
 	}
 
 	qs := o.QueryTable(new(MovimientoContable))
-	qs = qs.Filter("TipoDocumentoAfectante",tipoDocAfectante.Id )
-	qs = qs.Filter("CodigoDocumentoAfectante",documento)
+	qs = qs.Filter("TipoDocumentoAfectante", tipoDocAfectante.Id)
+	qs = qs.Filter("CodigoDocumentoAfectante", documento)
 	qs = qs.Filter("CuentaEspecial__isnull", false)
 	_, err = qs.All(&movimientosContables)
 	if err == nil {
@@ -339,15 +350,15 @@ func GetTaxesLegalization(documento int,noTipoDocumento int)(response []interfac
 			m := val.FieldByName("CuentaEspecial").Interface()
 			response = append(response, m)
 		}
-	}else{
-		beego.Error("Error ",err)
-		return nil,err
+	} else {
+		beego.Error("Error ", err)
+		return nil, err
 	}
-	return response,nil
+	return response, nil
 }
 
 //get movs from legalizacioTipo according to movimientosContables
-func GetMovsLegalization(documento int,noTipoDocumento int)(response []interface{},err error){
+func GetMovsLegalization(documento int, noTipoDocumento int) (response []interface{}, err error) {
 	var movimientosContables []MovimientoContable
 	var tipoDocAfectante TipoDocumentoAfectante
 	o := orm.NewOrm()
@@ -355,23 +366,23 @@ func GetMovsLegalization(documento int,noTipoDocumento int)(response []interface
 	err = o.QueryTable("tipo_documento_afectante").
 		Filter("numeroOrden", noTipoDocumento).
 		One(&tipoDocAfectante)
-	if err!=nil {
-		beego.Error("Error",err)
+	if err != nil {
+		beego.Error("Error", err)
 		return
 	}
-	beego.Error("tipo doc afectante ",tipoDocAfectante.Id ,"Codigo doc afectante ",documento);
+	beego.Error("tipo doc afectante ", tipoDocAfectante.Id, "Codigo doc afectante ", documento)
 	qs := o.QueryTable(new(MovimientoContable))
-	qs = qs.Filter("TipoDocumentoAfectante",tipoDocAfectante.Id )
-	qs = qs.Filter("CodigoDocumentoAfectante",documento)
+	qs = qs.Filter("TipoDocumentoAfectante", tipoDocAfectante.Id)
+	qs = qs.Filter("CodigoDocumentoAfectante", documento)
 	_, err = qs.All(&movimientosContables)
 	for _, v := range movimientosContables {
-		o.LoadRelated(&v,"CuentaContable")
+		o.LoadRelated(&v, "CuentaContable")
 		val := reflect.ValueOf(v).Interface()
-		response=append(response,val)
+		response = append(response, val)
 	}
 	if err != nil {
-		beego.Error("Error",err)
+		beego.Error("Error", err)
 		return
 	}
-	return response,nil
+	return response, nil
 }
