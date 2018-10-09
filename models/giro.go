@@ -164,22 +164,32 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	o := orm.NewOrm()
 	o.Begin()
 	newGiro := Giro{}
-	OrdenesPago := []OrdenPago{}
-	Terceros := []CuentaBancariaEnte{}
+	var OrdenesPago []map[string]interface{}
+	//var idNewCuentaTercero CuentaBancariaEnte
+	//CuentasTerceros := []CuentaBancariaEnte{}
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
-	// err3 := formatdata.FillStruct(dataGiro["Tercero"], &Terceros)
+	//err3 := formatdata.FillStruct(dataGiro["Tercero"], &CuentasTerceros)
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada
-		alerta.Body = "Erro en parametros de entrada en RegistrarGiro()"
+		alerta.Body = "Error en parametros de entrada en RegistrarGiro()"
 		o.Rollback()
 		return
 	}
 	// consecutivo
 	var consecutivo int
-	sqlConsecutivo := "SELECT COALESCE(MAX(consecutivo), 0)+1 FROM financiera.giro;"
-	o.Raw(sqlConsecutivo).QueryRow(&consecutivo)
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("COALESCE(MAX(consecutivo), 0)+1 ").
+		From("financiera.giro")
+	err := o.Raw(qb.String()).QueryRow(&consecutivo)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPP_01"
+		alerta.Body = consecutivo
+		o.Rollback()
+		return
+	}
 	newGiro.Consecutivo = consecutivo
 	newGiro.FechaRegistro = time.Now()
 	//insert giro
@@ -217,27 +227,61 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	//insert giro_detalle and orden_pago_estado_ordenPago
 	var giroDetalles []GiroDetalle
 	var newEstadoOrdenPago []OrdenPagoEstadoOrdenPago
-	newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
+	//newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
 	if alerta.Type == "error" {
 		o.Rollback()
 		return
 	}
-	for i := 0; i < len(OrdenesPago); i++ {
-		//giro detalle
-		rowGiroDetalle := GiroDetalle{
-			Giro:      &Giro{Id: int(idNewGiro)},
-			OrdenPago: &OrdenPago{Id: int(OrdenesPago[i].Id)},
-		}
-		giroDetalles = append(giroDetalles, rowGiroDetalle)
-		// estados orden pago
-		rowEstadoOrdenPago := OrdenPagoEstadoOrdenPago{
-			OrdenPago:       &OrdenPago{Id: int(OrdenesPago[i].Id)},
-			EstadoOrdenPago: &EstadoOrdenPago{Id: int(newEstadoOP08.Id)},
-			FechaRegistro:   time.Now(),
-			Usuario:         1, //entra por sesion
-		}
-		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
+
+	for _, element := range OrdenesPago {
+		fmt.Println(element["Proveedor"].(map[string]interface{})["IdEntidadBancaria"])
+		/* 		err = o.QueryTable("cuenta_bancaria_ente").
+		Filter("banco", element.Proveedor.IdEntidadBancaria).
+		//			Filter("tipo_cuenta", element.Proveedor.TipoCuentaBancaria).
+		Filter("numero_cuenta", element.Proveedor.NumCuentaBancaria).
+		One(&idNewCuentaTercero) */
 	}
+
+	/*
+		for i := 0; i < len(OrdenesPago); i++ {
+
+			// get or insert cuentaBancariaTercero
+			err = o.QueryTable("cuenta_bancaria_ente").
+				Filter("banco", OrdenesPago[i].Proveedor.IdEntidadBancaria).
+				//			Filter("tipo_cuenta", OrdenesPago[i].Proveedor.TipoCuentaBancaria).
+				Filter("numero_cuenta", OrdenesPago[i].Proveedor.NumCuentaBancaria).
+				One(&idNewCuentaTercero)
+			if err == nil {
+				OrdenesPago[i].CuentaBancariaEnte.Id = idNewCuentaTercero.Id
+			} else if err == orm.ErrMultiRows {
+				beego.Error("Returned Multi Rows Not One")
+				return
+			} else if err == orm.ErrNoRows {
+				Id, err = o.Insert(OrdenesPago[i].CuentaBancariaEnte)
+				if err != nil {
+					beego.Error(err)
+					o.Rollback()
+					return
+				} else {
+					OrdenesPago[i].Proveedor.IdEntidadBancaria = int(Id)
+				}
+			}
+			//giro detalle
+			rowGiroDetalle := GiroDetalle{
+				Giro:               &Giro{Id: int(idNewGiro)},
+				OrdenPago:          &OrdenPago{Id: int(OrdenesPago[i].Id)},
+				CuentaBancariaEnte: &CuentaBancariaEnte{Id: int(OrdenesPago[0].CuentaBancariaEnte.Id)},
+			}
+			giroDetalles = append(giroDetalles, rowGiroDetalle)
+			// estados orden pago
+			rowEstadoOrdenPago := OrdenPagoEstadoOrdenPago{
+				OrdenPago:       &OrdenPago{Id: int(OrdenesPago[i].Id)},
+				EstadoOrdenPago: &EstadoOrdenPago{Id: int(newEstadoOP08.Id)},
+				FechaRegistro:   time.Now(),
+				Usuario:         1, //entra por sesion
+			}
+			newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
+		} */
 	// insertar giro_detalle
 	_, err = o.InsertMulti(100, giroDetalles)
 	if err != nil {
