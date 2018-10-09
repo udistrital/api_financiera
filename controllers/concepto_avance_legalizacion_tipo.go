@@ -74,6 +74,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetOne() {
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
+// @Param groupby  string	false	"fields to grop by,  e.g. col1,col2 ..."
 // @Success 200 {object} models.ConceptoAvanceLegalizacionTipo
 // @Failure 403
 // @router / [get]
@@ -81,6 +82,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
+	var groupby []string
 	var query = make(map[string]string)
 	var limit int64 = 10
 	var offset int64
@@ -105,6 +107,10 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetAll() {
 	if v := c.GetString("order"); v != "" {
 		order = strings.Split(v, ",")
 	}
+
+	if v := c.GetString("groupby"); v != "" {
+		groupby = strings.Split(v, ",")
+	}
 	// query: k:v,k:v
 	if v := c.GetString("query"); v != "" {
 		for _, cond := range strings.Split(v, ",") {
@@ -119,7 +125,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllConceptoAvanceLegalizacionTipo(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllConceptoAvanceLegalizacionTipo(query, fields, sortby, order, offset, limit, groupby)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {

@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego"
+	"sort"
 )
 
 type ConceptoAvanceLegalizacionTipo struct {
@@ -46,7 +48,7 @@ func GetConceptoAvanceLegalizacionTipoById(id int) (v *ConceptoAvanceLegalizacio
 // GetAllConceptoAvanceLegalizacionTipo retrieves all ConceptoAvanceLegalizacionTipo matches certain condition. Returns empty list if
 // no records exist
 func GetAllConceptoAvanceLegalizacionTipo(query map[string]string, fields []string, sortby []string, order []string,
-	offset int64, limit int64) (ml []interface{}, err error) {
+	offset int64, limit int64,groupby []string) (ml []interface{}, err error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(ConceptoAvanceLegalizacionTipo))
 	// query k=v
@@ -97,9 +99,14 @@ func GetAllConceptoAvanceLegalizacionTipo(query map[string]string, fields []stri
 			return nil, errors.New("Error: unused 'order' fields")
 		}
 	}
-
 	var l []ConceptoAvanceLegalizacionTipo
 	qs = qs.OrderBy(sortFields...)
+	if len(groupby) != 0 {
+		for i:=0; i < len(groupby);i++  {
+			groupby[i] = strings.Replace(groupby[i], ".", "__", -1)
+		}
+		qs = qs.GroupBy(groupby...)
+	}
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -110,8 +117,17 @@ func GetAllConceptoAvanceLegalizacionTipo(query map[string]string, fields []stri
 			// trim unused fields
 			for _, v := range l {
 				m := make(map[string]interface{})
+				beego.Error("Fields",fields,"tam",len(fields))
+				is:=sort.Search(len(fields), func(i int) bool { return strings.Compare(fields[i],"Concepto")==0})
+				beego.Error("Existe concepto ",is)
+				if is < len(fields) && fields[is] == "Concepto" {
+								_, err = o.LoadRelated(&v, "Concepto",2)
+					}
 				val := reflect.ValueOf(v)
 				for _, fname := range fields {
+					if fname == "Concepto"{
+						o.LoadRelated(&v,"Concepto",2)
+					}
 					m[fname] = val.FieldByName(fname).Interface()
 				}
 				ml = append(ml, m)
