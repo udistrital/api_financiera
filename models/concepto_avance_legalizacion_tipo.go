@@ -168,6 +168,7 @@ func GetConceptoAvanceLegalizacionTipoByIdAvance(id int) (ml []interface{}, err 
 	qb.Select("capt.concepto as Id").
 		From("financiera.avance_legalizacion al").
 		InnerJoin("financiera.avance_legalizacion_tipo alt").On("alt.avance_legalizacion = al.id").
+		And("alt.estado = 1").
 		InnerJoin("financiera.concepto_avance_legalizacion_tipo capt").On("capt.avance_legalizacion = alt.id").
 		Where("al.id = ?").
 		GroupBy("capt.concepto")
@@ -175,7 +176,6 @@ func GetConceptoAvanceLegalizacionTipoByIdAvance(id int) (ml []interface{}, err 
 	sql := qb.String()
 
 	_, err = o.Raw(sql, id).QueryRows(&conceptos)
-	beego.Error("sentence ", conceptos)
 
 	if err != nil {
 		return
@@ -187,6 +187,5 @@ func GetConceptoAvanceLegalizacionTipoByIdAvance(id int) (ml []interface{}, err 
 			beego.Error("error ", err.Error())
 		}
 	}
-	beego.Error("ml ", ml)
 	return
 }
