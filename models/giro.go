@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
 )
@@ -165,11 +167,9 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	o.Begin()
 	newGiro := Giro{}
 	var OrdenesPago []map[string]interface{}
-	//var idNewCuentaTercero CuentaBancariaEnte
-	//CuentasTerceros := []CuentaBancariaEnte{}
+	var idNewCuentaTercero CuentaBancariaEnte
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
-	//err3 := formatdata.FillStruct(dataGiro["Tercero"], &CuentasTerceros)
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada
@@ -227,61 +227,78 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	//insert giro_detalle and orden_pago_estado_ordenPago
 	var giroDetalles []GiroDetalle
 	var newEstadoOrdenPago []OrdenPagoEstadoOrdenPago
-	//newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
+	newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
 	if alerta.Type == "error" {
 		o.Rollback()
 		return
 	}
-
+	// get or insert cuenta_bancaria_ente
 	for _, element := range OrdenesPago {
-		fmt.Println(element["Proveedor"].(map[string]interface{})["IdEntidadBancaria"])
-		/* 		err = o.QueryTable("cuenta_bancaria_ente").
-		Filter("banco", element.Proveedor.IdEntidadBancaria).
-		//			Filter("tipo_cuenta", element.Proveedor.TipoCuentaBancaria).
-		Filter("numero_cuenta", element.Proveedor.NumCuentaBancaria).
-		One(&idNewCuentaTercero) */
+		var idTipoCuenta int
+		nameTipoCuenta := element["Proveedor"].(map[string]interface{})["TipoCuentaBancaria"].(string)
+		qb, _ := orm.NewQueryBuilder("mysql")
+		qb.Select("Id").
+			From("financiera.tipo_cuenta_bancaria").
+			Where("nombre = ?")
+		err := o.Raw(qb.String(), strings.Title(strings.ToLower(nameTipoCuenta))).QueryRow(&idTipoCuenta)
+		//fmt.Println("idTipoCuenta -> ", idTipoCuenta)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_02"
+			alerta.Body = idTipoCuenta
+			o.Rollback()
+			return
+		}
+
+		err = o.QueryTable("cuenta_bancaria_ente").
+			Filter("banco", element["Proveedor"].(map[string]interface{})["IdEntidadBancaria"]).
+			Filter("tipo_cuenta", idTipoCuenta).
+			Filter("numero_cuenta", element["Proveedor"].(map[string]interface{})["NumCuentaBancaria"]).One(&idNewCuentaTercero)
+		if err == nil {
+			element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"] = idNewCuentaTercero.Id
+			// fmt.Println("Existe Cuenta", element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"])
+		} else if err == orm.ErrMultiRows {
+			beego.Error("Returned Multi Rows Not One")
+			return
+		} else if err == orm.ErrNoRows {
+			// fmt.Println(reflect.TypeOf(element["Proveedor"].(map[string]interface{})["NumDocumento"]))
+			titular, _ := strconv.Atoi(element["Proveedor"].(map[string]interface{})["NumDocumento"].(string))
+			idNewCuentaTercero := CuentaBancariaEnte{
+				Banco:        int(element["Proveedor"].(map[string]interface{})["IdEntidadBancaria"].(float64)),
+				TipoCuenta:   int(idTipoCuenta),
+				NumeroCuenta: element["Proveedor"].(map[string]interface{})["NumCuentaBancaria"].(string),
+				Titular:      titular,
+			}
+			// fmt.Println(idNewCuentaTercero)
+			ID, err := o.Insert(&idNewCuentaTercero)
+			if err != nil {
+				fmt.Println(err)
+				beego.Error(err)
+				o.Rollback()
+				return
+			} else {
+				// fmt.Println(ID)
+				element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"] = int(ID)
+			}
+		}
+		//giro detalle
+		rowGiroDetalle := GiroDetalle{
+			Giro:               &Giro{Id: int(idNewGiro)},
+			OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
+			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+		}
+		giroDetalles = append(giroDetalles, rowGiroDetalle)
+		// estados orden pago
+		rowEstadoOrdenPago := OrdenPagoEstadoOrdenPago{
+			OrdenPago:       &OrdenPago{Id: int(element["Id"].(float64))},
+			EstadoOrdenPago: &EstadoOrdenPago{Id: int(newEstadoOP08.Id)},
+			FechaRegistro:   time.Now(),
+			Usuario:         1, //entra por sesion
+		}
+		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
+
 	}
 
-	/*
-		for i := 0; i < len(OrdenesPago); i++ {
-
-			// get or insert cuentaBancariaTercero
-			err = o.QueryTable("cuenta_bancaria_ente").
-				Filter("banco", OrdenesPago[i].Proveedor.IdEntidadBancaria).
-				//			Filter("tipo_cuenta", OrdenesPago[i].Proveedor.TipoCuentaBancaria).
-				Filter("numero_cuenta", OrdenesPago[i].Proveedor.NumCuentaBancaria).
-				One(&idNewCuentaTercero)
-			if err == nil {
-				OrdenesPago[i].CuentaBancariaEnte.Id = idNewCuentaTercero.Id
-			} else if err == orm.ErrMultiRows {
-				beego.Error("Returned Multi Rows Not One")
-				return
-			} else if err == orm.ErrNoRows {
-				Id, err = o.Insert(OrdenesPago[i].CuentaBancariaEnte)
-				if err != nil {
-					beego.Error(err)
-					o.Rollback()
-					return
-				} else {
-					OrdenesPago[i].Proveedor.IdEntidadBancaria = int(Id)
-				}
-			}
-			//giro detalle
-			rowGiroDetalle := GiroDetalle{
-				Giro:               &Giro{Id: int(idNewGiro)},
-				OrdenPago:          &OrdenPago{Id: int(OrdenesPago[i].Id)},
-				CuentaBancariaEnte: &CuentaBancariaEnte{Id: int(OrdenesPago[0].CuentaBancariaEnte.Id)},
-			}
-			giroDetalles = append(giroDetalles, rowGiroDetalle)
-			// estados orden pago
-			rowEstadoOrdenPago := OrdenPagoEstadoOrdenPago{
-				OrdenPago:       &OrdenPago{Id: int(OrdenesPago[i].Id)},
-				EstadoOrdenPago: &EstadoOrdenPago{Id: int(newEstadoOP08.Id)},
-				FechaRegistro:   time.Now(),
-				Usuario:         1, //entra por sesion
-			}
-			newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
-		} */
 	// insertar giro_detalle
 	_, err = o.InsertMulti(100, giroDetalles)
 	if err != nil {
