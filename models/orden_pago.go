@@ -116,7 +116,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 	}
 
 	var l []OrdenPago
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).Filter("OrdenPagoRegistroPresupuestal__isnull", false)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
@@ -170,22 +170,25 @@ func DeleteOrdenPago(id int) (err error) {
 	return
 }
 
-func ConsecutivoOrdnePago(grupoSecuencia string) (StringConsecutivo string, outputError map[string]interface{}) {
+func ConsecutivoOrdenPago(grupoSecuencia string) (StringConsecutivo string, grSecuencia string, outputError map[string]interface{}) {
 	if grupoSecuencia != "" {
-		StringConsecutivo = `SELECT COALESCE(MAX(consecutivo), 0)+1 as consecutivo
-				FROM financiera.orden_pago as op
-				INNER JOIN  financiera.sub_tipo_orden_pago as sub on sub.id = op.sub_tipo_orden_pago
-				and sub.grupo_secuencia = '` + grupoSecuencia + `';`
-		return StringConsecutivo, nil
+		qb, _ := orm.NewQueryBuilder("mysql")
+		qb.Select("COALESCE(MAX(consecutivo), 0)+1 as consecutivo").
+			From("financiera.orden_pago as op").
+			InnerJoin("financiera.sub_tipo_orden_pago as sub").On("sub.id = op.sub_tipo_orden_pago").
+			And("sub.grupo_secuencia = ?")
+		StringConsecutivo, grSecuencia := qb.String(), grupoSecuencia
+		return StringConsecutivo, grSecuencia, nil
 	}
-	outputError = map[string]interface{}{"Code": "E_0458", "Body": "Not enough parameter in ConsecutivoOrdnePago", "Type": "error"}
-	return "", outputError
+	outputError = map[string]interface{}{"Code": "E_0458", "Body": "Not enough parameter in ConsecutivoOrdenPago", "Type": "error"}
+	return "", "", outputError
 }
 
 // personalizado Registrar orden_pago, concepto_ordenpago y transacciones
 func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert) {
 	var idOrdenPago int64
 	var sqlSecuencia string
+	var grupoSecuencia string
 	var controlErro map[string]interface{}
 	var consecutivoOp int
 	var err error
@@ -213,14 +216,14 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 
 	// Consecutivo
-	if sqlSecuencia, controlErro = ConsecutivoOrdnePago(ordenPago.SubTipoOrdenPago.GrupoSecuencia); controlErro != nil {
+	if sqlSecuencia, grupoSecuencia, controlErro = ConsecutivoOrdenPago(ordenPago.SubTipoOrdenPago.GrupoSecuencia); controlErro != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01"
 		alerta.Body = controlErro["Body"]
 		o.Rollback()
 		return
 	}
-	o.Raw(sqlSecuencia).QueryRow(&consecutivoOp)
+	o.Raw(sqlSecuencia, grupoSecuencia).QueryRow(&consecutivoOp)
 	ordenPago.Consecutivo = consecutivoOp
 	// Estado OP
 	estadoOpObj := EstadoOrdenPago{CodigoAbreviacion: "EOP_01"}
@@ -524,7 +527,7 @@ func GetOrdenPagoByEstado(codeEstdoOrdenPago, vigencia, tipoOp, formaPago string
 		return
 	}
 	for i := 0; i < len(ordenes); i++ {
-		println("Id: ", ordenes[i].Id)
+		/* println("Id: ", ordenes[i].Id) */
 		var query = make(map[string]string)
 		query["Id"] = strconv.Itoa(ordenes[i].Id)
 		v, err := GetAllOrdenPago(query, nil, nil, nil, 0, 10)
