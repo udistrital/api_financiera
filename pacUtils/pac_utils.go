@@ -121,7 +121,6 @@ func FunctionAfterExecAddLegalice(ctx *context.Context) {
 		valorAvance = request["ValorTotalAvance"].(float64)
 		valorLegalizacion = request["Valor"].(float64)
 		usuario = int64(request["Usuario"].(float64))
-		beego.Error("request ",request);
 	}else{
 		beego.Error("Error al leer context input legalizacion",err)
 		return
@@ -133,8 +132,6 @@ func FunctionAfterExecAddLegalice(ctx *context.Context) {
 
 	if response.Type == "success"{
 		if valorLegalizado + valorLegalizacion == valorAvance{
-
-		}
 			avanceLegalizacionTipo := response.Body.(models.AvanceLegalizacionTipo)
 			requestAvanceLeg := make(map[string]interface{})
 			err := formatdata.FillStruct(avanceLegalizacionTipo.AvanceLegalizacion,&avanceLegalizacion)
@@ -148,7 +145,7 @@ func FunctionAfterExecAddLegalice(ctx *context.Context) {
 				beego.Error("Error al crear estado legalizacion ",err)
 			}
 			beego.Error("avance legalizacion tipo ",avanceLegalizacionTipo)
-		//}
+		}
 	}
 }
 
