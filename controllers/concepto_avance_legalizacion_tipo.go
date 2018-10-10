@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -172,6 +173,25 @@ func (c *ConceptoAvanceLegalizacionTipoController) Delete() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
+	}
+	c.ServeJSON()
+}
+
+// GetConceptoAvanceLegalizacionId ...
+// @Title Get Concepto by AvanceLegalizacionId
+// @Description get ConceptoAvanceLegalizacionTipo given IdAvanceLegalizacion
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.ConceptoAvanceLegalizacionTipo
+// @Failure 403 :id is empty
+// @router /GetConceptoAvanceLegalizacionId/:id [get]
+func (c *ConceptoAvanceLegalizacionTipoController) GetConceptoAvanceLegalizacionId() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetConceptoAvanceLegalizacionTipoByIdAvance(id)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	} else {
+		c.Data["json"] = v
 	}
 	c.ServeJSON()
 }
