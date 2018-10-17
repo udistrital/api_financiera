@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -157,9 +158,10 @@ func DeleteFuenteFinanciamiento(id int) (err error) {
 
 // AddFuenteFinanciamientoTr insert a new FuenteFinanciamiento into database and returns
 // last inserted Id on success.
-func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamiento, err error) {
+func AddFuenteFinanciamientoTr(m map[string]interface{}) (res map[string]interface{}, err error) {
 	o := orm.NewOrm()
 	var FuenteData = FuenteFinanciamiento{}
+	var response = make(map[string]interface{})
 	o.Begin()
 	try.This(func() {
 		if errAux := formatdata.FillStruct(m["FuenteFinanciamiento"], &FuenteData); errAux != nil {
@@ -188,6 +190,9 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamien
 				}
 
 			}
+			FuenteData.Id = int(idFuente)
+			response["FuenteFinanciamiento"] = FuenteData
+			response["AfectacionFuente"] = AfectacionFuenteData
 		} else {
 			fmt.Println("Error1: ", errAux.Error())
 			panic(errAux.Error())
@@ -198,7 +203,7 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res FuenteFinanciamien
 		err = errors.New("transaction error !")
 	})
 	o.Commit()
-	return FuenteData, err
+	return response, err
 }
 
 // AddMovimientoFuenteFinanciamientoTr insert a new MovimientoFuenteFinanciamientoTr into database and returns
@@ -233,4 +238,33 @@ func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res inte
 	})
 	o.Commit()
 	return arr, err
+}
+
+func DeleteMovimientoFuenteFinanciamientoTr(id int) (err error) {
+	o := orm.NewOrm()
+	o.Begin()
+
+	var maps []orm.Params
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id as \"Id\"").
+		From("financiera.fuente_financiamiento_apropiacion").
+		Where("fuente_financiamiento = ?")
+	if _, err = o.Raw(qb.String(), id).Values(&maps); err != nil {
+		o.Rollback()
+		return
+	}
+
+	for _, data := range maps {
+		if idFuenteApr, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			if _, err := o.Delete(&FuenteFinanciamientoApropiacion{Id: idFuenteApr}); err != nil {
+				o.Rollback()
+				return err
+			}
+		} else {
+			o.Rollback()
+			return err
+		}
+	}
+	return
+
 }
