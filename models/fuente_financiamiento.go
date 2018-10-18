@@ -256,6 +256,28 @@ func DeleteMovimientoFuenteFinanciamientoTr(id int) (err error) {
 
 	for _, data := range maps {
 		if idFuenteApr, err := strconv.Atoi(data["Id"].(string)); err == nil {
+			// eliminar el dato de movimiento antes de la relacion fuente - apropiacion
+			var maps2 []orm.Params
+			qb2, _ := orm.NewQueryBuilder("mysql")
+			qb2.Select("id as \"Id\"").
+				From("financiera.movimiento_fuente_financiamiento_apropiacion").
+				Where("fuente_financiamiento_apropiacion = ?")
+			if _, errAux := o.Raw(qb2.String(), idFuenteApr).Values(&maps2); errAux != nil {
+				o.Rollback()
+				return errAux
+			}
+			for _, dataMov := range maps2 {
+				if idMovFuenteApr, err := strconv.Atoi(dataMov["Id"].(string)); err == nil {
+					if _, err := o.Delete(&MovimientoFuenteFinanciamientoApropiacion{Id: idMovFuenteApr}); err != nil {
+						o.Rollback()
+						return err
+					}
+				} else {
+					o.Rollback()
+					return err
+				}
+
+			}
 			if _, err := o.Delete(&FuenteFinanciamientoApropiacion{Id: idFuenteApr}); err != nil {
 				o.Rollback()
 				return err
@@ -265,6 +287,7 @@ func DeleteMovimientoFuenteFinanciamientoTr(id int) (err error) {
 			return err
 		}
 	}
+	o.Commit()
 	return
 
 }
