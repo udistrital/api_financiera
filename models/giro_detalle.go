@@ -14,6 +14,7 @@ type GiroDetalle struct {
 	Giro               *Giro               `orm:"column(giro);rel(fk)"`
 	OrdenPago          *OrdenPago          `orm:"column(orden_pago);rel(fk)"`
 	CuentaBancariaEnte *CuentaBancariaEnte `orm:"column(cuenta_bancaria_ente);rel(fk)"`
+	CuentaEspecial *CuentaEspecial `orm:"column(cuenta_especial);rel(fk)"`
 }
 
 func (t *GiroDetalle) TableName() string {

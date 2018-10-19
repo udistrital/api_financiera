@@ -168,6 +168,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	newGiro := Giro{}
 	var OrdenesPago []map[string]interface{}
 	var idNewCuentaTercero CuentaBancariaEnte
+	// var idcuentaDescuento CuentaEspecial
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
 	if err1 != nil || err2 != nil {
@@ -286,6 +287,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 			Giro:               &Giro{Id: int(idNewGiro)},
 			OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
 			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+			CuentaEspecial: &CuentaEspecial{Id: 0},
 		}
 		giroDetalles = append(giroDetalles, rowGiroDetalle)
 		// estados orden pago
