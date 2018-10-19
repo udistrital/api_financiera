@@ -117,6 +117,7 @@ func GetAllAvanceLegalizacionTipo(query map[string]string, fields []string, sort
 			for _, v := range l {
 				o.LoadRelated(&v, "TipoAvanceLegalizacion")
 				o.LoadRelated(&v, "EstadoAvanceLegalizacionTipo")
+				o.LoadRelated(&v, "Subtipo")
 				ml = append(ml, v)
 			}
 		} else {
