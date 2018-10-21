@@ -315,6 +315,16 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 			o.Rollback()
 			return
 		} else {
+
+			for _, idCuenta := range idCuentasEspeciales {
+			rowGiroDetalle := GiroDetalle{
+				Giro:               &Giro{Id: int(idNewGiro)},
+				OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
+				CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+				CuentaEspecial: &CuentaEspecial{Id: idCuenta},
+			}
+			giroDetalles = append(giroDetalles, rowGiroDetalle)
+			}
 			fmt.Println("cuentas_especiales",idCuentasEspeciales)
 		}
 
