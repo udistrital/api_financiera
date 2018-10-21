@@ -287,6 +287,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 			Giro:               &Giro{Id: int(idNewGiro)},
 			OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
 			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+			CuentaEspecial: &CuentaEspecial{Id: 0},
 		}
 		giroDetalles = append(giroDetalles, rowGiroDetalle)
 		// estados orden pago
