@@ -168,6 +168,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	newGiro := Giro{}
 	var OrdenesPago []map[string]interface{}
 	var idNewCuentaTercero CuentaBancariaEnte
+	var idCuentasEspeciales []int
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
 	if err1 != nil || err2 != nil {
@@ -296,6 +297,25 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 			Usuario:         1, //entra por sesion
 		}
 		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
+		//GiroCuentasEspeciales
+		qb, _ = orm.NewQueryBuilder("mysql")
+		qb.Select("opce.cuenta_especial").
+			From("financiera.orden_pago_cuenta_especial as opce").
+			InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
+			And("opce.orden_pago = ?")
+		_, err = o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
+		
+		if err != nil {
+			
+			fmt.Println("qbstring",qb.String())
+			alerta.Type = "error"
+			alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
+			alerta.Body = err.Error()
+			o.Rollback()
+			return
+		} else {
+			fmt.Println("cuentas_especiales",idCuentasEspeciales)
+		}
 
 	}
 
