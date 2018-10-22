@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-	"github.com/udistrital/utils_oas/formatdata"
+
 	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -179,8 +180,8 @@ func (c *AvanceLegalizacionTipoController) Delete() {
 // @Success 201 {int} models.AvanceLegalizacionTipo
 // @Failure 403 body is empty
 // @router /AddEntireAvanceLegalizacionTipo [post]
-func (c *AvanceLegalizacionTipoController) AddEntireAvanceLegalizacionTipo () {
-	defer c.ServeJSON();
+func (c *AvanceLegalizacionTipoController) AddEntireAvanceLegalizacionTipo() {
+	defer c.ServeJSON()
 	var v map[string]interface{}
 	var alerta interface{}
 	var valorLegalizado float64
@@ -190,19 +191,19 @@ func (c *AvanceLegalizacionTipoController) AddEntireAvanceLegalizacionTipo () {
 		valorLegalizado = v["ValorLegalizadoAvance"].(float64)
 		valorAvance = v["ValorTotalAvance"].(float64)
 		valorLegalizacion = v["Valor"].(float64)
-		if valorLegalizado + valorLegalizacion <= valorAvance{
+		if valorLegalizado+valorLegalizacion <= valorAvance {
 			if alerta, err = models.AddAllAvanceLegalizacionTipo(v); err == nil {
 				c.Ctx.Output.SetStatus(201)
 				c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: alerta}
-				} else {
-					alertdb := structs.Map(err)
-					var code string
-					formatdata.FillStruct(alertdb["Code"], &code)
-					alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
-					c.Data["json"] = alert
-					c.Ctx.Output.SetStatus(500)
-				}
-		}else{
+			} else {
+				alertdb := structs.Map(err)
+				var code string
+				formatdata.FillStruct(alertdb["Code"], &code)
+				alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+				c.Data["json"] = alert
+				c.Ctx.Output.SetStatus(500)
+			}
+		} else {
 			alert := models.Alert{Type: "error", Code: "E_LA0001", Body: "Bad Request"}
 			c.Data["json"] = alert
 			c.Ctx.Output.SetStatus(400)
@@ -246,27 +247,27 @@ func (c *AvanceLegalizacionTipoController) GetLegalizationValue() {
 // @Failure 403 :id is empty
 // @router /GetTaxesMovsLegalization [get]
 func (c *AvanceLegalizacionTipoController) GetTaxesMovsLegalization() {
-	defer c.ServeJSON();
- var legTipo int
- var tipoDoc int
- respuesta:=make(map[string]interface{})
+	defer c.ServeJSON()
+	var legTipo int
+	var tipoDoc int
+	respuesta := make(map[string]interface{})
 	if v, err := c.GetInt("idLegTipo"); err == nil {
 		legTipo = v
 	}
 	if v, err := c.GetInt("noTipoDoc"); err == nil {
 		tipoDoc = v
 	}
-	v, err := models.GetTaxesLegalization(legTipo,tipoDoc)
+	v, err := models.GetTaxesLegalization(legTipo, tipoDoc)
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
 		formatdata.FillStruct(alertdb["Code"], &code)
 		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
-		respuesta["impuestos"]  = alert
+		respuesta["impuestos"] = alert
 	} else {
 		respuesta["impuestos"] = v
 	}
-	v, err = models.GetMovsLegalization(legTipo,tipoDoc)
+	v, err = models.GetMovsLegalization(legTipo, tipoDoc)
 	if err != nil {
 		alertdb := structs.Map(err)
 		var code string
@@ -276,5 +277,32 @@ func (c *AvanceLegalizacionTipoController) GetTaxesMovsLegalization() {
 	} else {
 		respuesta["movimientos"] = v
 	}
-	c.Data["json"]=respuesta
+	c.Data["json"] = respuesta
+}
+
+// PutAllAvanceLeg ...
+// @Title Put
+// @Description update the AvanceLegalizacionTipo
+// @Param	id		path 	string	true		"The id you want to update"
+// @Param	body		body 	models.AvanceLegalizacionTipo	true		"body for AvanceLegalizacionTipo content"
+// @Success 200 {object} models.AvanceLegalizacionTipo
+// @Failure 403 body is empty
+// @router / [put]
+func (c *AvanceLegalizacionTipoController) PutAllAvanceLeg() {
+	var v map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if err := models.UpdateAllAvanceLegalizacionTipo(v); err == nil {
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: "success"}
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_LA0001", Body: "Bad Request"}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
 }

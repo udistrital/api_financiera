@@ -387,3 +387,52 @@ func GetMovsLegalization(documento int, noTipoDocumento int) (response []interfa
 	}
 	return response, nil
 }
+
+// UpdateAvanceLegalizacionTipo updates AvanceLegalizacionTipo by Id and returns error if
+// the record to be updated doesn't exist
+func UpdateAllAvanceLegalizacionTipo(m map[string]interface{}) (err error) {
+	o := orm.NewOrm()
+	var avcLegTipo AvanceLegalizacionTipo
+	var movimientosContables []MovimientoContable
+	err = formatdata.FillStruct(m["AvanceLegalizacionTipo"], &avcLegTipo)
+	err = formatdata.FillStruct(m["Movimientos"], &movimientosContables)
+
+	if err != nil {
+		beego.Error(err.Error())
+		return
+	}
+
+	v := AvanceLegalizacionTipo{Id: avcLegTipo.Id}
+	// ascertain id exists in the database
+	o.Begin()
+	if err = o.Read(&v); err == nil {
+		var num int64
+		if num, err = o.Update(&avcLegTipo); err == nil {
+			fmt.Println("Number of records updated in database:", num)
+			for _, movimiento := range movimientosContables {
+				mov := MovimientoContable{Id: movimiento.Id}
+				if err = o.Read(&mov); err == nil {
+					if _, err = o.Update(&movimiento); err != nil {
+						o.Rollback()
+						return
+					}
+				} else {
+					o.Rollback()
+					return
+				}
+			}
+		} else {
+			o.Rollback()
+			return
+		}
+		if err = CreateEstadoIniAvanceLegalizacion(m); err != nil {
+			o.Rollback()
+			return
+		}
+	} else {
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
