@@ -25,6 +25,14 @@ type Giro struct {
 	GiroEstadoGiro []*GiroEstadoGiro `orm:"reverse(many)"`
 }
 
+type GiroAlert struct {
+	Type string
+	Code string
+	Body interface{}
+	IdGiro int64
+	OrdenesPago []map[string]interface{}
+}
+
 func (t *Giro) TableName() string {
 	return "giro"
 }
@@ -161,8 +169,71 @@ func DeleteGiro(id int) (err error) {
 	}
 	return
 }
+func RegistrarGiroDescuentos (idNewGiro int, OrdenesPago []map[string]interface{})(alerta Alert){
+	var idCuentasEspeciales []int
+	var giroDetalles []GiroDetalle
+	o := orm.NewOrm()
+	o.Begin()
 
-func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
+	for _, element := range OrdenesPago {
+		qb, _ := orm.NewQueryBuilder("mysql")
+		qb.Select("opce.cuenta_especial").
+			From("financiera.orden_pago_cuenta_especial as opce").
+			InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
+			And("opce.orden_pago = ?")
+		_, err := o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
+		
+		if err != nil {
+			
+			fmt.Println("qbstring",qb.String())
+			alerta.Type = "error"
+			alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
+			alerta.Body = err.Error()
+			o.Rollback()
+			return
+		} else {
+
+			for _, idCuenta := range idCuentasEspeciales {
+			rowGiroDetalle := GiroDetalle{
+				Giro:               &Giro{Id: int(idNewGiro)},
+				OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
+				CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+				CuentaEspecial: &CuentaEspecial{Id: idCuenta},
+			}
+			giroDetalles = append(giroDetalles, rowGiroDetalle)
+			}
+			fmt.Println("cuentas_especiales",idCuentasEspeciales)
+		}
+	}
+		// insertar giro_detalle
+	_, err := o.InsertMulti(100, giroDetalles)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_CUENTA_ESPECIAL_02"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}	
+
+	o.Commit()
+	return
+	
+}
+func GetCuentasEspeciales (id int)(idCuentasEspeciales []int){
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("opce.cuenta_especial").
+	From("financiera.orden_pago_cuenta_especial as opce").
+	InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
+	And("opce.orden_pago = ?")
+	o.Raw(qb.String(), id).QueryRows(&idCuentasEspeciales)
+	o.Commit()
+	return
+
+}
+
+func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	o := orm.NewOrm()
 	o.Begin()
 	newGiro := Giro{}
@@ -207,7 +278,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	err = o.Read(&estadoNewGiro, "CodigoAbreviatura")
 	if err != nil {
 		alerta.Type = "error"
-		alerta.Code = "E_GIRO_01" //en busqueda de estado
+		alerta.Code = "E_GIRO_02" //en busqueda de estado
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -220,7 +291,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	_, err = o.Insert(&newGiroEstadoGiro)
 	if err != nil {
 		alerta.Type = "error"
-		alerta.Code = "E_GIRO_01"
+		alerta.Code = "E_GIRO_03"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
@@ -228,7 +299,8 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 	//insert giro_detalle and orden_pago_estado_ordenPago
 	var giroDetalles []GiroDetalle
 	var newEstadoOrdenPago []OrdenPagoEstadoOrdenPago
-	newEstadoOP08, alerta := GetEstadoOrdenPago("EOP_08")
+	newEstadoOP08, alertaAux := GetEstadoOrdenPago("EOP_08")
+	alerta.Type = alertaAux.Type
 	if alerta.Type == "error" {
 		o.Rollback()
 		return
@@ -245,7 +317,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 		//fmt.Println("idTipoCuenta -> ", idTipoCuenta)
 		if err != nil {
 			alerta.Type = "error"
-			alerta.Code = "E_OPP_02"
+			alerta.Code = "E_GIRO_04"
 			alerta.Body = idTipoCuenta
 			o.Rollback()
 			return
@@ -348,7 +420,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta Alert) {
 		o.Rollback()
 		return
 	}
-	alerta = Alert{Type: "success", Code: "S_GIRO_01", Body: consecutivo}
+	alerta = GiroAlert{Type: "success", Code: "S_GIRO_01", Body: consecutivo, IdGiro: idNewGiro, OrdenesPago: OrdenesPago}
 	o.Commit()
 	return
 }
