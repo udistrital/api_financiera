@@ -239,3 +239,29 @@ func (c *FuenteFinanciamientoController) DeleteMovimientoFuenteFinanciamientoTr(
 
 	c.ServeJSON()
 }
+
+// DeleteModificacionFuenteFinanciamientoTr ...
+// @Title DeleteModificacionFuenteFinanciamientoTr
+// @Description Delete ModificacionFuenteFinanciamiento with Tr
+// @Param	body		body 	models.FuenteFinanciamientoApropiacion	true		"body for FuenteFinanciamiento content"
+// @Success 201 {int} models.FuenteFinanciamiento
+// @Failure 403 body is empty
+// @router /DeleteModificacionFuenteFinanciamientoTr [post]
+func (c *FuenteFinanciamientoController) DeleteModificacionFuenteFinanciamientoTr() {
+	var v []map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if err := models.DeleteModificacionFuenteFinanciamiento(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			c.Data["json"] = alert
+		} else {
+			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}

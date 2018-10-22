@@ -211,6 +211,7 @@ func AddFuenteFinanciamientoTr(m map[string]interface{}) (res map[string]interfa
 func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res interface{}, err error) {
 	o := orm.NewOrm()
 	o.Begin()
+	var afectData []interface{}
 	try.This(func() {
 		for _, m := range arr {
 			afectacion := FuenteFinanciamientoApropiacion{}
@@ -218,6 +219,7 @@ func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res inte
 				panic(errAux.Error())
 			}
 			if idAfectacion, errAux := AddFuenteFinanciamientoApropiacion(&afectacion); errAux == nil {
+				afectacion.Id = int(idAfectacion)
 				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].FuenteFinanciamientoApropiacion.Id = int(idAfectacion)
 				afectacion.MovimientoFuenteFinanciamientoApropiacion[0].Fecha = time.Now()
 				if _, errAux = AddMovimientoFuenteFinanciamientoApropiacion(afectacion.MovimientoFuenteFinanciamientoApropiacion[0]); errAux != nil {
@@ -230,6 +232,7 @@ func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res inte
 				errAux = errors.New("error afectacion 1")
 				panic(errAux.Error())
 			}
+			afectData = append(afectData, afectacion)
 		}
 	}).Catch(func(e try.E) {
 		fmt.Println("Err ", e)
@@ -237,7 +240,7 @@ func AddMovimientoFuenteFinanciamientoTr(arr []map[string]interface{}) (res inte
 		err = errors.New("transaction error !")
 	})
 	o.Commit()
-	return arr, err
+	return afectData, err
 }
 
 func DeleteMovimientoFuenteFinanciamientoTr(id int) (err error) {
@@ -290,4 +293,41 @@ func DeleteMovimientoFuenteFinanciamientoTr(id int) (err error) {
 	o.Commit()
 	return
 
+}
+
+func DeleteModificacionFuenteFinanciamiento(data []map[string]interface{}) (err error) {
+	//Delete the mofication data ...
+	// VARIABLES
+	o := orm.NewOrm()
+	o.Begin()
+	try.This(func() {
+		// Eliminar Relacion FUente Apropiacion  Creada en la Modificacion.
+		for _, m := range data {
+			afectacion := FuenteFinanciamientoApropiacion{}
+			if err = formatdata.FillStruct(m, &afectacion); err != nil {
+				panic(err.Error())
+			}
+			var movimientos []MovimientoFuenteFinanciamientoApropiacion
+			if err = formatdata.FillStruct(m["MovimientoFuenteFinanciamientoApropiacion"], &movimientos); err != nil {
+				panic(err.Error())
+			}
+
+			// Eliminar Movimientos realizados en la Modificacion de la Fuente.
+			for _, v := range movimientos {
+				if _, err = o.Delete(&v); err != nil {
+					panic(err.Error())
+				}
+			}
+			if _, err = o.Delete(&afectacion); err != nil {
+				panic(err.Error())
+			}
+
+		}
+
+	}).Catch(func(e try.E) {
+		o.Rollback()
+		err = errors.New("Transaction Error")
+	})
+	o.Commit()
+	return err
 }

@@ -3385,6 +3385,14 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
+			Method: "DeleteModificacionFuenteFinanciamientoTr",
+			Router: `/DeleteModificacionFuenteFinanciamientoTr`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
+		beego.ControllerComments{
 			Method: "DeleteMovimientoFuenteFinanciamientoTr",
 			Router: `/DeleteMovimientoFuenteFinanciamientoTr/:id`,
 			AllowHTTPMethods: []string{"delete"},
