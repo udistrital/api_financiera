@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -173,7 +174,7 @@ func (c *GiroController) Delete() {
 
 // RegistrarGiro ...
 // @Title RegistrarGiro
-// @Description Registrar orden_pago de proveedor, concepto_ordenpago, mivimientos contables
+// @Description Registrar Giro orden_pago de proveedor, concepto_ordenpago, mivimientos contables
 // @Param	body		body 	models.giro	true		"body for giro content"
 // @Success 201 {int} models.Giro
 // @Failure 403 body is empty
@@ -183,6 +184,70 @@ func (c *GiroController) RegistrarGiro() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
 		mensaje := models.RegistrarGiro(m)
+		if mensaje.Type != "success" {
+			c.Data["json"] = mensaje
+		} else {
+			c.Ctx.Output.SetStatus(201)
+			//alert := models.Alert{Type: mensaje.Type, Code: mensaje.Code, Body: consecutivoOp}
+			c.Data["json"] = mensaje
+		}
+	} else {
+		c.Data["json"] = err
+	}
+	c.ServeJSON()
+}
+
+// GetCuentasEspeciales ...
+// @Title GetCuentasEspeciales
+// @Description obtiene las Cuentas Especiales de cada Orden de Pago
+// @Param	query	idordenpago	 int64	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Success 200 {object} models.Giro
+// @Failure 403
+// @router /GetCuentasEspeciales [get]
+func (c *GiroController) GetCuentasEspeciales() {
+	var idOrdenPago int64
+	// limit: 10 (default is 10)
+	if v, err := c.GetInt64("idordenpago"); err == nil {
+		idOrdenPago = v
+	}
+	l, mensaje := models.GetCuentasEspeciales(idOrdenPago)
+	fmt.Println("cuentas_especiales", l)
+	if mensaje.Body != nil {
+		c.Data["json"] = mensaje.Body
+	} else {
+		c.Data["json"] = l
+	}
+	c.ServeJSON()
+
+}
+
+// RegistrarGiroDescuentos ...
+// @Title RegistrarGiroDescuentos
+// @Description RegistrarGiroDescuentos orden_pago de proveedor, concepto_ordenpago, movimientos contables
+// @Param	body		body 	"body for giro descuentos content"
+// @Param	idcuenta		query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	idordenpago		query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	idgiro		query	string	false	"Limit the size of result set. Must be an integer"
+// @Success 201 {int} models.Giro
+// @Failure 403 body is empty
+// @router /RegistrarGiroDescuentos [post]
+func (c *GiroController) RegistrarGiroDescuentos() {
+	var v interface{}
+	var idCuenta int64
+	var idOrdenPago int64
+	var idGiro int64
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		m := v.(map[string]interface{})
+		if v, err := c.GetInt64("idcuenta"); err == nil {
+			idCuenta = v
+		}
+		if v, err := c.GetInt64("idordenpago"); err == nil {
+			idOrdenPago = v
+		}
+		if v, err := c.GetInt64("idgiro"); err == nil {
+			idGiro = v
+		}
+		mensaje := models.RegistrarGiroDescuentos(m, idGiro, idCuenta, idOrdenPago)
 		if mensaje.Type != "success" {
 			c.Data["json"] = mensaje
 		} else {

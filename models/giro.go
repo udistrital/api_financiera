@@ -169,65 +169,97 @@ func DeleteGiro(id int) (err error) {
 	}
 	return
 }
-func RegistrarGiroDescuentos (idNewGiro int, OrdenesPago []map[string]interface{})(alerta Alert){
+func RegistrarGiroDescuentos(element map[string]interface{}, idGiro int64,idCuenta int64, idOrdenPago int64)(alerta Alert){
 	var idCuentasEspeciales []int
 	var giroDetalles []GiroDetalle
+	var idTipoCuenta int
+	var idNewCuentaTercero CuentaBancariaEnte
 	o := orm.NewOrm()
 	o.Begin()
-
-	for _, element := range OrdenesPago {
-		qb, _ := orm.NewQueryBuilder("mysql")
-		qb.Select("opce.cuenta_especial").
-			From("financiera.orden_pago_cuenta_especial as opce").
-			InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
-			And("opce.orden_pago = ?")
-		_, err := o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
-		
+	nameTipoCuenta := element["TipoCuentaBancaria"].(string)
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("Id").
+		From("financiera.tipo_cuenta_bancaria").
+		Where("nombre = ?")
+	err := o.Raw(qb.String(), strings.Title(strings.ToLower(nameTipoCuenta))).QueryRow(&idTipoCuenta)
+	//fmt.Println("idTipoCuenta -> ", idTipoCuenta)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GIRO_04"
+		alerta.Body = idTipoCuenta
+		o.Rollback()
+		return
+	}
+	err = o.QueryTable("cuenta_bancaria_ente").
+		Filter("banco", element["IdEntidadBancaria"]).
+		Filter("tipo_cuenta", idTipoCuenta).
+		Filter("numero_cuenta", element["NumCuentaBancaria"]).One(&idNewCuentaTercero)
+	if err == nil {
+		element["CuentaBancariaEnte"] = idNewCuentaTercero.Id
+		// fmt.Println("Existe Cuenta", element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"])
+	} else if err == orm.ErrMultiRows {
+		beego.Error("Returned Multi Rows Not One")
+		return
+	} else if err == orm.ErrNoRows {
+		// fmt.Println(reflect.TypeOf(element["Proveedor"].(map[string]interface{})["NumDocumento"]))
+		titular, _ := strconv.Atoi(element["NumDocumento"].(string))
+		idNewCuentaTercero := CuentaBancariaEnte{
+			Banco:        int(element["IdEntidadBancaria"].(float64)),
+			TipoCuenta:   int(idTipoCuenta),
+			NumeroCuenta: element["NumCuentaBancaria"].(string),
+			Titular:      titular,
+		}
+		// fmt.Println(idNewCuentaTercero)
+		ID, err := o.Insert(&idNewCuentaTercero)
 		if err != nil {
-			
-			fmt.Println("qbstring",qb.String())
-			alerta.Type = "error"
-			alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
-			alerta.Body = err.Error()
+			fmt.Println(err)
+			beego.Error(err)
 			o.Rollback()
 			return
 		} else {
-
-			for _, idCuenta := range idCuentasEspeciales {
-			rowGiroDetalle := GiroDetalle{
-				Giro:               &Giro{Id: int(idNewGiro)},
-				OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
-				CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
-				CuentaEspecial: &CuentaEspecial{Id: idCuenta},
-			}
-			giroDetalles = append(giroDetalles, rowGiroDetalle)
-			}
-			fmt.Println("cuentas_especiales",idCuentasEspeciales)
+			// fmt.Println(ID)
+			element["CuentaBancariaEnte"] = int(ID)
 		}
 	}
+		rowGiroDetalle := GiroDetalle{
+			Giro:               &Giro{Id: int(idGiro)},
+			OrdenPago:          &OrdenPago{Id: int(idOrdenPago)},
+			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["CuentaBancariaEnte"].(int)},
+			CuentaEspecial: &CuentaEspecial{Id: int(idCuenta)},
+		}
+		giroDetalles = append(giroDetalles, rowGiroDetalle)
+	fmt.Println("cuentas_especiales",idCuentasEspeciales)
+
 		// insertar giro_detalle
-	_, err := o.InsertMulti(100, giroDetalles)
+	_, err = o.InsertMulti(100, giroDetalles)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_CUENTA_ESPECIAL_02"
 		alerta.Body = err.Error()
 		o.Rollback()
 		return
-	}	
+	}
 
 	o.Commit()
 	return
-	
+
 }
-func GetCuentasEspeciales (id int)(idCuentasEspeciales []int){
+func GetCuentasEspeciales (id int64)(cuentas []orm.Params, alerta Alert){
 	o := orm.NewOrm()
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("opce.cuenta_especial").
+	qb.Select("opce.cuenta_especial, ce.informacion_persona_juridica").
 	From("financiera.orden_pago_cuenta_especial as opce").
 	InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
 	And("opce.orden_pago = ?")
-	o.Raw(qb.String(), id).QueryRows(&idCuentasEspeciales)
+	_, err := o.Raw(qb.String(), id).Values(&cuentas)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_OPCUENTA_ESPECIAL_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
 	o.Commit()
 	return
 
@@ -239,7 +271,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	newGiro := Giro{}
 	var OrdenesPago []map[string]interface{}
 	var idNewCuentaTercero CuentaBancariaEnte
-	var idCuentasEspeciales []int
+	// var idCuentasEspeciales []int
 	err1 := formatdata.FillStruct(dataGiro["Giro"], &newGiro)
 	err2 := formatdata.FillStruct(dataGiro["OrdenPago"], &OrdenesPago)
 	if err1 != nil || err2 != nil {
@@ -371,34 +403,34 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 		}
 		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
 		//GiroCuentasEspeciales
-		qb, _ = orm.NewQueryBuilder("mysql")
-		qb.Select("opce.cuenta_especial").
-			From("financiera.orden_pago_cuenta_especial as opce").
-			InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
-			And("opce.orden_pago = ?")
-		_, err = o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
-		
-		if err != nil {
-			
-			fmt.Println("qbstring",qb.String())
-			alerta.Type = "error"
-			alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
-			alerta.Body = err.Error()
-			o.Rollback()
-			return
-		} else {
-
-			for _, idCuenta := range idCuentasEspeciales {
-			rowGiroDetalle := GiroDetalle{
-				Giro:               &Giro{Id: int(idNewGiro)},
-				OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
-				CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
-				CuentaEspecial: &CuentaEspecial{Id: idCuenta},
-			}
-			giroDetalles = append(giroDetalles, rowGiroDetalle)
-			}
-			fmt.Println("cuentas_especiales",idCuentasEspeciales)
-		}
+		// qb, _ = orm.NewQueryBuilder("mysql")
+		// qb.Select("opce.cuenta_especial, ce.informacion_persona_juridica").
+		// 	From("financiera.orden_pago_cuenta_especial as opce").
+		// 	InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
+		// 	And("opce.orden_pago = ?")
+		// _, err = o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
+		//
+		// if err != nil {
+		//
+		// 	fmt.Println("qbstring",qb.String())
+		// 	alerta.Type = "error"
+		// 	alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
+		// 	alerta.Body = err.Error()
+		// 	o.Rollback()
+		// 	return
+		// } else {
+		//
+		// 	for _, idCuenta := range idCuentasEspeciales {
+		// 	rowGiroDetalle := GiroDetalle{
+		// 		Giro:               &Giro{Id: int(idNewGiro)},
+		// 		OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
+		// 		CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
+		// 		CuentaEspecial: &CuentaEspecial{Id: idCuenta},
+		// 	}
+		// 	giroDetalles = append(giroDetalles, rowGiroDetalle)
+		// 	}
+		// 	fmt.Println("cuentas_especiales",idCuentasEspeciales)
+		// }
 
 	}
 
