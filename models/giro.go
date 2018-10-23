@@ -26,10 +26,10 @@ type Giro struct {
 }
 
 type GiroAlert struct {
-	Type string
-	Code string
-	Body interface{}
-	IdGiro int64
+	Type        string
+	Code        string
+	Body        interface{}
+	IdGiro      int64
 	OrdenesPago []map[string]interface{}
 }
 
@@ -169,13 +169,15 @@ func DeleteGiro(id int) (err error) {
 	}
 	return
 }
-func RegistrarGiroDescuentos(element map[string]interface{}, idGiro int64,idCuenta int64, idOrdenPago int64)(alerta Alert){
+func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOrdenPago int64) (alerta Alert) {
 	var idCuentasEspeciales []int
 	var giroDetalles []GiroDetalle
 	var idTipoCuenta int
 	var idNewCuentaTercero CuentaBancariaEnte
+	var element map[string]interface{}
 	o := orm.NewOrm()
 	o.Begin()
+	element = e[0].(map[string]interface{})
 	nameTipoCuenta := element["TipoCuentaBancaria"].(string)
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("Id").
@@ -221,16 +223,16 @@ func RegistrarGiroDescuentos(element map[string]interface{}, idGiro int64,idCuen
 			element["CuentaBancariaEnte"] = int(ID)
 		}
 	}
-		rowGiroDetalle := GiroDetalle{
-			Giro:               &Giro{Id: int(idGiro)},
-			OrdenPago:          &OrdenPago{Id: int(idOrdenPago)},
-			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["CuentaBancariaEnte"].(int)},
-			CuentaEspecial: &CuentaEspecial{Id: int(idCuenta)},
-		}
-		giroDetalles = append(giroDetalles, rowGiroDetalle)
-	fmt.Println("cuentas_especiales",idCuentasEspeciales)
+	rowGiroDetalle := GiroDetalle{
+		Giro:               &Giro{Id: int(idGiro)},
+		OrdenPago:          &OrdenPago{Id: int(idOrdenPago)},
+		CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["CuentaBancariaEnte"].(int)},
+		CuentaEspecial:     &CuentaEspecial{Id: int(idCuenta)},
+	}
+	giroDetalles = append(giroDetalles, rowGiroDetalle)
+	fmt.Println("cuentas_especiales", idCuentasEspeciales)
 
-		// insertar giro_detalle
+	// insertar giro_detalle
 	_, err = o.InsertMulti(100, giroDetalles)
 	if err != nil {
 		alerta.Type = "error"
@@ -244,14 +246,14 @@ func RegistrarGiroDescuentos(element map[string]interface{}, idGiro int64,idCuen
 	return
 
 }
-func GetCuentasEspeciales (id int64)(cuentas []orm.Params, alerta Alert){
+func GetCuentasEspeciales(id int64) (cuentas []orm.Params, alerta Alert) {
 	o := orm.NewOrm()
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("opce.cuenta_especial, ce.informacion_persona_juridica").
-	From("financiera.orden_pago_cuenta_especial as opce").
-	InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
-	And("opce.orden_pago = ?")
+		From("financiera.orden_pago_cuenta_especial as opce").
+		InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
+		And("opce.orden_pago = ?")
 	_, err := o.Raw(qb.String(), id).Values(&cuentas)
 	if err != nil {
 		alerta.Type = "error"
@@ -391,7 +393,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 			Giro:               &Giro{Id: int(idNewGiro)},
 			OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
 			CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
-			CuentaEspecial: &CuentaEspecial{Id: 0},
+			CuentaEspecial:     &CuentaEspecial{Id: 0},
 		}
 		giroDetalles = append(giroDetalles, rowGiroDetalle)
 		// estados orden pago
@@ -402,35 +404,6 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 			Usuario:         1, //entra por sesion
 		}
 		newEstadoOrdenPago = append(newEstadoOrdenPago, rowEstadoOrdenPago)
-		//GiroCuentasEspeciales
-		// qb, _ = orm.NewQueryBuilder("mysql")
-		// qb.Select("opce.cuenta_especial, ce.informacion_persona_juridica").
-		// 	From("financiera.orden_pago_cuenta_especial as opce").
-		// 	InnerJoin("financiera.cuenta_especial as ce").On("opce.cuenta_especial = ce.id").
-		// 	And("opce.orden_pago = ?")
-		// _, err = o.Raw(qb.String(), element["Id"]).QueryRows(&idCuentasEspeciales)
-		//
-		// if err != nil {
-		//
-		// 	fmt.Println("qbstring",qb.String())
-		// 	alerta.Type = "error"
-		// 	alerta.Code = "E_GIRO_CUENTA_ESPECIAL_01"
-		// 	alerta.Body = err.Error()
-		// 	o.Rollback()
-		// 	return
-		// } else {
-		//
-		// 	for _, idCuenta := range idCuentasEspeciales {
-		// 	rowGiroDetalle := GiroDetalle{
-		// 		Giro:               &Giro{Id: int(idNewGiro)},
-		// 		OrdenPago:          &OrdenPago{Id: int(element["Id"].(float64))},
-		// 		CuentaBancariaEnte: &CuentaBancariaEnte{Id: element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"].(int)},
-		// 		CuentaEspecial: &CuentaEspecial{Id: idCuenta},
-		// 	}
-		// 	giroDetalles = append(giroDetalles, rowGiroDetalle)
-		// 	}
-		// 	fmt.Println("cuentas_especiales",idCuentasEspeciales)
-		// }
 
 	}
 

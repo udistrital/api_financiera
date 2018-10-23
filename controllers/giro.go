@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -211,7 +210,6 @@ func (c *GiroController) GetCuentasEspeciales() {
 		idOrdenPago = v
 	}
 	l, mensaje := models.GetCuentasEspeciales(idOrdenPago)
-	fmt.Println("cuentas_especiales", l)
 	if mensaje.Body != nil {
 		c.Data["json"] = mensaje.Body
 	} else {
@@ -236,18 +234,14 @@ func (c *GiroController) RegistrarGiroDescuentos() {
 	var idCuenta int64
 	var idOrdenPago int64
 	var idGiro int64
+	var resProveedor []interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		m := v.(map[string]interface{})
-		if v, err := c.GetInt64("idcuenta"); err == nil {
-			idCuenta = v
-		}
-		if v, err := c.GetInt64("idordenpago"); err == nil {
-			idOrdenPago = v
-		}
-		if v, err := c.GetInt64("idgiro"); err == nil {
-			idGiro = v
-		}
-		mensaje := models.RegistrarGiroDescuentos(m, idGiro, idCuenta, idOrdenPago)
+		idCuenta, _ = strconv.ParseInt(m["idCuenta"].(string), 0, 64)
+		idOrdenPago, _ = strconv.ParseInt(m["idOrdenPago"].(string), 0, 64)
+		idGiro, _ = strconv.ParseInt(m["idGiro"].(string), 0, 64)
+		resProveedor = m["resProveedor"].([]interface{})
+		mensaje := models.RegistrarGiroDescuentos(resProveedor, idGiro, idCuenta, idOrdenPago)
 		if mensaje.Type != "success" {
 			c.Data["json"] = mensaje
 		} else {
