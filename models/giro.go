@@ -65,7 +65,7 @@ func GetGiroById(id int) (v *Giro, err error) {
 func GetAllGiro(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(Giro)).RelatedSel()
+	qs := o.QueryTable(new(Giro))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -116,12 +116,15 @@ func GetAllGiro(query map[string]string, fields []string, sortby []string, order
 	}
 
 	var l []Giro
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "GiroEstadoGiro", 5, 1, 0, "-Id")
-				o.LoadRelated(&v, "GiroDetalle", 5)
+				o.LoadRelated(&v, "GiroDetalle", 5,-1, 0, "-Id")
+				for _, sub := range v.GiroDetalle {
+					o.LoadRelated(sub.OrdenPago,"OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
+				}
 				ml = append(ml, v)
 			}
 		} else {
