@@ -121,9 +121,10 @@ func GetAllGiro(query map[string]string, fields []string, sortby []string, order
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "GiroEstadoGiro", 5, 1, 0, "-Id")
-				o.LoadRelated(&v, "GiroDetalle", 5,-1, 0, "-Id")
+				o.LoadRelated(&v, "GiroDetalle", 5, -1, 0, "-Id")
 				for _, sub := range v.GiroDetalle {
-					o.LoadRelated(sub.OrdenPago,"OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
+					o.LoadRelated(sub.OrdenPago, "OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
+					o.LoadRelated(sub.OrdenPago, "OrdenPagoCuentaEspecial", 5, -1, 0, "-Id")
 				}
 				ml = append(ml, v)
 			}
