@@ -534,7 +534,7 @@ func (c *RubroController) GetRubroPac() {
 // @Description get arbol migracion
 // @Success 200 {object} models.Rubro
 // @Failure 403 :id is empty
-// @router /GetArbolMigracion/ [get]
+// @router /GetArbolMigracion/:a [get]
 func (c *RubroController) GetArbolMigracion() {
 	v, err := models.ArbolRubrosMigracion()
 
@@ -544,18 +544,18 @@ func (c *RubroController) GetArbolMigracion() {
 	// d1, _ := json.Marshal(v)
 
 	info := &mgo.DialInfo{
-		Addrs:    []string{"127.0.0.1:27016"},
+		Addrs:    []string{"127.0.0.1:27017"},
 		Timeout:  60 * time.Second,
-		Database: "admin",
-		Username: "admin",
-		Password: "admin",
+		Database: "kronos",
+		Username: "kronos_app",
+		Password: "SOPORTE2018",
 	}
 
 	session, err := mgo.DialWithInfo(info)
 
 	// session, err := mgo.Dial("127.0.0.1:27016")
 	session.SetMode(mgo.Monotonic, true)
-	w := session.DB("admin").C("arbol_rubro")
+	w := session.DB("kronos").C("arbolrubros")
 
 	// err = ioutil.WriteFile(absPath, d1, 0644)
 	// f, err := os.Create(absPath)

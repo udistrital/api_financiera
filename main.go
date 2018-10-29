@@ -17,7 +17,7 @@ func init() {
 func main() {
 
 	controllers.StartListadoApropiaciones()
-	// orm.Debug = true
+	orm.Debug = true
 	if beego.BConfig.RunMode == "dev" {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"

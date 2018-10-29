@@ -1051,7 +1051,7 @@ func ArbolRubrosMigracion() (rubros []map[string]interface{}, err error) {
 	var m []orm.Params
 	//funcion para conseguir los rubros padre. OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
 	_, err = o.Raw(`
-		SELECT DISTINCT ON (rubro.codigo) rubro.id as "idInterno", rubro.codigo as "_id",rubro.nombre as "nombre" , rubro.descripcion as "descripcion"
+		SELECT DISTINCT ON (rubro.codigo) rubro.id as "Idpsql", rubro.codigo as "_id",rubro.nombre as "nombre" , rubro.descripcion as "descripcion", rubro.unidad_ejecutora as "Unidad_Ejecutora"
 		FROM financiera.rubro `).Values(&m)
 	if err == nil {
 		var res []interface{}
@@ -1080,7 +1080,7 @@ func RamaRubrosMigracion(forkin interface{}, params ...interface{}) (forkout int
 	  from financiera.rubro
 	  join financiera.rubro_rubro
 		on  rubro_rubro.rubro_hijo = rubro.id
-	  WHERE rubro_rubro.rubro_padre = ?`, fork["idInterno"]).Values(&m)
+	  WHERE rubro_rubro.rubro_padre = ?`, fork["Idpsql"]).Values(&m)
 	if err == nil {
 		var arr []interface{}
 		var x map[string]interface{}
@@ -1088,11 +1088,24 @@ func RamaRubrosMigracion(forkin interface{}, params ...interface{}) (forkout int
 			if err = formatdata.FillStruct(m[i], &x); err == nil && x != nil {
 				arr = append(arr, x["Codigo"])
 			}
-
 		}
 
 		err = formatdata.FillStruct(arr, &res)
 		fork["hijos"] = arr
+
+		_, err = o.Raw(`SELECT rubro.codigo as "Codigo"
+	  	from financiera.rubro
+	  	join financiera.rubro_rubro
+		on  rubro_rubro.rubro_hijo = ?
+		WHERE rubro_rubro.rubro_padre = rubro.id`, fork["Idpsql"]).Values(&m)
+
+		for i := 0; i < len(m); i++ {
+			if err = formatdata.FillStruct(m[i], &x); err == nil && x != nil {
+				arr = append(arr, x["Codigo"])
+			}
+		}
+
+		fork["padre"] = arr[0]
 		return fork
 	}
 	return
