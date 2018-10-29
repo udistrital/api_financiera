@@ -1051,8 +1051,9 @@ func ArbolRubrosMigracion() (rubros []map[string]interface{}, err error) {
 	var m []orm.Params
 	//funcion para conseguir los rubros padre. OR (id not in (select DISTINCT rubro_padre from financiera.rubro_rubro))
 	_, err = o.Raw(`
-		SELECT DISTINCT ON (rubro.codigo) rubro.id as "Idpsql", rubro.codigo as "_id",rubro.nombre as "nombre" , rubro.descripcion as "descripcion", rubro.unidad_ejecutora as "Unidad_Ejecutora"
-		FROM financiera.rubro `).Values(&m)
+	SELECT DISTINCT ON (rubro.codigo) rubro.id as "idpsql", rubro.codigo as "_id",rubro.nombre as "nombre" , rubro.descripcion as "descripcion", rubro.unidad_ejecutora as "unidad_ejecutora"
+	FROM financiera.rubro `).Values(&m)
+
 	if err == nil {
 		var res []interface{}
 		err = formatdata.FillStruct(m, &res)
@@ -1066,21 +1067,25 @@ func ArbolRubrosMigracion() (rubros []map[string]interface{}, err error) {
 				rubros = append(rubros, data.(map[string]interface{})) //tomar valores del canal y agregarlos al array de hijos.
 			}
 		}
+	} else {
+		fmt.Println("error en ArbolRubrosMigracion: ", err.Error())
 	}
 	return
 }
 
 func RamaRubrosMigracion(forkin interface{}, params ...interface{}) (forkout interface{}) {
 	fork := forkin.(map[string]interface{})
+	fmt.Println(fork)
 	o := orm.NewOrm()
-	var m []orm.Params
-	var res []interface{}
+	var m, n []orm.Params
+	var res, res2 []interface{}
 	//funcion para conseguir los hijos de los rubros padre.
 	_, err := o.Raw(`SELECT rubro.codigo as "Codigo"
 	  from financiera.rubro
 	  join financiera.rubro_rubro
 		on  rubro_rubro.rubro_hijo = rubro.id
-	  WHERE rubro_rubro.rubro_padre = ?`, fork["Idpsql"]).Values(&m)
+	  WHERE rubro_rubro.rubro_padre = ?`, fork["idpsql"]).Values(&m)
+	// fmt.Println(m)
 	if err == nil {
 		var arr []interface{}
 		var x map[string]interface{}
@@ -1093,20 +1098,34 @@ func RamaRubrosMigracion(forkin interface{}, params ...interface{}) (forkout int
 		err = formatdata.FillStruct(arr, &res)
 		fork["hijos"] = arr
 
-		_, err = o.Raw(`SELECT rubro.codigo as "Codigo"
-	  	from financiera.rubro
-	  	join financiera.rubro_rubro
-		on  rubro_rubro.rubro_hijo = ?
-		WHERE rubro_rubro.rubro_padre = rubro.id`, fork["Idpsql"]).Values(&m)
+		var arr2 []interface{}
+		var y map[string]interface{}
+		_, err2 := o.Raw(`SELECT rubro.codigo as "Codigo"
+		from financiera.rubro
+		join financiera.rubro_rubro
+		on  rubro_rubro.rubro_padre = rubro.id
+		WHERE rubro_rubro.rubro_hijo = ?`, fork["idpsql"]).Values(&n)
 
-		for i := 0; i < len(m); i++ {
-			if err = formatdata.FillStruct(m[i], &x); err == nil && x != nil {
-				arr = append(arr, x["Codigo"])
+		// fmt.Println("error en modelos : ", err2.Error())
+		if err2 == nil {
+			for i := 0; i < len(n); i++ {
+				if err2 = formatdata.FillStruct(n[i], &y); err2 == nil && y != nil {
+					arr2 = append(arr2, y["Codigo"])
+				}
 			}
+			if len(arr2) != 0 {
+				err2 = formatdata.FillStruct(arr2, &res2)
+				fork["padre"] = arr2[0]
+			} else {
+				println("arreglo de padres vacio...")
+			}
+		} else {
+			fmt.Println("error 2 en RamaRubrosMigracion: ", err2.Error())
 		}
 
-		fork["padre"] = arr[0]
 		return fork
+	} else {
+		fmt.Println("error 1 en RamaRubrosMigracion: ", err.Error())
 	}
 	return
 }
