@@ -31,6 +31,7 @@ type OrdenPago struct {
 
 	OrdenPagoEstadoOrdenPago      []*OrdenPagoEstadoOrdenPago      `orm:"reverse(many)"`
 	OrdenPagoRegistroPresupuestal []*OrdenPagoRegistroPresupuestal `orm:"reverse(many)"`
+	OrdenPagoCuentaEspecial       []*OrdenPagoCuentaEspecial       `orm:"reverse(many)"`
 }
 
 func (t *OrdenPago) TableName() string {
