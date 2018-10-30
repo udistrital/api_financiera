@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
 )
@@ -142,12 +143,12 @@ func (c *CuentaBancariaController) Put() {
 	v := models.CuentaBancaria{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateCuentaBancariaById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 	}
 	c.ServeJSON()
 }
