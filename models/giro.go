@@ -125,6 +125,7 @@ func GetAllGiro(query map[string]string, fields []string, sortby []string, order
 				for _, sub := range v.GiroDetalle {
 					o.LoadRelated(sub.OrdenPago, "OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
 					o.LoadRelated(sub.OrdenPago, "OrdenPagoCuentaEspecial", 5, -1, 0, "-Id")
+					o.LoadRelated(sub.OrdenPago, "OrdenPagoEstadoOrdenPago", 5, -1, 0, "-Id")
 				}
 				ml = append(ml, v)
 			}
@@ -283,7 +284,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada
-		alerta.Body = "Error en parametros de entrada en RegistrarGiro()"
+		alerta.Body = "Error en parametros de entrada al RegistrarGiro"
 		o.Rollback()
 		return
 	}
