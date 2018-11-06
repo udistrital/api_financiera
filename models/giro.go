@@ -272,6 +272,29 @@ func GetCuentasEspeciales(id int64) (cuentas []orm.Params, alerta Alert) {
 
 }
 
+func GetSumGiro(id int64) (totalesGiro []orm.Params, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("sum(opce.valor_base) as total_cuentas_especiales").
+		From("orden_pago_cuenta_especial as opce, orden_pago as op, giro_detalle as gi, cuenta_especial as ce, giro as g").
+		Where("gi.orden_pago = op.id").
+		And("opce.cuenta_especial = ce.id").
+		And("opce.orden_pago = gi.orden_pago").
+		And("gi.cuenta_especial = ce.id").
+		And("gi.giro = ?")
+	_, err := o.Raw(qb.String(), id).Values(&totalesGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GetSumGiro_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
 func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	o := orm.NewOrm()
 	o.Begin()
