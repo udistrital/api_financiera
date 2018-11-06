@@ -101,10 +101,13 @@ func GetAllGiroDetalle(query map[string]string, fields []string, sortby []string
 	}
 
 	var l []GiroDetalle
-	qs = qs.OrderBy(sortFields...)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(v.OrdenPago, "OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
+				o.LoadRelated(v.OrdenPago, "OrdenPagoCuentaEspecial", 5, -1, 0, "-Id")
+				o.LoadRelated(v.OrdenPago, "OrdenPagoEstadoOrdenPago", 5, -1, 0, "-Id")				
 				ml = append(ml, v)
 			}
 		} else {
