@@ -205,12 +205,63 @@ func (c *FuenteFinanciamientoController) MovimientoFuenteFinanciamientoTr() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if data, err := models.AddMovimientoFuenteFinanciamientoTr(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = data
+			alert := models.Alert{Type: "success", Code: "S_543", Body: data}
+			c.Data["json"] = alert
 		} else {
-			c.Data["json"] = err.Error()
+			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}
+
+// DeleteMovimientoFuenteFinanciamientoTr ...
+// @Title DeleteMovimientoFuenteFinanciamientoTr
+// @Description delete FuenteFinanciamiento with Tr
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 201 {int} models.FuenteFinanciamiento
+// @Failure 403 body is empty
+// @router /DeleteMovimientoFuenteFinanciamientoTr/:id [delete]
+func (c *FuenteFinanciamientoController) DeleteMovimientoFuenteFinanciamientoTr() {
+	idStr := c.Ctx.Input.Param(":id")
+	id, _ := strconv.Atoi(idStr)
+	if err := models.DeleteMovimientoFuenteFinanciamientoTr(id); err == nil {
+		c.Ctx.Output.SetStatus(201)
+		alert := models.Alert{Type: "success", Code: "S_543", Body: err}
+		c.Data["json"] = alert
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+
+	c.ServeJSON()
+}
+
+// DeleteModificacionFuenteFinanciamientoTr ...
+// @Title DeleteModificacionFuenteFinanciamientoTr
+// @Description Delete ModificacionFuenteFinanciamiento with Tr
+// @Param	body		body 	models.FuenteFinanciamientoApropiacion	true		"body for FuenteFinanciamiento content"
+// @Success 201 {int} models.FuenteFinanciamiento
+// @Failure 403 body is empty
+// @router /DeleteModificacionFuenteFinanciamientoTr [post]
+func (c *FuenteFinanciamientoController) DeleteModificacionFuenteFinanciamientoTr() {
+	var v []map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		if err := models.DeleteModificacionFuenteFinanciamiento(v); err == nil {
+			c.Ctx.Output.SetStatus(201)
+			alert := models.Alert{Type: "success", Code: "S_543", Body: nil}
+			c.Data["json"] = alert
+		} else {
+			alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
 	}
 	c.ServeJSON()
 }

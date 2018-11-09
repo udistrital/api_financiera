@@ -55,14 +55,10 @@ func GetTotalAnulacionRegistroPresupuestal(vigencia int, unidadEjecutora int) (t
 		On("financiera.rubro.id = financiera.apropiacion.rubro").
 		Where("financiera.registro_presupuestal.vigencia = ? and financiera.rubro.unidad_ejecutora = ? ")
 
-
-		
 	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
 	return
 
 }
-
-
 
 // AddAnulacionRegistroPresupuestal insert a new AnulacionRegistroPresupuestal into database and returns
 // last inserted Id on success.
@@ -147,7 +143,7 @@ func GetAllAnulacionRegistroPresupuestal(query map[string]string, fields []strin
 	}
 
 	var l []AnulacionRegistroPresupuestal
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {

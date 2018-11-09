@@ -36,7 +36,7 @@ func init() {
 func GetTotalAnulacionDisponibilidades(vigencia int, unidadEjecutora int) (total int, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("COUNT(DISTINCT(disponibilidad))").
+	qb.Select("COUNT(DISTINCT(financiera.anulacion_disponibilidad.id))").
 		From("financiera.anulacion_disponibilidad").
 		InnerJoin("financiera.anulacion_disponibilidad_apropiacion").
 		On("financiera.anulacion_disponibilidad.id = financiera.anulacion_disponibilidad_apropiacion.anulacion").
@@ -50,14 +50,10 @@ func GetTotalAnulacionDisponibilidades(vigencia int, unidadEjecutora int) (total
 		On("financiera.rubro.id = financiera.apropiacion.rubro").
 		Where("financiera.disponibilidad.vigencia = ? and financiera.rubro.unidad_ejecutora = ? ")
 
-
-		
 	err = o.Raw(qb.String(), vigencia, unidadEjecutora).QueryRow(&total)
 	return
 
 }
-
-
 
 // AddAnulacionDisponibilidad insert a new AnulacionDisponibilidad into database and returns
 // last inserted Id on success.
@@ -142,7 +138,7 @@ func GetAllAnulacionDisponibilidad(query map[string]string, fields []string, sor
 	}
 
 	var l []AnulacionDisponibilidad
-	qs = qs.OrderBy(sortFields...).RelatedSel(5)
+	qs = qs.OrderBy(sortFields...).RelatedSel(5).Distinct()
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
