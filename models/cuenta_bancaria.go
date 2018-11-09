@@ -10,16 +10,16 @@ import (
 )
 
 type CuentaBancaria struct {
-	Id              int                 `orm:"column(id);pk;auto"`
-	Nombre          string              `orm:"column(nombre)"`
-	NumeroCuenta    string              `orm:"column(numero_cuenta)"`
-	EstadoActivo    bool                `orm:"column(estado_activo)"`
-	Saldo           float64             `orm:"column(saldo)"`
-	TipoCuentaBancaria      *TipoCuentaBancaria `orm:"column(tipo_cuenta_bancaria);rel(fk)"`
-	TipoRecurso     *TipoRecurso        `orm:"column(tipo_recurso);rel(fk)"`
-	Sucursal        int                 `orm:"column(sucursal)"`
-	UnidadEjecutora *UnidadEjecutora    `orm:"column(unidad_ejecutora);rel(fk)"`
-	CuentaContable  *CuentaContable     `orm:"column(cuenta_contable);rel(fk);null"`
+	Id              		int                 `orm:"column(id);pk;auto"`
+	Nombre          		string              `orm:"column(nombre)"`
+	NumeroCuenta    		string              `orm:"column(numero_cuenta)"`
+	EstadoActivo    		bool                `orm:"column(estado_activo)"`
+	Saldo           		float64             `orm:"column(saldo)"`
+	TipoCuentaBancaria 	*TipoCuentaBancaria `orm:"column(tipo_cuenta_bancaria);rel(fk)"`
+	TipoRecurso     		*TipoRecurso        `orm:"column(tipo_recurso);rel(fk)"`
+	Sucursal        		int                 `orm:"column(sucursal)"`
+	UnidadEjecutora 		*UnidadEjecutora    `orm:"column(unidad_ejecutora);rel(fk)"`
+	CuentaContable  		*CuentaContable     `orm:"column(cuenta_contable);rel(fk);null"`
 }
 
 func (t *CuentaBancaria) TableName() string {

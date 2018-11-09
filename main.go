@@ -16,6 +16,7 @@ func init() {
 }
 
 func main() {
+	
 
 	controllers.StartListadoApropiaciones()
 	//orm.Debug = true
