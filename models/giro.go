@@ -10,6 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/ss_crud_api/models"
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
@@ -272,15 +273,36 @@ func GetCuentasEspeciales(id int64) (cuentas []orm.Params, alerta Alert) {
 
 }
 
+//funcion para recopilar valor de la cuenta especial de tipo endoso
+func GetValueEndoso(idCodigoDocumento int64, idCuentaEspecial int64) (res []orm.Params, alerta models.Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("mov.credito as valor_endoso").
+		From("movimiento_contable as mov").
+		Where("mov.codigo_documento_afectante = ?").
+		And("mov.cuenta_especial = ?")
+	_, err := o.Raw(qb.String(), idCodigoDocumento, idCuentaEspecial).Values(&res)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GetValueEndoso_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
 func GetSumGiro(id int64) (totalesGiro []orm.Params, alerta Alert) {
 	o := orm.NewOrm()
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("sum(opce.valor_base) as total_cuentas_especiales").
-		From("orden_pago_cuenta_especial as opce, orden_pago as op, giro_detalle as gi, cuenta_especial as ce, giro as g").
+	qb.Select("sum(mov.credito) as total_cuentas_especiales").
+		From("movimiento_contable as mov, orden_pago as op, giro_detalle as gi, cuenta_especial as ce, giro as g").
 		Where("gi.orden_pago = op.id").
-		And("opce.cuenta_especial = ce.id").
-		And("opce.orden_pago = gi.orden_pago").
+		And("mov.cuenta_especial = ce.id").
+		And("mov.codigo_documento_afectante = gi.orden_pago").
 		And("gi.cuenta_especial = ce.id").
 		And("gi.giro = ?")
 	_, err := o.Raw(qb.String(), id).Values(&totalesGiro)
