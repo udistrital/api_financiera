@@ -231,10 +231,36 @@ func (c *GiroController) GetSumGiro() {
 	// limit: 10 (default is 10)
 	if v, err := c.GetInt64("IdGiro"); err == nil {
 		idGiro = v
-		beego.Info(idGiro)
 	}
 	l, mensaje := models.GetSumGiro(idGiro)
-	beego.Info(l, mensaje)
+	if mensaje.Body != nil {
+		c.Data["json"] = mensaje.Body
+	} else {
+		c.Data["json"] = l
+	}
+	c.ServeJSON()
+
+}
+
+// GetValueEndoso ...
+// @Title GetValueEndoso
+// @Description obtiene el valor del Endoso
+// @Param	query	IdGiro	 int64	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Param	query	idordenpago	 int64	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Success 200 {object} models.Giro
+// @Failure 403
+// @router /GetValueEndoso/ [get]
+func (c *GiroController) GetValueEndoso() {
+	var idOrdenPago int64
+	var idCuentaEspecial int64
+	// limit: 10 (default is 10)
+	if v, err := c.GetInt64("IdOrdenPago"); err == nil {
+		idOrdenPago = v
+	}
+	if v, err := c.GetInt64("IdCuentaEspecial"); err == nil {
+		idCuentaEspecial = v
+	}
+	l, mensaje := models.GetValueEndoso(idOrdenPago, idCuentaEspecial)
 	if mensaje.Body != nil {
 		c.Data["json"] = mensaje.Body
 	} else {
