@@ -299,7 +299,7 @@ func GetSumGiro(id int64) (totalesGiro []orm.Params, alerta Alert) {
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("sum(mov.credito) as total_cuentas_especiales").
-		From("movimiento_contable as mov, orden_pago as op, giro_detalle as gi, cuenta_especial as ce, giro as g").
+		From("movimiento_contable as mov, orden_pago as op, giro_detalle as gi, cuenta_especial as ce").
 		Where("gi.orden_pago = op.id").
 		And("mov.cuenta_especial = ce.id").
 		And("mov.codigo_documento_afectante = gi.orden_pago").
