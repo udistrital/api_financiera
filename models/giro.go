@@ -190,7 +190,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 		From("financiera.tipo_cuenta_bancaria").
 		Where("nombre = ?")
 	err := o.Raw(qb.String(), strings.Title(strings.ToLower(nameTipoCuenta))).QueryRow(&idTipoCuenta)
-	//fmt.Println("idTipoCuenta -> ", idTipoCuenta)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_04"
@@ -204,12 +203,10 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 		Filter("numero_cuenta", element["NumCuentaBancaria"]).One(&idNewCuentaTercero)
 	if err == nil {
 		element["CuentaBancariaEnte"] = idNewCuentaTercero.Id
-		// fmt.Println("Existe Cuenta", element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"])
 	} else if err == orm.ErrMultiRows {
 		beego.Error("Returned Multi Rows Not One")
 		return
 	} else if err == orm.ErrNoRows {
-		// fmt.Println(reflect.TypeOf(element["Proveedor"].(map[string]interface{})["NumDocumento"]))
 		titular, _ := strconv.Atoi(element["NumDocumento"].(string))
 		idNewCuentaTercero := CuentaBancariaEnte{
 			Banco:        int(element["IdEntidadBancaria"].(float64)),
@@ -217,7 +214,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 			NumeroCuenta: element["NumCuentaBancaria"].(string),
 			Titular:      titular,
 		}
-		// fmt.Println(idNewCuentaTercero)
 		ID, err := o.Insert(&idNewCuentaTercero)
 		if err != nil {
 			fmt.Println(err)
@@ -225,7 +221,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 			o.Rollback()
 			return
 		} else {
-			// fmt.Println(ID)
 			element["CuentaBancariaEnte"] = int(ID)
 		}
 	}
