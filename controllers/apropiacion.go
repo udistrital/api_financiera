@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
 	"github.com/manucorporat/try"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/optimize"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"strings"
 )
 
 // ApropiacionController operations for Apropiacion
@@ -29,12 +30,6 @@ func (c *ApropiacionController) URLMapping() {
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("SaldoApropiacion", c.SaldoApropiacion)
-}
-
-func StartListadoApropiaciones() {
-	optimize.StartDispatcher(1, 0)
-	// beego.InsertFilter("/v1/ingreso/AprobacionPresupuestalIngreso", beego.AfterExec, FunctionAfterExecIngresoPac, false)
-	// beego.InsertFilter("/v1/orden_pago_estado_orden_pago/WorkFlowOrdenPago", beego.AfterExec, FunctionAfterExecEstadoOrdenP, false)
 }
 
 // Post ...

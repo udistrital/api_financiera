@@ -17,7 +17,6 @@ func init() {
 
 func main() {
 
-	controllers.StartListadoApropiaciones()
 	//orm.Debug = true
 	if beego.BConfig.RunMode == "dev" {
 		beego.BConfig.WebConfig.DirectoryIndex = true

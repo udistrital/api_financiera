@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/udistrital/api_financiera/models"
-
+	"github.com/fatih/structs"
 	"github.com/astaxie/beego"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // CuentaBancariaController operations for CuentaBancaria
@@ -34,15 +35,20 @@ func (c *CuentaBancariaController) URLMapping() {
 // @router / [post]
 func (c *CuentaBancariaController) Post() {
 	var v models.CuentaBancaria
+	var code string
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddCuentaBancaria(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		beego.Error(err.Error())
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 	}
 	c.ServeJSON()
 }
@@ -141,11 +147,15 @@ func (c *CuentaBancariaController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v := models.CuentaBancaria{Id: id}
+	var code string
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateCuentaBancariaById(&v); err == nil {
 			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v}
 		} else {
-			c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err.Error()}
+			c.Data["json"] = alert
 		}
 	} else {
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
