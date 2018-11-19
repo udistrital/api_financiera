@@ -3625,6 +3625,22 @@ func init() {
 
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
 		beego.ControllerComments{
+			Method: "DeleteModificacionFuenteFinanciamientoTr",
+			Router: `/DeleteModificacionFuenteFinanciamientoTr`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
+		beego.ControllerComments{
+			Method: "DeleteMovimientoFuenteFinanciamientoTr",
+			Router: `/DeleteMovimientoFuenteFinanciamientoTr/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:FuenteFinanciamientoController"],
+		beego.ControllerComments{
 			Method: "MovimientoFuenteFinanciamientoTr",
 			Router: `/MovimientoFuenteFinanciamientoTr`,
 			AllowHTTPMethods: []string{"post"},
@@ -3683,6 +3699,22 @@ func init() {
 		beego.ControllerComments{
 			Method: "GetCuentasEspeciales",
 			Router: `/GetCuentasEspeciales`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"],
+		beego.ControllerComments{
+			Method: "GetSumGiro",
+			Router: `/GetSumGiro/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:GiroController"],
+		beego.ControllerComments{
+			Method: "GetValueEndoso",
+			Router: `/GetValueEndoso/`,
 			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})

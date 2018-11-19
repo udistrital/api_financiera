@@ -10,6 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/ss_crud_api/models"
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
@@ -125,6 +126,7 @@ func GetAllGiro(query map[string]string, fields []string, sortby []string, order
 				for _, sub := range v.GiroDetalle {
 					o.LoadRelated(sub.OrdenPago, "OrdenPagoRegistroPresupuestal", 5, -1, 0, "-Id")
 					o.LoadRelated(sub.OrdenPago, "OrdenPagoCuentaEspecial", 5, -1, 0, "-Id")
+					o.LoadRelated(sub.OrdenPago, "OrdenPagoEstadoOrdenPago", 5, -1, 0, "-Id")
 				}
 				ml = append(ml, v)
 			}
@@ -188,7 +190,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 		From("financiera.tipo_cuenta_bancaria").
 		Where("nombre = ?")
 	err := o.Raw(qb.String(), strings.Title(strings.ToLower(nameTipoCuenta))).QueryRow(&idTipoCuenta)
-	//fmt.Println("idTipoCuenta -> ", idTipoCuenta)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_04"
@@ -202,12 +203,10 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 		Filter("numero_cuenta", element["NumCuentaBancaria"]).One(&idNewCuentaTercero)
 	if err == nil {
 		element["CuentaBancariaEnte"] = idNewCuentaTercero.Id
-		// fmt.Println("Existe Cuenta", element["Proveedor"].(map[string]interface{})["CuentaBancariaEnte"])
 	} else if err == orm.ErrMultiRows {
 		beego.Error("Returned Multi Rows Not One")
 		return
 	} else if err == orm.ErrNoRows {
-		// fmt.Println(reflect.TypeOf(element["Proveedor"].(map[string]interface{})["NumDocumento"]))
 		titular, _ := strconv.Atoi(element["NumDocumento"].(string))
 		idNewCuentaTercero := CuentaBancariaEnte{
 			Banco:        int(element["IdEntidadBancaria"].(float64)),
@@ -215,7 +214,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 			NumeroCuenta: element["NumCuentaBancaria"].(string),
 			Titular:      titular,
 		}
-		// fmt.Println(idNewCuentaTercero)
 		ID, err := o.Insert(&idNewCuentaTercero)
 		if err != nil {
 			fmt.Println(err)
@@ -223,7 +221,6 @@ func RegistrarGiroDescuentos(e []interface{}, idGiro int64, idCuenta int64, idOr
 			o.Rollback()
 			return
 		} else {
-			// fmt.Println(ID)
 			element["CuentaBancariaEnte"] = int(ID)
 		}
 	}
@@ -271,6 +268,50 @@ func GetCuentasEspeciales(id int64) (cuentas []orm.Params, alerta Alert) {
 
 }
 
+//funcion para recopilar valor de la cuenta especial de tipo endoso
+func GetValueEndoso(idCodigoDocumento int64, idCuentaEspecial int64) (res []orm.Params, alerta models.Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("mov.credito as valor_endoso").
+		From("movimiento_contable as mov").
+		Where("mov.codigo_documento_afectante = ?").
+		And("mov.cuenta_especial = ?")
+	_, err := o.Raw(qb.String(), idCodigoDocumento, idCuentaEspecial).Values(&res)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GetValueEndoso_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
+func GetSumGiro(id int64) (totalesGiro []orm.Params, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("sum(mov.credito) as total_cuentas_especiales").
+		From("movimiento_contable as mov, orden_pago as op, giro_detalle as gi, cuenta_especial as ce").
+		Where("gi.orden_pago = op.id").
+		And("mov.cuenta_especial = ce.id").
+		And("mov.codigo_documento_afectante = gi.orden_pago").
+		And("gi.cuenta_especial = ce.id").
+		And("gi.giro = ?")
+	_, err := o.Raw(qb.String(), id).Values(&totalesGiro)
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GetSumGiro_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	o.Commit()
+	return
+}
+
 func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	o := orm.NewOrm()
 	o.Begin()
@@ -283,7 +324,7 @@ func RegistrarGiro(dataGiro map[string]interface{}) (alerta GiroAlert) {
 	if err1 != nil || err2 != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_GIRO_01" //error en parametros de entrada
-		alerta.Body = "Error en parametros de entrada en RegistrarGiro()"
+		alerta.Body = "Error en parametros de entrada al RegistrarGiro"
 		o.Rollback()
 		return
 	}
