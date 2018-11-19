@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
@@ -562,5 +563,337 @@ func UpdateApropiacionValue(id int, valor float64) (err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+	return
+}
+
+func ListaApropiacionesHijo(vigencia int, codigo string) (res []orm.Params, err error) {
+	o := orm.NewOrm()
+	//falta realizar proyeccion por cada rubro.
+	_, err = o.Raw(`SELECT DISTINCT * FROM (SELECT apropiacion.id as Id ,rubro.id as idrubro, rubro.codigo, rubro.nombre as descripcion, apropiacion.vigencia, COALESCE( fuente.descripcion , 'Recursos Propios' ) as fdescrip, COALESCE( fuente.Id , 0 ) as idfuente
+	FROM
+		financiera.apropiacion as apropiacion
+	JOIN
+		financiera.rubro as rubro
+	ON
+		rubro.id = apropiacion.rubro
+	LEFT JOIN
+		financiera.fuente_financiamiento_apropiacion as ffa
+	ON
+		apropiacion.id = ffa.apropiacion
+	LEFT JOIN
+		financiera.fuente_financiamiento as fuente
+	ON
+		fuente.id = ffa.fuente_financiamiento
+	WHERE
+		rubro.id NOT IN (SELECT DISTINCT rubro_padre FROM financiera.rubro_rubro)
+             ) as apropiacion
+
+		WHERE vigencia = ?
+		AND codigo LIKE ?
+		order by idfuente,
+							idrubro
+	`, vigencia, codigo).Values(&res)
+	return
+}
+
+// ApropiacionReporteEgresos informe ordenes de pago y total por orden
+func ApropiacionReporteEgresos(inicio time.Time, fin time.Time) (res []interface{}, err error) {
+	vigencia := int(inicio.Year())
+	mesinicio := int(inicio.Month())
+	mesfin := int(fin.Month())
+
+	m, err := ListaApropiacionesHijo(vigencia, "3%")
+	if err != nil {
+		return
+	}
+	for i := 0; i < len(m); i++ {
+		var fechas []map[string]interface{}
+		for j := 0; j <= (mesfin - mesinicio); j++ {
+			var ffin time.Time
+			fmt.Println(ffin)
+			finicio := inicio.AddDate(0, j, 0)
+			if mesfin-mesinicio == 0 || j == mesfin-mesinicio {
+				ffin = fin
+			} else {
+				ffin = inicio.AddDate(0, j+1, 0)
+			}
+			var idfuente interface{}
+			if m[i]["idfuente"] == nil {
+
+				idfuente = 0
+			} else {
+
+				idfuente = m[i]["idfuente"]
+				fmt.Println("fuente ", idfuente)
+			}
+
+			egresos, _ := ApropiacionOrdenPago(m[i]["id"], idfuente)
+			proy := 0.0
+			aux := make(map[string]interface{})
+			if egresos == nil {
+				val := make(map[string]interface{})
+				val["valor"] = "0"
+				val["proyeccion"] = "0"
+				val["variacion"] = "0"
+				val["pvariacion"] = "0"
+				aux["valores"] = val
+			} else {
+				fll := egresos[0].(map[string]interface{})
+
+				var ejstr string
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
+				fmt.Println("err ", err)
+				ej, err := strconv.ParseFloat(ejstr, 64)
+				fmt.Println("err ", err)
+				var variacion float64
+				var pvariacion float64
+				if proy <= 0 {
+					variacion = ej - 0
+					pvariacion = variacion / ej
+				} else {
+					variacion = ej - proy
+					pvariacion = variacion / ej
+				}
+				fll["proyeccion"] = proy
+				var mp interface{}
+				var mpp interface{}
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
+				fll["variacion"] = mp
+				fll["pvariacion"] = mpp
+				aux["valores"] = fll
+
+			}
+			if aux != nil {
+				aux["mes"] = finicio.Format("Jan")
+				fechas = append(fechas, aux)
+			}
+
+		}
+		m[i]["reporte"] = fechas
+		if err != nil {
+			fmt.Println("err1 ", err)
+			return
+		}
+
+	}
+	err = formatdata.FillStruct(m, &res)
+	if err != nil {
+		fmt.Println("err2 ", err)
+		return
+	}
+	return
+}
+
+// RubroReporteIngresos informe ordenes de pago y total por orden
+func ApropiacionReporteIngresos(inicio time.Time, fin time.Time) (res []interface{}, err error) {
+	vigencia := int(inicio.Year())
+	mesinicio := int(inicio.Month())
+	mesfin := int(fin.Month())
+
+	m, err := ListaApropiacionesHijo(vigencia, "2%")
+	//fmt.Println("err: ", m)
+	if err != nil {
+		return
+	}
+	for i := 0; i < len(m); i++ {
+		var fechas []map[string]interface{}
+		for j := 0; j <= (mesfin - mesinicio); j++ {
+			var ffin time.Time
+			//fmt.Println(ffin)
+			finicio := inicio.AddDate(0, j, 0)
+			if mesfin-mesinicio == 0 || j == mesfin-mesinicio {
+				ffin = fin
+			} else {
+				ffin = inicio.AddDate(0, j+1, 0)
+			}
+			var idfuente interface{}
+			if m[i]["idfuente"] == nil {
+
+				idfuente = 0
+			} else {
+
+				idfuente = m[i]["idfuente"]
+			}
+			ingr, _ := RubroIngreso(m[i]["id"], idfuente, finicio, ffin)
+			proy := 0.0 //RubroReporteIngresosProyeccion(inicio, fin, 3, m[i]["idrubro"], m[i]["idfuente"])
+			aux := make(map[string]interface{})
+			//fmt.Println("aux: ", aux["valores"])
+			if ingr == nil {
+				val := make(map[string]interface{})
+				val["valor"] = "0"
+				val["proyeccion"] = "0"
+				val["variacion"] = "0"
+				val["pvariacion"] = "0"
+				aux["valores"] = val
+			} else {
+				fll := ingr[0].(map[string]interface{})
+				var ejstr string
+				err = formatdata.FillStruct(fll["valor"], &ejstr)
+				//fmt.Println("err ", err)
+				ej, err := strconv.ParseFloat(ejstr, 64)
+				fmt.Println("err ", err)
+				var variacion float64
+				var pvariacion float64
+				if proy <= 0 {
+					variacion = ej - 0
+					pvariacion = variacion / ej
+				} else {
+					variacion = ej - proy
+					pvariacion = variacion / ej
+				}
+
+				//fmt.Println("vac ", variacion)
+				fll["proyeccion"] = proy
+				var mp interface{}
+				var mpp interface{}
+				err = formatdata.FillStruct(variacion, &mp)
+				err = formatdata.FillStruct(pvariacion, &mpp)
+				fll["variacion"] = mp
+				fll["pvariacion"] = mpp
+				aux["valores"] = fll
+
+			}
+			if aux != nil {
+				aux["mes"] = finicio.Format("Jan")
+				aux["n_mes"] = int(finicio.Month())
+				fechas = append(fechas, aux)
+			}
+
+		}
+		m[i]["reporte"] = fechas
+		//m[i]["egresos"], err = RubroOrdenPago(m[i]["id"])
+		if err != nil {
+			return
+		}
+
+	}
+	err = formatdata.FillStruct(m, &res)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// RubroOrdenPago informe ordenes de pago y total por orden
+func ApropiacionOrdenPago(apropiacion interface{}, fuente interface{}) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT id_apr,codigo,COALESCE( idfuente, 0 ) as idfuente,SUM(valor) as valor FROM
+		(SELECT orden.id , SUM(orden_concepto.valor) as valor , orden.estado_orden_pago , apropiacion.id as id_apr,rubro.codigo, fuente.id as idfuente,rp.numero_registro_presupuestal AS RP,
+		cdp.numero_disponibilidad AS CDP, fuente.descripcion AS fuente
+
+		FROM
+			financiera.orden_pago as orden
+		JOIN
+			financiera.concepto_orden_pago as orden_concepto
+		ON
+			orden_concepto.orden_de_pago = orden.id
+		JOIN
+			financiera.registro_presupuestal_disponibilidad_apropiacion as rpda
+		ON
+			rpda.id = orden_concepto.registro_presupuestal_disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad_apropiacion as disponibilidad
+		ON
+			disponibilidad.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.apropiacion as apropiacion
+		ON
+			apropiacion.id = disponibilidad.apropiacion
+		JOIN
+			financiera.rubro as rubro
+		ON      apropiacion.rubro = rubro.id
+		JOIN
+			financiera.estado_orden_pago as estado_ord
+		ON
+			estado_ord.id = orden.estado_orden_pago
+		JOIN
+			financiera.registro_presupuestal as rp
+		ON
+			rp.id = rpda.registro_presupuestal
+		JOIN
+			financiera.disponibilidad_apropiacion AS disp_apr
+		ON
+		  disp_apr.id = rpda.disponibilidad_apropiacion
+		JOIN
+			financiera.disponibilidad as cdp
+		ON
+			cdp.id = disp_apr.disponibilidad
+		LEFT JOIN
+			financiera.fuente_financiamiento AS fuente
+		ON
+			disponibilidad.fuente_financiamiento = fuente.id
+		GROUP BY
+			apropiacion.rubro, orden.id, rubro.codigo, orden.estado_orden_pago, apropiacion.id, fuente.id, rp.numero_registro_presupuestal, cdp.numero_disponibilidad, fuente.descripcion) as rubro
+		WHERE id_apr = ?
+		AND
+		 COALESCE( idfuente, 0 )  = ?
+		GROUP BY
+		id_apr,
+		  codigo,
+			idfuente`, apropiacion, fuente).Values(&m)
+	err = formatdata.FillStruct(m, &res)
+	return
+}
+
+// ApropiacionIngreso informe ingresos
+//falta filtro por fechas.
+func ApropiacionIngreso(apropiacion interface{}, fuente interface{}, inicio time.Time, fin time.Time) (res []interface{}, err error) {
+	o := orm.NewOrm()
+	var m []orm.Params
+	_, err = o.Raw(`SELECT id_aprop,codigo,COALESCE( idfuente, 0 ) as idfuente, SUM(valor) as valor FROM
+(
+	SELECT
+		ingreso.id ,ingreso.fecha_ingreso, estadoingreso.nombre as estado, estadoingreso.id as id_estado,formaingreso.nombre as forma_ingreso, rubro.codigo as codigo,fuente.id as idfuente, ingresoconcepto.valor_agregado as valor , apropiacion.id as id_aprop
+	FROM
+		financiera.ingreso as ingreso
+	JOIN
+		financiera.estado_ingreso as estadoingreso
+	ON
+		ingreso.estado_ingreso = estadoingreso.id
+	JOIN
+		financiera.forma_ingreso as formaingreso
+	ON
+		formaingreso.id = ingreso.forma_ingreso
+	JOIN
+		financiera.ingreso_concepto as ingresoconcepto
+	ON
+		ingresoconcepto.ingreso = ingreso.id
+	JOIN
+		financiera.concepto_tesoral as concepto
+	ON
+		concepto.id = ingresoconcepto.concepto
+	JOIN
+		financiera.rubro as rubro
+	ON
+		rubro.id = concepto.rubro
+	JOIN
+		financiera.apropiacion as apropiacion
+	ON
+		apropiacion.rubro = rubro.id AND apropiacion.vigencia = ingreso.vigencia
+	JOIN
+		financiera.movimiento_contable as mov
+	ON
+		mov.tipo_documento_afectante = 2 AND mov.codigo_documento_afectante = ingreso.id
+	LEFT JOIN
+		financiera.fuente_financiamiento AS fuente
+	ON
+		ingreso.fuente_financiamiento = fuente.id
+	WHERE
+		estadoingreso.nombre = 'Aprobado'
+	GROUP BY
+		ingreso.id ,fuente.id, ingreso.fecha_ingreso,estadoingreso.nombre, estadoingreso.id,formaingreso.nombre, rubro.codigo , ingresoconcepto.valor_agregado,  apropiacion.id
+) AS ingreso
+WHERE id_aprop = ?
+AND
+COALESCE( ingreso.idfuente, 0 )  = ?
+AND
+ingreso.fecha_ingreso BETWEEN ? AND ?
+GROUP BY
+id_aprop,
+	codigo,
+	idfuente`, apropiacion, fuente, inicio, fin).Values(&m)
+	err = formatdata.FillStruct(m, &res)
 	return
 }
