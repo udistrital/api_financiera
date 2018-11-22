@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fatih/structs"
 	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
 )
@@ -37,12 +39,15 @@ func (c *AvanceEstadoAvanceController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddAvanceEstadoAvance(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			var code string
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
 }

@@ -3,14 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+	"github.com/udistrital/utils_oas/formatdata"
+
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
-
-
 )
 
 // AvanceLegalizacionController operations for AvanceLegalizacion
@@ -27,7 +27,6 @@ func (c *AvanceLegalizacionController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 }
 
-
 // Post ...
 // @Title Post
 // @Description create AvanceLegalizacion
@@ -40,12 +39,15 @@ func (c *AvanceLegalizacionController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddAvanceLegalizacion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			c.Data["json"] = err.Error()
+			var code string
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
 }
@@ -174,8 +176,6 @@ func (c *AvanceLegalizacionController) Delete() {
 	c.ServeJSON()
 }
 
-
-
 // GetAll ...
 // @Title Get All
 // @Description get DevolucionTributaria
@@ -205,10 +205,10 @@ func (c *AvanceLegalizacionController) GetLegalizacionRecordsNumber() {
 	}
 	l, err := models.GetRecordsNumberAvanceLegalizacion(query)
 	if err != nil {
-		alertdb := structs.Map(err);
-		c.Data["json"] = &models.Alert{Code:"E_"+alertdb["Code"].(string),Type:"error",Body:err.Error()}
+		alertdb := structs.Map(err)
+		c.Data["json"] = &models.Alert{Code: "E_" + alertdb["Code"].(string), Type: "error", Body: err.Error()}
 	} else {
-		c.Data["json"] = &models.Alert{Code:"E_S545",Type:"success",Body:l}
+		c.Data["json"] = &models.Alert{Code: "E_S545", Type: "success", Body: l}
 	}
 	c.ServeJSON()
 }
