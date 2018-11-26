@@ -13,16 +13,16 @@ import (
 )
 
 type DevolucionTributaria struct {
-	Id               		 int               			 `orm:"column(id);pk;auto"`
-	Vigencia         		 float64           			 `orm:"column(vigencia)"`
-	UnidadEjecutora  		 *UnidadEjecutora  			 `orm:"column(unidad_ejecutora);rel(fk)"`
-	Acta             		 int               			 `orm:"column(acta)"`
-	Solicitante      		 int               			 `orm:"column(solicitante)"`
-	FormaPago        		 *FormaPago        			 `orm:"column(forma_pago);rel(fk)"`
-	CuentaBancariaEnte 		 *CuentaBancariaEnte 			 `orm:"column(cuenta_devolucion);rel(fk)"`
-	Justificacion    		 string            			 `orm:"column(justificacion)"`
-	DocumentoGenerador   *DocumentoGenerador     `orm:"column(documento_generador);rel(fk);null"`
-	FechaRegistro    		 time.Time         			 `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
+	Id                 int                 `orm:"column(id);pk;auto"`
+	Vigencia           float64             `orm:"column(vigencia)"`
+	UnidadEjecutora    *UnidadEjecutora    `orm:"column(unidad_ejecutora);rel(fk)"`
+	Acta               int                 `orm:"column(acta)"`
+	Solicitante        int                 `orm:"column(solicitante)"`
+	FormaPago          *FormaPago          `orm:"column(forma_pago);rel(fk)"`
+	CuentaBancariaEnte *CuentaBancariaEnte `orm:"column(cuenta_devolucion);rel(fk)"`
+	Justificacion      string              `orm:"column(justificacion)"`
+	DocumentoGenerador *DocumentoGenerador `orm:"column(documento_generador);rel(fk);null"`
+	FechaRegistro      time.Time           `orm:"column(fecha_registro);auto_now_add;type(datetime)"`
 }
 
 func (t *DevolucionTributaria) TableName() string {
@@ -167,8 +167,8 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 	var Id int64
 	var idDevol int64
 	var cuentaDevol CuentaBancariaEnte
-  var estadoDevolucion EstadoDevolucion
-	var movimientosAsoc  []DevolucionTributariaMovimientoAsociado
+	var estadoDevolucion EstadoDevolucion
+	var movimientosAsoc []DevolucionTributariaMovimientoAsociado
 	var docGen DocumentoGenerador
 
 	var concepto []map[string]interface{}
@@ -186,107 +186,107 @@ func AddDevolucionTr(request map[string]interface{}) (tributariaDevol Devolucion
 		beego.Error(err)
 		return
 	}
-		o.Begin()
+	o.Begin()
 
 	idDocgenerador, err := o.Insert(&docGen)
-			if err != nil {
-				beego.Info(err)
-				o.Rollback()
-				return
-			}
-
-		err = o.QueryTable("cuenta_bancaria_ente").
-			Filter("banco", tributariaDevol.CuentaBancariaEnte.Banco).
-			Filter("tipo_cuenta", tributariaDevol.CuentaBancariaEnte.TipoCuenta).
-			Filter("numero_cuenta", tributariaDevol.CuentaBancariaEnte.NumeroCuenta).
-			One(&cuentaDevol)
-
-			if err == nil {
-				tributariaDevol.CuentaBancariaEnte.Id = cuentaDevol.Id
-			} else if err == orm.ErrMultiRows {
-				beego.Error("Returned Multi Rows Not One")
-				return
-			} else if err == orm.ErrNoRows {
-				Id, err = o.Insert(tributariaDevol.CuentaBancariaEnte)
-				if err != nil {
-					beego.Error(err)
-					o.Rollback()
-					return
-				} else {
-					tributariaDevol.CuentaBancariaEnte.Id = int(Id)
-				}
+	if err != nil {
+		beego.Info(err)
+		o.Rollback()
+		return
 	}
 
-		tributariaDevol.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+	err = o.QueryTable("cuenta_bancaria_ente").
+		Filter("banco", tributariaDevol.CuentaBancariaEnte.Banco).
+		Filter("tipo_cuenta", tributariaDevol.CuentaBancariaEnte.TipoCuenta).
+		Filter("numero_cuenta", tributariaDevol.CuentaBancariaEnte.NumeroCuenta).
+		One(&cuentaDevol)
 
-		idDevol, err = o.Insert(&tributariaDevol)
+	if err == nil {
+		tributariaDevol.CuentaBancariaEnte.Id = cuentaDevol.Id
+	} else if err == orm.ErrMultiRows {
+		beego.Error("Returned Multi Rows Not One")
+		return
+	} else if err == orm.ErrNoRows {
+		Id, err = o.Insert(tributariaDevol.CuentaBancariaEnte)
 		if err != nil {
 			beego.Error(err)
 			o.Rollback()
 			return
+		} else {
+			tributariaDevol.CuentaBancariaEnte.Id = int(Id)
 		}
-		tributariaDevol.Id = int(idDevol)
+	}
+
+	tributariaDevol.DocumentoGenerador = &DocumentoGenerador{Id: int(idDocgenerador)}
+
+	idDevol, err = o.Insert(&tributariaDevol)
+	if err != nil {
+		beego.Error(err)
+		o.Rollback()
+		return
+	}
+	tributariaDevol.Id = int(idDevol)
+	if err != nil {
+		o.Rollback()
+		return
+	}
+
+	err = o.QueryTable(new(EstadoDevolucion)).
+		Filter("numeroOrden", 1).
+		Filter("tipo", 3).
+		One(&estadoDevolucion)
+
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	devolucionEstadoDevolucion := &DevolucionTributariaEstadoDevolucion{Devolucion: &tributariaDevol, Activo: true, EstadoDevolucion: &estadoDevolucion}
+	_, err = o.Insert(devolucionEstadoDevolucion)
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+	for i, _ := range movimientosAsoc {
+		movimientosAsoc[i].Devolucion = &tributariaDevol
+	}
+	_, err = o.InsertMulti(100, movimientosAsoc)
+
+	if err != nil {
+		beego.Error(err.Error())
+		o.Rollback()
+		return
+	}
+
+	for _, element := range concepto {
+		conceptoDevol := &Concepto{Id: int(element["Id"].(float64))}
+		devolucion_concepto := &DevolucionTributariaConcepto{ValorDevolucion: element["valorAfectacion"].(float64),
+			DevolucionTributaria: &tributariaDevol,
+			Concepto:             conceptoDevol,
+		}
+		_, err = o.Insert(devolucion_concepto)
 		if err != nil {
+			beego.Info(err.Error())
 			o.Rollback()
 			return
 		}
 
-		err = o.QueryTable(new(EstadoDevolucion)).
-			Filter("numeroOrden", 1).
-			Filter("tipo", 3).
-			One(&estadoDevolucion)
+	}
+
+	for _, element := range mov {
+		element.Fecha = time.Now()
+		element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 6}
+		element.CodigoDocumentoAfectante = tributariaDevol.Id
+		element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
+		_, err = o.Insert(&element)
 
 		if err != nil {
-			beego.Error(err.Error())
+			beego.Info(err.Error())
 			o.Rollback()
 			return
 		}
-			devolucionEstadoDevolucion := &DevolucionTributariaEstadoDevolucion{Devolucion: &tributariaDevol, Activo: true, EstadoDevolucion: &estadoDevolucion}
-			_, err = o.Insert(devolucionEstadoDevolucion)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-			for i,_ := range movimientosAsoc {
-				movimientosAsoc[i].Devolucion = &tributariaDevol;
-			}
-			_, err = o.InsertMulti(100, movimientosAsoc)
-
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
-
-		for _, element := range concepto {
-			conceptoDevol := &Concepto{Id: int(element["Id"].(float64))}
-			devolucion_concepto := &DevolucionTributariaConcepto{ValorDevolucion: element["valorAfectacion"].(float64),
-				DevolucionTributaria: &tributariaDevol,
-				Concepto:             conceptoDevol,
-			}
-			_, err = o.Insert(devolucion_concepto)
-			if err != nil {
-				beego.Info(err.Error())
-				o.Rollback()
-				return
-			}
-
-		}
-
-		for _, element := range mov {
-			element.Fecha = time.Now()
-			element.TipoDocumentoAfectante = &TipoDocumentoAfectante{Id: 6}
-			element.CodigoDocumentoAfectante = tributariaDevol.Id
-			element.EstadoMovimientoContable = &EstadoMovimientoContable{Id: 1}
-			_, err = o.Insert(&element)
-
-			if err != nil {
-				beego.Info(err.Error())
-				o.Rollback()
-				return
-			}
-		}
+	}
 	o.Commit()
 	return
 }
