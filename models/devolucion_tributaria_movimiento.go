@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -13,7 +14,7 @@ type DevolucionTributariaMovimientoAsociado struct {
 	Id                 int                   `orm:"column(id);pk;auto"`
 	MovimientoContable *MovimientoContable   `orm:"column(movimiento_contable);rel(fk)"`
 	Devolucion         *DevolucionTributaria `orm:"column(devolucion);rel(fk)"`
-	ValorDevolucion 	 float64               `orm:"column(valor_devolucion)"`
+	ValorDevolucion    float64               `orm:"column(valor_devolucion)"`
 }
 
 func (t *DevolucionTributariaMovimientoAsociado) TableName() string {
@@ -103,6 +104,12 @@ func GetAllDevolucionTributariaMovimiento(query map[string]string, fields []stri
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				movimientoContable := v.MovimientoContable
+				err := o.Read(movimientoContable)
+				if err != nil {
+					beego.Error("Error ", err.Error())
+				}
+				o.LoadRelated(movimientoContable, "CuentaContable")
 				ml = append(ml, v)
 			}
 		} else {
