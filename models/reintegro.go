@@ -82,10 +82,10 @@ func AddReintegroConsec(v map[string]interface{}) (id int64, err error) {
 	reintegro.Consecutivo = int(consec)
 	v["Ingreso"] = ingreso
 	if ingresoRes, err = AddIngresotr(v); err != nil {
-		v["Ingreso"] = ingresoRes
 		beego.Error(err)
 		o.Rollback()
 	} else {
+		v["Ingreso"] = ingresoRes
 		reintegro.Ingreso = &ingresoRes
 		if id, err = o.Insert(&reintegro); err == nil {
 			reintegro.Id = int(id)
