@@ -10,13 +10,13 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// VersionTipoTransaccionController operations for VersionTipoTransaccion
-type VersionTipoTransaccionController struct {
+// TipoTransaccionVersionController operations for TipoTransaccionVersion
+type TipoTransaccionVersionController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *VersionTipoTransaccionController) URLMapping() {
+func (c *TipoTransaccionVersionController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -26,15 +26,15 @@ func (c *VersionTipoTransaccionController) URLMapping() {
 
 // Post ...
 // @Title Post
-// @Description create VersionTipoTransaccion
-// @Param	body		body 	models.VersionTipoTransaccion	true		"body for VersionTipoTransaccion content"
-// @Success 201 {int} models.VersionTipoTransaccion
+// @Description create TipoTransaccionVersion
+// @Param	body		body 	models.TipoTransaccionVersion	true		"body for TipoTransaccionVersion content"
+// @Success 201 {int} models.TipoTransaccionVersion
 // @Failure 403 body is empty
 // @router / [post]
-func (c *VersionTipoTransaccionController) Post() {
-	var v models.VersionTipoTransaccion
+func (c *TipoTransaccionVersionController) Post() {
+	var v models.TipoTransaccionVersion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if _, err := models.AddVersionTipoTransaccion(&v); err == nil {
+		if _, err := models.AddTipoTransaccionVersion(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
@@ -48,15 +48,15 @@ func (c *VersionTipoTransaccionController) Post() {
 
 // GetOne ...
 // @Title Get One
-// @Description get VersionTipoTransaccion by id
+// @Description get TipoTransaccionVersion by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.VersionTipoTransaccion
+// @Success 200 {object} models.TipoTransaccionVersion
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *VersionTipoTransaccionController) GetOne() {
+func (c *TipoTransaccionVersionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetVersionTipoTransaccionById(id)
+	v, err := models.GetTipoTransaccionVersionById(id)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -67,17 +67,17 @@ func (c *VersionTipoTransaccionController) GetOne() {
 
 // GetAll ...
 // @Title Get All
-// @Description get VersionTipoTransaccion
+// @Description get TipoTransaccionVersion
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.VersionTipoTransaccion
+// @Success 200 {object} models.TipoTransaccionVersion
 // @Failure 403
 // @router / [get]
-func (c *VersionTipoTransaccionController) GetAll() {
+func (c *TipoTransaccionVersionController) GetAll() {
 	var fields []string
 	var sortby []string
 	var order []string
@@ -119,7 +119,7 @@ func (c *VersionTipoTransaccionController) GetAll() {
 		}
 	}
 
-	l, err := models.GetAllVersionTipoTransaccion(query, fields, sortby, order, offset, limit)
+	l, err := models.GetAllTipoTransaccionVersion(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
@@ -130,18 +130,18 @@ func (c *VersionTipoTransaccionController) GetAll() {
 
 // Put ...
 // @Title Put
-// @Description update the VersionTipoTransaccion
+// @Description update the TipoTransaccionVersion
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.VersionTipoTransaccion	true		"body for VersionTipoTransaccion content"
-// @Success 200 {object} models.VersionTipoTransaccion
+// @Param	body		body 	models.TipoTransaccionVersion	true		"body for TipoTransaccionVersion content"
+// @Success 200 {object} models.TipoTransaccionVersion
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *VersionTipoTransaccionController) Put() {
+func (c *TipoTransaccionVersionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v := models.VersionTipoTransaccion{Id: id}
+	v := models.TipoTransaccionVersion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateVersionTipoTransaccionById(&v); err == nil {
+		if err := models.UpdateTipoTransaccionVersionById(&v); err == nil {
 			c.Data["json"] = "OK"
 		} else {
 			c.Data["json"] = err.Error()
@@ -154,15 +154,15 @@ func (c *VersionTipoTransaccionController) Put() {
 
 // Delete ...
 // @Title Delete
-// @Description delete the VersionTipoTransaccion
+// @Description delete the TipoTransaccionVersion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *VersionTipoTransaccionController) Delete() {
+func (c *TipoTransaccionVersionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteVersionTipoTransaccion(id); err == nil {
+	if err := models.DeleteTipoTransaccionVersion(id); err == nil {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()

@@ -5,54 +5,53 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-type VersionTipoTransaccion struct {
-	Id                int       `orm:"column(id);pk"`
-	Definitiva        bool      `orm:"column(definitiva)"`
-	FechaModificacion time.Time `orm:"column(fecha_modificacion);type(date)"`
-	FechaInicio       time.Time `orm:"column(fecha_inicio);type(date)"`
-	FechaFin          time.Time `orm:"column(fecha_fin);type(date)"`
-	NumeroVersion     int       `orm:"column(numero_version)"`
-	Descripcion       string    `orm:"column(descripcion)"`
+type DetalleTipoTransaccionVersion struct {
+	Id                     int                     `orm:"column(id);pk"`
+	Nombre                 string                  `orm:"column(nombre)"`
+	Descripcion            string                  `orm:"column(descripcion);null"`
+	ClaseTransaccion       *TipoConcepto           `orm:"column(clase_transaccion);rel(fk)"`
+	CodigoAbreviacion      string                  `orm:"column(codigo_abreviacion);null"`
+	NumeroOrden            float64                 `orm:"column(numero_orden)"`
+	TipoTransaccionVersion *TipoTransaccionVersion `orm:"column(tipo_transaccion_version);rel(fk)"`
 }
 
-func (t *VersionTipoTransaccion) TableName() string {
-	return "version_tipo_transaccion"
+func (t *DetalleTipoTransaccionVersion) TableName() string {
+	return "detalle_tipo_transaccion_version"
 }
 
 func init() {
-	orm.RegisterModel(new(VersionTipoTransaccion))
+	orm.RegisterModel(new(DetalleTipoTransaccionVersion))
 }
 
-// AddVersionTipoTransaccion insert a new VersionTipoTransaccion into database and returns
+// AddDetalleTipoTransaccionVersion insert a new DetalleTipoTransaccionVersion into database and returns
 // last inserted Id on success.
-func AddVersionTipoTransaccion(m *VersionTipoTransaccion) (id int64, err error) {
+func AddDetalleTipoTransaccionVersion(m *DetalleTipoTransaccionVersion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetVersionTipoTransaccionById retrieves VersionTipoTransaccion by Id. Returns error if
+// GetDetalleTipoTransaccionVersionById retrieves DetalleTipoTransaccionVersion by Id. Returns error if
 // Id doesn't exist
-func GetVersionTipoTransaccionById(id int) (v *VersionTipoTransaccion, err error) {
+func GetDetalleTipoTransaccionVersionById(id int) (v *DetalleTipoTransaccionVersion, err error) {
 	o := orm.NewOrm()
-	v = &VersionTipoTransaccion{Id: id}
+	v = &DetalleTipoTransaccionVersion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllVersionTipoTransaccion retrieves all VersionTipoTransaccion matches certain condition. Returns empty list if
+// GetAllDetalleTipoTransaccionVersion retrieves all DetalleTipoTransaccionVersion matches certain condition. Returns empty list if
 // no records exist
-func GetAllVersionTipoTransaccion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllDetalleTipoTransaccionVersion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(VersionTipoTransaccion))
+	qs := o.QueryTable(new(DetalleTipoTransaccionVersion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -102,7 +101,7 @@ func GetAllVersionTipoTransaccion(query map[string]string, fields []string, sort
 		}
 	}
 
-	var l []VersionTipoTransaccion
+	var l []DetalleTipoTransaccionVersion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
@@ -125,11 +124,11 @@ func GetAllVersionTipoTransaccion(query map[string]string, fields []string, sort
 	return nil, err
 }
 
-// UpdateVersionTipoTransaccion updates VersionTipoTransaccion by Id and returns error if
+// UpdateDetalleTipoTransaccionVersion updates DetalleTipoTransaccionVersion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateVersionTipoTransaccionById(m *VersionTipoTransaccion) (err error) {
+func UpdateDetalleTipoTransaccionVersionById(m *DetalleTipoTransaccionVersion) (err error) {
 	o := orm.NewOrm()
-	v := VersionTipoTransaccion{Id: m.Id}
+	v := DetalleTipoTransaccionVersion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -140,15 +139,15 @@ func UpdateVersionTipoTransaccionById(m *VersionTipoTransaccion) (err error) {
 	return
 }
 
-// DeleteVersionTipoTransaccion deletes VersionTipoTransaccion by Id and returns error if
+// DeleteDetalleTipoTransaccionVersion deletes DetalleTipoTransaccionVersion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteVersionTipoTransaccion(id int) (err error) {
+func DeleteDetalleTipoTransaccionVersion(id int) (err error) {
 	o := orm.NewOrm()
-	v := VersionTipoTransaccion{Id: id}
+	v := DetalleTipoTransaccionVersion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&VersionTipoTransaccion{Id: id}); err == nil {
+		if num, err = o.Delete(&DetalleTipoTransaccionVersion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
