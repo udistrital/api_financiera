@@ -149,3 +149,39 @@ func DeleteTipoTransaccionVersion(id int) (err error) {
 	}
 	return
 }
+
+// AddTipoTransaccionVersion insert a new TipoTransaccionVersion sleecting las value for Type
+//into database and returns TipoTransaccionVersion on success.
+func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV *TipoTransaccionVersion, err error) {
+	var consec float64
+	var id int64
+	o := orm.NewOrm()
+
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	qb.Select("COALESCE(MAX(c.consecutivo),0)+1").
+		From("tipo_transaccion_version ttv")
+
+	sql := qb.String()
+
+	err = o.Raw(sql).QueryRow(&consec)
+
+	if err != nil {
+		o.Rollback()
+		return
+	}
+
+	TipoTransV.TipoTransaccion = int(consec)
+	TipoTransV.Version = m
+
+	id, err = o.Insert(TipoTransV)
+
+	if err != nil {
+		o.Rollback()
+		return
+	}
+	TipoTransV.Id = int(id)
+
+	return
+}
