@@ -15,6 +15,7 @@ type FuenteFinanciamientoApropiacion struct {
 	FuenteFinanciamiento                      *FuenteFinanciamiento                        `orm:"column(fuente_financiamiento);rel(fk)"`
 	Dependencia                               int                                          `orm:"column(dependencia)"`
 	MovimientoFuenteFinanciamientoApropiacion []*MovimientoFuenteFinanciamientoApropiacion `orm:"reverse(many)"`
+	Rubro                                     string                                       `orm:"-"`
 }
 
 func (t *FuenteFinanciamientoApropiacion) TableName() string {
