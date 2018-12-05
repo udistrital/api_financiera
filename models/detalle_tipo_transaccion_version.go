@@ -10,7 +10,7 @@ import (
 )
 
 type DetalleTipoTransaccionVersion struct {
-	Id                     int                     `orm:"column(id);pk"`
+	Id                     int                     `orm:"column(id);pk;auto"`
 	Nombre                 string                  `orm:"column(nombre)"`
 	Descripcion            string                  `orm:"column(descripcion);null"`
 	ClaseTransaccion       *TipoConcepto           `orm:"column(clase_transaccion);rel(fk)"`
@@ -149,6 +149,25 @@ func DeleteDetalleTipoTransaccionVersion(id int) (err error) {
 		var num int64
 		if num, err = o.Delete(&DetalleTipoTransaccionVersion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
+		}
+	}
+	return
+}
+
+//Rollback function for transaction type
+func DeleteEntireTipoTransaccion(m map[string]interface{}) (err error) {
+	for key, value := range m {
+		body := value.(map[string]interface{})["Body"].(map[string]interface{})
+		if body["Id"] != nil {
+			id := int(body["Id"].(float64))
+			switch key {
+			case "version_tipo_transaccion":
+				err = DeleteVersionTipoTransaccion(id)
+			case "tipo_transaccion_version":
+				err = DeleteTipoTransaccionVersion(id)
+			case "detalle_tipo_transaccion_version":
+				err = DeleteDetalleTipoTransaccionVersion(id)
+			}
 		}
 	}
 	return

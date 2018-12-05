@@ -6,11 +6,12 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
 type TipoTransaccionVersion struct {
-	Id              int                     `orm:"column(id);pk"`
+	Id              int                     `orm:"column(id);pk;auto"`
 	TipoTransaccion int                     `orm:"column(tipo_transaccion)"`
 	Version         *VersionTipoTransaccion `orm:"column(version);rel(fk)"`
 }
@@ -152,7 +153,7 @@ func DeleteTipoTransaccionVersion(id int) (err error) {
 
 // AddTipoTransaccionVersion insert a new TipoTransaccionVersion sleecting las value for Type
 //into database and returns TipoTransaccionVersion on success.
-func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV *TipoTransaccionVersion, err error) {
+func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV TipoTransaccionVersion, err error) {
 	var consec float64
 	var id int64
 	o := orm.NewOrm()
@@ -160,7 +161,7 @@ func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV *TipoTr
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")
 
-	qb.Select("COALESCE(MAX(c.consecutivo),0)+1").
+	qb.Select("COALESCE(MAX(ttv.tipo_transaccion),0)+1").
 		From("tipo_transaccion_version ttv")
 
 	sql := qb.String()
@@ -168,6 +169,7 @@ func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV *TipoTr
 	err = o.Raw(sql).QueryRow(&consec)
 
 	if err != nil {
+		beego.Error(err)
 		o.Rollback()
 		return
 	}
@@ -175,13 +177,14 @@ func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV *TipoTr
 	TipoTransV.TipoTransaccion = int(consec)
 	TipoTransV.Version = m
 
-	id, err = o.Insert(TipoTransV)
+	id, err = o.Insert(&TipoTransV)
 
 	if err != nil {
+		beego.Error(err)
 		o.Rollback()
 		return
 	}
 	TipoTransV.Id = int(id)
-
+	o.Commit()
 	return
 }

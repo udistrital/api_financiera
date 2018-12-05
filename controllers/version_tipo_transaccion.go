@@ -169,6 +169,7 @@ func (c *VersionTipoTransaccionController) Put() {
 // @router /:id [delete]
 func (c *VersionTipoTransaccionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
+	beego.Error("parametro version ", idStr)
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteVersionTipoTransaccion(id); err == nil {
 		c.Data["json"] = "OK"

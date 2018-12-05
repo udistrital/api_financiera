@@ -184,7 +184,7 @@ func (c *TipoTransaccionVersionController) Delete() {
 // @Param	body		body 	models.VersionTipoTransaccion	true		"body for TipoTransaccionVersion content"
 // @Success 201 {int} models.TipoTransaccionVersion
 // @Failure 403 body is empty
-// @router / [post]
+// @router /CreateTipoVersion  [post]
 func (c *TipoTransaccionVersionController) CreateTipoVersion() {
 	var v models.VersionTipoTransaccion
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {

@@ -11,9 +11,9 @@ import (
 )
 
 type VersionTipoTransaccion struct {
-	Id                int       `orm:"column(id);pk"`
+	Id                int       `orm:"column(id);pk;auto"`
 	Definitiva        bool      `orm:"column(definitiva)"`
-	FechaModificacion time.Time `orm:"column(fecha_modificacion);type(date)"`
+	FechaModificacion time.Time `orm:"column(fecha_modificacion);type(date);auto_now_add;type(datetume)"`
 	FechaInicio       time.Time `orm:"column(fecha_inicio);type(date)"`
 	FechaFin          time.Time `orm:"column(fecha_fin);type(date)"`
 	NumeroVersion     int       `orm:"column(numero_version)"`
