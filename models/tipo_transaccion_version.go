@@ -103,6 +103,7 @@ func GetAllTipoTransaccionVersion(query map[string]string, fields []string, sort
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				o.LoadRelated(&v, "Version")
 				ml = append(ml, v)
 			}
 		} else {
@@ -186,5 +187,25 @@ func AddNewTipoTransaccionVersion(m *VersionTipoTransaccion) (TipoTransV TipoTra
 	}
 	TipoTransV.Id = int(id)
 	o.Commit()
+	return
+}
+
+// GetRecordsNumberTipoTransaccionVersion retrieves quantity of records in  tipo transaccion version table
+// Id doesn't exist returns 0
+func GetRecordsNumberTipoTransaccionVersion(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(TipoTransaccionVersion))
+	cnt = 0
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
 	return
 }
