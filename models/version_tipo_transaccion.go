@@ -154,3 +154,23 @@ func DeleteVersionTipoTransaccion(id int) (err error) {
 	}
 	return
 }
+
+// GetRecordsNumberVersionTipo retrieves quantity of records in version tipo transaccion table
+// Id doesn't exist returns 0
+func GetRecordsNumberVersionTipo(query map[string]string) (cnt int64, err error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(new(VersionTipoTransaccion))
+
+	// query k=v
+	for k, v := range query {
+		// rewrite dot-notation to Object__Attribute
+		k = strings.Replace(k, ".", "__", -1)
+		if strings.Contains(k, "isnull") {
+			qs = qs.Filter(k, (v == "true" || v == "1"))
+		} else {
+			qs = qs.Filter(k, v)
+		}
+	}
+	cnt, err = qs.Count()
+	return
+}

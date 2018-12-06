@@ -7535,4 +7535,12 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetVersionesTipoNumber",
+			Router: `/GetVersionesTipoNumber/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 }
