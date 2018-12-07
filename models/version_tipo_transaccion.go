@@ -193,3 +193,23 @@ func GetVersionToTipoTransaccion(id int) (consec float64, err error) {
 
 	return consec, err
 }
+
+//given a initial date and a final date, retrieves all varsions to a type
+//in date range, Returns error it id doesn't exist
+func GetVersionInEspecifiedDate(fechaInicio string, fechaFin string, IdTipoTr int) (TipoTranVersiones []TipoTransaccionVersion, err error) {
+	o := orm.NewOrm()
+
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	qb.Select("vtt.*").
+		From("tipo_transaccion_version ttv ").
+		InnerJoin("version_tipo_transaccion vtt").On("ttv.version = vtt.id").
+		Where("vtt.fecha_inicio between ? and ?").
+		And("ttv.tipo_transaccion = ?")
+
+	sql := qb.String()
+
+	_, err = o.Raw(sql, fechaInicio, fechaFin, IdTipoTr).QueryRows(&TipoTranVersiones)
+
+	return
+}

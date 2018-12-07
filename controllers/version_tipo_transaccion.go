@@ -238,3 +238,42 @@ func (c *VersionTipoTransaccionController) GetVersionToType() {
 	}
 	c.ServeJSON()
 }
+
+// GetVersionInEspecifiedDate ...
+// @Title GetVersionInEspecifiedDate
+// @Description get all versions in a especified set of dates
+// @Param	fechaInicio	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Param	fechaFin	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Param	tipo	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Success 200 {object} models.VersionTipoTransaccion
+// @Failure 403 :id is empty
+// @router /GetVersionToType/:idTipo [get]
+func (c *VersionTipoTransaccionController) GetVersionInEspecifiedDate() {
+	var fechaInicio string
+	var fechaFin string
+	var tipo int
+
+	if v := c.GetString("fechaInicio"); v != "" {
+		fechaInicio = v
+	}
+
+	if v := c.GetString("fechaFin"); v != "" {
+		fechaFin = v
+	}
+
+	if v, err := c.GetInt("tipo"); err == nil {
+		tipo = v
+	}
+
+	v, err := models.GetVersionInEspecifiedDate(fechaInicio, fechaFin, tipo)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+	}
+	c.ServeJSON()
+}
