@@ -174,3 +174,22 @@ func GetRecordsNumberVersionTipo(query map[string]string) (cnt int64, err error)
 	cnt, err = qs.Count()
 	return
 }
+
+// GetVersionToTipoTransaccion retrieves max numeroVersion given Id. tipo Returns error if
+// Id doesn't exist
+func GetVersionToTipoTransaccion(id int) (consec float64, err error) {
+	o := orm.NewOrm()
+
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	qb.Select("COALESCE(MAX(vtt.numero_version)) + 1").
+		From("tipo_transaccion_version ttv").
+		InnerJoin("version_tipo_transaccion vtt").On("ttv.version = vtt.id").
+		Where("ttv.id = ?")
+
+	sql := qb.String()
+
+	err = o.Raw(sql, id).QueryRow(&consec)
+
+	return consec, err
+}

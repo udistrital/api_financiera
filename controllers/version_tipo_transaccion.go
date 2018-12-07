@@ -215,3 +215,26 @@ func (c *VersionTipoTransaccionController) GetVersionesTipoNumber() {
 	}
 	c.ServeJSON()
 }
+
+// GetVersionToType ...
+// @Title GetVersionToType
+// @Description get last version for TipoTransaccion
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.VersionTipoTransaccion
+// @Failure 403 :id is empty
+// @router /GetVersionToType/:idTipo [get]
+func (c *VersionTipoTransaccionController) GetVersionToType() {
+	idStr := c.Ctx.Input.Param(":idTipo")
+	id, _ := strconv.Atoi(idStr)
+	v, err := models.GetVersionToTipoTransaccion(id)
+	if err != nil {
+		alertdb := structs.Map(err)
+		var code string
+		formatdata.FillStruct(alertdb["Code"], &code)
+		alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+		c.Data["json"] = alert
+	} else {
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+	}
+	c.ServeJSON()
+}

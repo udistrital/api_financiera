@@ -107,6 +107,7 @@ func GetAllDetalleTipoTransaccionVersion(query map[string]string, fields []strin
 		if len(fields) == 0 {
 			for _, v := range l {
 				o.LoadRelated(&v, "ClaseTransaccion")
+				o.LoadRelated(&v, "TipoTransaccionVersion")
 				ml = append(ml, v)
 			}
 		} else {
