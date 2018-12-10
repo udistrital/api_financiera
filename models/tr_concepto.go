@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
 type TrConcepto struct {
-	Concepto      *Concepto
-	ConceptoPadre *Concepto
-	Afectaciones  *[]AfectacionConcepto
-	Cuentas       *[]CuentaContable
-	DelCuentas    *[]ConceptoCuentaContable
+	Concepto               *Concepto
+	ConceptoPadre          *Concepto
+	Afectaciones           *[]AfectacionConcepto
+	Cuentas                *[]CuentaContable
+	DelCuentas             *[]ConceptoCuentaContable
+	DetalleTipoTransaccion *DetalleTipoTransaccionVersion
 }
 
 //AddTransaccionConcepto funcion para la transaccion de conceptos -Agregar un concepto
@@ -83,6 +85,16 @@ func AddTransaccionConcepto(m *TrConcepto) (err error) {
 				//alerta[0] = "error"
 				//alerta = append(alerta, "Ocurrio un error al insertar el concepto en la estructura!")
 			}
+			if m.DetalleTipoTransaccion != nil {
+				var conceptoDetalle ConceptoDetalleTipoTransaccion
+				conceptoDetalle.DetalleTipoTransaccionVersion = m.DetalleTipoTransaccion
+				conceptoDetalle.Concepto = m.Concepto
+				if _, err = o.Insert(&conceptoDetalle); err != nil {
+					o.Rollback()
+					return err
+				}
+			}
+
 		}
 		o.Commit()
 		return nil
@@ -229,6 +241,24 @@ func UpdateConceptoTr(m *TrConcepto) (err error) {
 									//fmt.Println("Number of records deleted in database:", num)
 								}
 							} else {
+								o.Rollback()
+								return
+							}
+						}
+					}
+
+					if m.DetalleTipoTransaccion != nil {
+						rDetalle := &DetalleTipoTransaccionVersion{Id: m.DetalleTipoTransaccion.Id}
+						var detalleTipoTran *DetalleTipoTransaccionVersion
+						if err = o.Read(rDetalle); err == nil {
+							detalleTipoTran = m.DetalleTipoTransaccion
+							if _, err = o.Update(detalleTipoTran); err != nil {
+								beego.Error("error", err)
+								o.Rollback()
+								return
+							}
+						} else {
+							if _, err = o.Insert(detalleTipoTran); err != nil {
 								o.Rollback()
 								return
 							}

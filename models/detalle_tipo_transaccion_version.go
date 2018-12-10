@@ -6,7 +6,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 type DetalleTipoTransaccionVersion struct {
@@ -172,5 +174,41 @@ func DeleteEntireTipoTransaccion(m map[string]interface{}) (err error) {
 			}
 		}
 	}
+	return
+}
+
+// UpdateDetalleTipoTransaccionVersion updates DetalleTipoTransaccionVersion by Id and returns error if
+// the record to be updated doesn't exist
+func UpdateTipoTransaccionVersion(m map[string]interface{}) (err error) {
+	var version VersionTipoTransaccion
+	var detalle DetalleTipoTransaccionVersion
+	o := orm.NewOrm()
+	o.Begin()
+	err = formatdata.FillStruct(m["Version"], &version)
+	err = formatdata.FillStruct(m["DetalleTipoTransaccion"], &detalle)
+	versionRead := VersionTipoTransaccion{Id: version.Id}
+	detalleRead := DetalleTipoTransaccionVersion{Id: detalle.Id}
+	// ascertain id exists in the database
+	if err = o.Read(&versionRead); err == nil {
+		var num int64
+		if num, err = o.Update(&version); err == nil {
+			fmt.Println("Number of records updated in database:", num)
+		} else {
+			beego.Error("Error ", err)
+			o.Rollback()
+			return
+		}
+	}
+	if err = o.Read(&detalleRead); err == nil {
+		var num int64
+		if num, err = o.Update(&detalle); err == nil {
+			fmt.Println("Number of records updated in database:", num)
+		} else {
+			beego.Error("Error ", err)
+			o.Rollback()
+			return
+		}
+	}
+	o.Commit()
 	return
 }

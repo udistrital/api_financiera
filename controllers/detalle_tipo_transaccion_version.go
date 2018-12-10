@@ -177,3 +177,32 @@ func (c *DetalleTipoTransaccionVersionController) Delete() {
 	}
 	c.ServeJSON()
 }
+
+// UpdateTipoTransaccion ...
+// @Title UpdateTipoTransaccion
+// @Description update version and detalle for tipo transaccion
+// @Param	body		body 	models.DetalleTipoTransaccionVersion	true		"body for DetalleTipoTransaccionVersion content"
+// @Success 200 {object} models.DetalleTipoTransaccionVersion
+// @Failure 403 body is empty
+// @router /UpdateTipoTransaccion/ [put]
+func (c *DetalleTipoTransaccionVersionController) UpdateTipoTransaccion() {
+	v := make(map[string]interface{})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
+		beego.Error("valor v ", v)
+		if err := models.UpdateTipoTransaccionVersion(v); err == nil {
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_542", Body: v}
+		} else {
+			alertdb := structs.Map(err)
+			var code string
+			beego.Error("ERROR ", err)
+			err = formatdata.FillStruct(alertdb["Code"], &code)
+			alert := models.Alert{Type: "error", Code: "E_" + code, Body: err}
+			c.Data["json"] = alert
+		}
+	} else {
+		beego.Error("ERROR ", err)
+		alert := models.Alert{Type: "error", Code: "E_0458", Body: err}
+		c.Data["json"] = alert
+	}
+	c.ServeJSON()
+}

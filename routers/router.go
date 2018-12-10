@@ -980,6 +980,11 @@ func init() {
 				&controllers.VersionTipoTransaccionController{},
 			),
 		),
+		beego.NSNamespace("/concepto_detalle_tipo_transaccion",
+			beego.NSInclude(
+				&controllers.ConceptoDetalleTipoTransaccionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

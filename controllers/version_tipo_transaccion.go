@@ -247,7 +247,7 @@ func (c *VersionTipoTransaccionController) GetVersionToType() {
 // @Param	tipo	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Success 200 {object} models.VersionTipoTransaccion
 // @Failure 403 :id is empty
-// @router /GetVersionToType/:idTipo [get]
+// @router /GetVersionInEspecifiedDate/ [get]
 func (c *VersionTipoTransaccionController) GetVersionInEspecifiedDate() {
 	var fechaInicio string
 	var fechaFin string
@@ -274,6 +274,29 @@ func (c *VersionTipoTransaccionController) GetVersionInEspecifiedDate() {
 		c.Data["json"] = alert
 	} else {
 		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+	}
+	c.ServeJSON()
+}
+
+// GetDefinitiveVersion ...
+// @Title GetDefinitiveVersion
+// @Description get all definitive versions
+// @Param	fecha	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Success 200 {object} models.VersionTipoTransaccion
+// @Failure 403 :id is empty
+// @router /GetDefinitiveVersion/ [get]
+func (c *VersionTipoTransaccionController) GetDefinitiveVersion() {
+	var fecha string
+
+	if v := c.GetString("fecha"); v != "" {
+		fecha = v
+	}
+
+	v, err := models.GetAllDefinitiveVersion(fecha)
+	if err != nil {
+		c.Data["json"] = err
+	} else {
+		c.Data["json"] = v
 	}
 	c.ServeJSON()
 }
