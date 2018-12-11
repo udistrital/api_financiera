@@ -9,46 +9,45 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type TipoTransaccion struct {
-	Id               int               `orm:"column(id);pk;auto"`
-	Nombre           string            `orm:"column(nombre)"`
-	Descripcion      string            `orm:"column(descripcion);null"`
-	ClaseTransaccion *ClaseTransaccion `orm:"column(clase_transaccion);rel(fk)"`
+type ConceptoDetalleTipoTransaccion struct {
+	Id                            int                            `orm:"column(id);pk;auto"`
+	Concepto                      *Concepto                      `orm:"column(concepto_tesoral);rel(fk)"`
+	DetalleTipoTransaccionVersion *DetalleTipoTransaccionVersion `orm:"column(detalle_tipo_transaccion_version);rel(fk)"`
 }
 
-func (t *TipoTransaccion) TableName() string {
-	return "tipo_transaccion"
+func (t *ConceptoDetalleTipoTransaccion) TableName() string {
+	return "concepto_detalle_tipo_transaccion"
 }
 
 func init() {
-	orm.RegisterModel(new(TipoTransaccion))
+	orm.RegisterModel(new(ConceptoDetalleTipoTransaccion))
 }
 
-// AddTipoTransaccion insert a new TipoTransaccion into database and returns
+// AddConceptoDetalleTipoTransaccion insert a new ConceptoDetalleTipoTransaccion into database and returns
 // last inserted Id on success.
-func AddTipoTransaccion(m *TipoTransaccion) (id int64, err error) {
+func AddConceptoDetalleTipoTransaccion(m *ConceptoDetalleTipoTransaccion) (id int64, err error) {
 	o := orm.NewOrm()
 	id, err = o.Insert(m)
 	return
 }
 
-// GetTipoTransaccionById retrieves TipoTransaccion by Id. Returns error if
+// GetConceptoDetalleTipoTransaccionById retrieves ConceptoDetalleTipoTransaccion by Id. Returns error if
 // Id doesn't exist
-func GetTipoTransaccionById(id int) (v *TipoTransaccion, err error) {
+func GetConceptoDetalleTipoTransaccionById(id int) (v *ConceptoDetalleTipoTransaccion, err error) {
 	o := orm.NewOrm()
-	v = &TipoTransaccion{Id: id}
+	v = &ConceptoDetalleTipoTransaccion{Id: id}
 	if err = o.Read(v); err == nil {
 		return v, nil
 	}
 	return nil, err
 }
 
-// GetAllTipoTransaccion retrieves all TipoTransaccion matches certain condition. Returns empty list if
+// GetAllConceptoDetalleTipoTransaccion retrieves all ConceptoDetalleTipoTransaccion matches certain condition. Returns empty list if
 // no records exist
-func GetAllTipoTransaccion(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllConceptoDetalleTipoTransaccion(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(TipoTransaccion)).RelatedSel()
+	qs := o.QueryTable(new(ConceptoDetalleTipoTransaccion))
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -98,11 +97,12 @@ func GetAllTipoTransaccion(query map[string]string, fields []string, sortby []st
 		}
 	}
 
-	var l []TipoTransaccion
+	var l []ConceptoDetalleTipoTransaccion
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
 		if len(fields) == 0 {
 			for _, v := range l {
+				_, err = o.LoadRelated(&v, "DetalleTipoTransaccionVersion", 2)
 				ml = append(ml, v)
 			}
 		} else {
@@ -121,11 +121,11 @@ func GetAllTipoTransaccion(query map[string]string, fields []string, sortby []st
 	return nil, err
 }
 
-// UpdateTipoTransaccion updates TipoTransaccion by Id and returns error if
+// UpdateConceptoDetalleTipoTransaccion updates ConceptoDetalleTipoTransaccion by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateTipoTransaccionById(m *TipoTransaccion) (err error) {
+func UpdateConceptoDetalleTipoTransaccionById(m *ConceptoDetalleTipoTransaccion) (err error) {
 	o := orm.NewOrm()
-	v := TipoTransaccion{Id: m.Id}
+	v := ConceptoDetalleTipoTransaccion{Id: m.Id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
@@ -136,15 +136,15 @@ func UpdateTipoTransaccionById(m *TipoTransaccion) (err error) {
 	return
 }
 
-// DeleteTipoTransaccion deletes TipoTransaccion by Id and returns error if
+// DeleteConceptoDetalleTipoTransaccion deletes ConceptoDetalleTipoTransaccion by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteTipoTransaccion(id int) (err error) {
+func DeleteConceptoDetalleTipoTransaccion(id int) (err error) {
 	o := orm.NewOrm()
-	v := TipoTransaccion{Id: id}
+	v := ConceptoDetalleTipoTransaccion{Id: id}
 	// ascertain id exists in the database
 	if err = o.Read(&v); err == nil {
 		var num int64
-		if num, err = o.Delete(&TipoTransaccion{Id: id}); err == nil {
+		if num, err = o.Delete(&ConceptoDetalleTipoTransaccion{Id: id}); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

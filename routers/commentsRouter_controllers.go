@@ -1583,6 +1583,46 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoDetalleTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoOrdenPagoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:ConceptoOrdenPagoController"],
 		beego.ControllerComments{
 			Method: "Post",
@@ -1908,6 +1948,54 @@ func init() {
 			Method: "InsertarRegistros",
 			Router: `/InsertarRegistros`,
 			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "Post",
+			Router: `/`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "GetAll",
+			Router: `/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "GetOne",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "Put",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:DetalleTipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "UpdateTipoTransaccion",
+			Router: `/UpdateTipoTransaccion/`,
+			AllowHTTPMethods: []string{"put"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -7295,7 +7383,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
 		beego.ControllerComments{
 			Method: "Post",
 			Router: `/`,
@@ -7303,7 +7391,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
 		beego.ControllerComments{
 			Method: "GetAll",
 			Router: `/`,
@@ -7311,7 +7399,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
 		beego.ControllerComments{
 			Method: "GetOne",
 			Router: `/:id`,
@@ -7319,7 +7407,7 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
 		beego.ControllerComments{
 			Method: "Put",
 			Router: `/:id`,
@@ -7327,11 +7415,27 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionController"],
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
 		beego.ControllerComments{
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "CreateTipoVersion",
+			Router: `/CreateTipoVersion`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:TipoTransaccionVersionController"],
+		beego.ControllerComments{
+			Method: "GetTipoTransaccionVersionesNumber",
+			Router: `/GetTipoTransaccionVersionesNumber/`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -7484,6 +7588,38 @@ func init() {
 			Method: "Delete",
 			Router: `/:id`,
 			AllowHTTPMethods: []string{"delete"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetDefinitiveVersion",
+			Router: `/GetDefinitiveVersion/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetVersionInEspecifiedDate",
+			Router: `/GetVersionInEspecifiedDate/`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetVersionToType",
+			Router: `/GetVersionToType/:idTipo`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/api_financiera/controllers:VersionTipoTransaccionController"],
+		beego.ControllerComments{
+			Method: "GetVersionesTipoNumber",
+			Router: `/GetVersionesTipoNumber/`,
+			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 

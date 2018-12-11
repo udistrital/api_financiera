@@ -332,18 +332,6 @@ func init() {
 			),
 		),
 
-		beego.NSNamespace("/version_tipo_transaccion",
-			beego.NSInclude(
-				&controllers.VersionTipoTransaccionController{},
-			),
-		),
-
-		beego.NSNamespace("/tipo_transaccion",
-			beego.NSInclude(
-				&controllers.TipoTransaccionController{},
-			),
-		),
-
 		beego.NSNamespace("/modulo_kronos",
 			beego.NSInclude(
 				&controllers.ModuloKronosController{},
@@ -973,6 +961,28 @@ func init() {
 		beego.NSNamespace("/estado_avance_legalizacion_tipo",
 			beego.NSInclude(
 				&controllers.EstadoAvanceLegalizacionTipoController{},
+			),
+		),
+		beego.NSNamespace("/tipo_transaccion_version",
+			beego.NSInclude(
+				&controllers.TipoTransaccionVersionController{},
+			),
+		),
+
+		beego.NSNamespace("/detalle_tipo_transaccion_version",
+			beego.NSInclude(
+				&controllers.DetalleTipoTransaccionVersionController{},
+			),
+		),
+
+		beego.NSNamespace("/version_tipo_transaccion",
+			beego.NSInclude(
+				&controllers.VersionTipoTransaccionController{},
+			),
+		),
+		beego.NSNamespace("/concepto_detalle_tipo_transaccion",
+			beego.NSInclude(
+				&controllers.ConceptoDetalleTipoTransaccionController{},
 			),
 		),
 	)
