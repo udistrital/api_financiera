@@ -188,7 +188,7 @@ func (c *OrdenPagoEstadoOrdenPagoController) WorkFlowOrdenPago() {
 			c.Data["json"] = mensaje
 		} else {
 			c.Ctx.Output.SetStatus(201)
-			alert := models.Alert{Type: "success", Code: "S_OP_ESTADO", Body: mensaje}
+			alert := models.Alert{Type: "success", Code: "S_OP_ESTADO", Body: m}
 			c.Data["json"] = alert
 		}
 	} else {

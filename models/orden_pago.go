@@ -191,6 +191,8 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	var sqlSecuencia string
 	var grupoSecuencia string
 	var controlErro map[string]interface{}
+	var auxCuentaEspecial []map[string]interface{}
+	var auxTipoDocumento TipoDocumentoAfectante
 	var consecutivoOp int
 	var err error
 	o := orm.NewOrm()
@@ -202,13 +204,14 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	usuario := Usuario{}
 	ordenPagoRegistroPresupuestal := []OrdenPagoRegistroPresupuestal{}
 	ordenPagoCuentaEspecial := []OrdenPagoCuentaEspecial{}
-	err1 := formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
-	err2 := formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
-	err3 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
-	err4 := formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
-	err5 := formatdata.FillStruct(DataOpProveedor["RegistroPresupuestal"], &ordenPagoRegistroPresupuestal)
-	err6 := formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &ordenPagoCuentaEspecial)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
+	err = formatdata.FillStruct(DataOpProveedor["OrdenPago"], &ordenPago)
+	err = formatdata.FillStruct(DataOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
+	err = formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &movimientoContable)
+	err = formatdata.FillStruct(DataOpProveedor["Usuario"], &usuario)
+	err = formatdata.FillStruct(DataOpProveedor["RegistroPresupuestal"], &ordenPagoRegistroPresupuestal)
+	err = formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &ordenPagoCuentaEspecial)
+	err = formatdata.FillStruct(DataOpProveedor["MovimientoContable"], &auxCuentaEspecial)
+	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_01" //error en parametros de entrada
 		alerta.Body = "Erro en la estructura de parametro de entrada en RegistrarOpProveedor"
@@ -272,8 +275,8 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 		return
 	}
 	// TipoDocumentoAfectante
-	tipoDocumentoAfectante := TipoDocumentoAfectante{CodigoAbreviacion: "DA-OP"} //documento Orden Pago
-	err = o.Read(&tipoDocumentoAfectante, "CodigoAbreviacion")
+	tipoDocumentoAfectante, err := GetTipoDocumentoAfectanteByCode("DA-OP")     //documento Orden Pago
+	tipoDocumentoAfectanteGiro, err := GetTipoDocumentoAfectanteByCode("DA-GI") //documento Orden Pago
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPN_02"
@@ -311,13 +314,23 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(movimientoContable); i++ {
+		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
+			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
+				auxTipoDocumento = tipoDocumentoAfectanteGiro
+			} else {
+				auxTipoDocumento = tipoDocumentoAfectante
+			}
+		} else {
+			auxTipoDocumento = tipoDocumentoAfectante
+		}
+
 		movimientoContableData := MovimientoContable{
 			Debito:                   movimientoContable[i].Debito,
 			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
@@ -360,14 +373,18 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	o := orm.NewOrm()
 	o.Begin()
 	// GetData
+	var auxCuentaEspecial []map[string]interface{}
+	var auxTipoDocumento TipoDocumentoAfectante
 	ordenPago := OrdenPago{}
 	conceptoOrdenPago := []ConceptoOrdenPago{}
 	movimientoContable := []MovimientoContable{}
 	usuario := Usuario{}
+
 	err = formatdata.FillStruct(DataActualizarOpProveedor["OrdenPago"], &ordenPago)
 	err = formatdata.FillStruct(DataActualizarOpProveedor["ConceptoOrdenPago"], &conceptoOrdenPago)
 	err = formatdata.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &movimientoContable)
 	err = formatdata.FillStruct(DataActualizarOpProveedor["Usuario"], &usuario)
+	err = formatdata.FillStruct(DataActualizarOpProveedor["MovimientoContable"], &auxCuentaEspecial)
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPP_UPD_01" //error en parametros de entrada
@@ -406,8 +423,8 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 		return
 	}
 	// TipoDocumentoAfectante
-	tipoDocumentoAfectante := TipoDocumentoAfectante{CodigoAbreviacion: "DA-OP"} //documento Orden Pago
-	err = o.Read(&tipoDocumentoAfectante, "CodigoAbreviacion")
+	tipoDocumentoAfectante, err := GetTipoDocumentoAfectanteByCode("DA-OP")     //documento Orden Pago
+	tipoDocumentoAfectanteGiro, err := GetTipoDocumentoAfectanteByCode("DA-GI") //documento Giro Impuestos
 	if err != nil {
 		alerta.Type = "error"
 		alerta.Code = "E_OPN_02"
@@ -452,13 +469,22 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	}
 	//Movimientos
 	for i := 0; i < len(movimientoContable); i++ {
+		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
+			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
+				auxTipoDocumento = tipoDocumentoAfectanteGiro
+			} else {
+				auxTipoDocumento = tipoDocumentoAfectante
+			}
+		} else {
+			auxTipoDocumento = tipoDocumentoAfectante
+		}
 		movimientoContableData := MovimientoContable{
 			Debito:                   movimientoContable[i].Debito,
 			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(ordenPago.Id),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
