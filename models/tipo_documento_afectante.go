@@ -45,6 +45,17 @@ func GetTipoDocumentoAfectanteById(id int) (v *TipoDocumentoAfectante, err error
 	return nil, err
 }
 
+// GetTipoDocumentoAfectanteById retrieves TipoDocumentoAfectante by Id. Returns error if
+// Id doesn't exist
+func GetTipoDocumentoAfectanteByCode(m string) (v TipoDocumentoAfectante, err error) {
+	o := orm.NewOrm()
+	v = TipoDocumentoAfectante{CodigoAbreviacion: m}
+	if err = o.Read(&v, "CodigoAbreviacion"); err == nil {
+		return v, nil
+	}
+	return v, err
+}
+
 // GetAllTipoDocumentoAfectante retrieves all TipoDocumentoAfectante matches certain condition. Returns empty list if
 // no records exist
 func GetAllTipoDocumentoAfectante(query map[string]string, fields []string, sortby []string, order []string,
