@@ -314,26 +314,49 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 	}
 	// Insertar data Movimientos Contables
 	for i := 0; i < len(movimientoContable); i++ {
-		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
-			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
-				auxTipoDocumento = tipoDocumentoAfectanteGiro
-			} else {
-				auxTipoDocumento = tipoDocumentoAfectante
-			}
-		} else {
-			auxTipoDocumento = tipoDocumentoAfectante
-		}
-
 		movimientoContableData := MovimientoContable{
 			Debito:                   movimientoContable[i].Debito,
 			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
+		_, err = o.Insert(&movimientoContableData)
+		if err != nil {
+			alerta.Type = "error"
+			alerta.Code = "E_OPP_03"
+			alerta.Body = err.Error()
+			o.Rollback()
+			return
+		}
+		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
+			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
+				auxTipoDocumento = tipoDocumentoAfectanteGiro
+				movimientoContableData := MovimientoContable{
+					Debito:                   movimientoContable[i].Debito,
+					Credito:                  movimientoContable[i].Credito,
+					Fecha:                    time.Now(),
+					Concepto:                 movimientoContable[i].Concepto,
+					CuentaContable:           movimientoContable[i].CuentaContable,
+					TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
+					CodigoDocumentoAfectante: int(idOrdenPago),
+					EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
+				}
+				_, err = o.Insert(&movimientoContableData)
+				if err != nil {
+					alerta.Type = "error"
+					alerta.Code = "E_OPP_03"
+					alerta.Body = err.Error()
+					o.Rollback()
+					return
+				}								
+
+			} 
+		} 
+
 		if movimientoContable[i].CuentaEspecial != nil {
 			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
 			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
@@ -354,14 +377,6 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			}
 		}
 
-		_, err = o.Insert(&movimientoContableData)
-		if err != nil {
-			alerta.Type = "error"
-			alerta.Code = "E_OPP_03"
-			alerta.Body = err.Error()
-			o.Rollback()
-			return
-		}
 	}
 	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
 	o.Commit()
@@ -469,22 +484,13 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 	}
 	//Movimientos
 	for i := 0; i < len(movimientoContable); i++ {
-		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
-			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
-				auxTipoDocumento = tipoDocumentoAfectanteGiro
-			} else {
-				auxTipoDocumento = tipoDocumentoAfectante
-			}
-		} else {
-			auxTipoDocumento = tipoDocumentoAfectante
-		}
 		movimientoContableData := MovimientoContable{
 			Debito:                   movimientoContable[i].Debito,
 			Credito:                  movimientoContable[i].Credito,
 			Fecha:                    time.Now(),
 			Concepto:                 movimientoContable[i].Concepto,
 			CuentaContable:           movimientoContable[i].CuentaContable,
-			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
+			TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(tipoDocumentoAfectante.Id)}, //documento afectante tipo op
 			CodigoDocumentoAfectante: int(ordenPago.Id),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
@@ -495,6 +501,30 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 			alerta.Body = err.Error()
 			o.Rollback()
 			return
+		}
+		if auxCuentaEspecial[i]["TipoCuentaEspecial"] != nil {
+			if auxCuentaEspecial[i]["TipoCuentaEspecial"].(map[string]interface{})["Id"].(float64) == 2 {
+				auxTipoDocumento = tipoDocumentoAfectanteGiro
+				movimientoContableData := MovimientoContable{
+					Debito:                   movimientoContable[i].Debito,
+					Credito:                  movimientoContable[i].Credito,
+					Fecha:                    time.Now(),
+					Concepto:                 movimientoContable[i].Concepto,
+					CuentaContable:           movimientoContable[i].CuentaContable,
+					TipoDocumentoAfectante:   &TipoDocumentoAfectante{Id: int(auxTipoDocumento.Id)}, //documento afectante tipo op
+					CodigoDocumentoAfectante: int(ordenPago.Id),
+					EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
+				}
+				_, err = o.Insert(&movimientoContableData)
+				if err != nil {
+					alerta.Type = "error"
+					alerta.Code = "E_OPP_UPD_05"
+					alerta.Body = err.Error()
+					o.Rollback()
+					return
+				}								
+
+			} 
 		}
 	}
 	o.Commit()
