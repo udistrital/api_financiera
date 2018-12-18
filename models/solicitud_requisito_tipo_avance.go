@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/udistrital/utils_oas/formatdata"
 )
@@ -50,7 +51,6 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 			data.Activo = true
 			data.Valido = true
 			data.FechaRegistro = time.Now().Local()
-			fmt.Println("solicitud_requisito_tipo_avance: ", data)
 			_, err = o.Insert(&data)
 		}
 		if err == nil {
@@ -62,13 +62,17 @@ func TrValidarAvance(m map[string]interface{}) (estado EstadoAvance, err error) 
 			estadoAvance.FechaRegistro = time.Now()
 			estadoAvance.Responsable = 1
 			estadoAvance.Observaciones = "Requisitos Verificados"
-			fmt.Println("solicitud: ", solicitud)
 			_, err = o.Insert(&estadoAvance)
 			if err == nil {
+				estado = estadoVerificado
 				o.Commit()
 			} else {
+				o.Rollback()
 				fmt.Println("Error", err)
 			}
+		} else {
+			o.Rollback()
+			beego.Error("Error ", err)
 		}
 	}
 	return
