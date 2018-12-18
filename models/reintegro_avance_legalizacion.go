@@ -12,9 +12,9 @@ import (
 )
 
 type ReintegroAvanceLegalizacion struct {
-	Id        						int              `orm:"column(id);pk;auto"`
-	Reintegro 						*Reintegro       `orm:"column(reintegro);rel(fk)"`
-	AvanceLegalizacion    *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
+	Id                 int                 `orm:"column(id);pk;auto"`
+	Reintegro          *Reintegro          `orm:"column(reintegro);rel(fk)"`
+	AvanceLegalizacion *AvanceLegalizacion `orm:"column(avance_legalizacion);rel(fk)"`
 }
 
 func (t *ReintegroAvanceLegalizacion) TableName() string {
@@ -156,14 +156,55 @@ func DeleteReintegroAvanceLegalizacion(id int) (err error) {
 //if any insert fails
 func AddReintegroAvance(request map[string]interface{}) (successNums int64, err error) {
 	var reintegrosAvance []ReintegroAvanceLegalizacion
+	var solicitudAvance SolicitudAvance
+	var legalizacionAvance AvanceLegalizacion
+	var consecLeg int64
+	var idLegA int64
 	err = formatdata.FillStruct(request["reintegroAvance"], &reintegrosAvance)
+
 	o := orm.NewOrm()
+
+	o.Begin()
+
+	if reintegrosAvance[0].AvanceLegalizacion == nil {
+		err = formatdata.FillStruct(request["reintegroAvance"].([]interface{})[0].(map[string]interface{})["SolicitudAvance"], &solicitudAvance)
+		if err != nil {
+			beego.Error(err.Error())
+			return
+		}
+		err = o.QueryTable("avance_legalizacion").
+			Filter("avance", solicitudAvance.Id).
+			One(&legalizacionAvance)
+		if err != nil {
+			if err == orm.ErrNoRows {
+				qb, _ := orm.NewQueryBuilder("mysql")
+				qb.Select("COALESCE(MAX(al.legalizacion),0)+1").
+					From("avance_legalizacion al")
+				sql := qb.String()
+				err = o.Raw(sql).QueryRow(&consecLeg)
+				legalizacionAvance.Legalizacion = int(consecLeg)
+				legalizacionAvance.Avance = &solicitudAvance
+				idLegA, err = o.Insert(&legalizacionAvance)
+				if err != nil {
+					beego.Error(err.Error())
+					o.Rollback()
+					return
+				}
+				legalizacionAvance.Id = int(idLegA)
+			} else {
+				beego.Error("Error", err)
+				o.Rollback()
+				return
+			}
+		}
+	}
+
 	if err == nil {
-
-		o.Begin()
-
-		for _, element := range reintegrosAvance {
-			_, err = o.QueryTable("reintegro").Filter("id", element.Reintegro.Id).Update(orm.Params{
+		for i := 0; i < len(reintegrosAvance); i++ {
+			if reintegrosAvance[i].AvanceLegalizacion == nil {
+				reintegrosAvance[i].AvanceLegalizacion = &legalizacionAvance
+			}
+			_, err = o.QueryTable("reintegro").Filter("id", reintegrosAvance[i].Reintegro.Id).Update(orm.Params{
 				"disponible": false,
 			})
 			if err != nil {
@@ -171,12 +212,13 @@ func AddReintegroAvance(request map[string]interface{}) (successNums int64, err 
 				o.Rollback()
 				return
 			}
-			successNums, err = o.InsertMulti(100, reintegrosAvance)
-			if err != nil {
-				beego.Error(err.Error())
-				o.Rollback()
-				return
-			}
+		}
+		beego.Error(reintegrosAvance)
+		successNums, err = o.InsertMulti(100, reintegrosAvance)
+		if err != nil {
+			beego.Error(err.Error())
+			o.Rollback()
+			return
 		}
 
 	} else {

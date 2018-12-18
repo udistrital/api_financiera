@@ -213,7 +213,7 @@ func GetAllReintegroDisponible(query map[string]string, offset int, limit int) (
 	}
 	where = strings.TrimRight(where, " and ")
 
-	qb.Select("r.*").
+	qb.Select("distinct r.*").
 		From("financiera.reintegro r").
 		InnerJoin("financiera.ingreso i").On("i.id = r.ingreso").
 		InnerJoin("financiera.ingreso_estado_ingreso iei").On("iei.ingreso = i.id").
