@@ -324,6 +324,25 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			CodigoDocumentoAfectante: int(idOrdenPago),
 			EstadoMovimientoContable: &EstadoMovimientoContable{Id: int(estadoMovimientoContable.Id)},
 		}
+		if movimientoContable[i].CuentaEspecial != nil {
+			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
+			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
+				OrdenPago:      &OrdenPago{Id: int(idOrdenPago)},
+				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
+				FormaPago:      &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
+				ValorBase:      ordenPagoCuentaEspecial[i].ValorBase,
+				FechaRegistro:  time.Now(),
+				Usuario:        usuario.Id,
+			}
+			_, err = o.Insert(&ordenPagoCuentaEspecialData)
+			if err != nil {
+				alerta.Type = "errorCuentaEspecial"
+				alerta.Code = "E_OPP_04"
+				alerta.Body = err.Error()
+				o.Rollback()
+				return
+			}
+		}		
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
 			alerta.Type = "error"
@@ -357,25 +376,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 			} 
 		} 
 
-		if movimientoContable[i].CuentaEspecial != nil {
-			movimientoContableData.CuentaEspecial = movimientoContable[i].CuentaEspecial
-			ordenPagoCuentaEspecialData := OrdenPagoCuentaEspecial{
-				OrdenPago:      &OrdenPago{Id: int(idOrdenPago)},
-				CuentaEspecial: &CuentaEspecial{Id: int(movimientoContable[i].CuentaEspecial.Id)},
-				FormaPago:      &FormaPago{Id: int(ordenPagoCuentaEspecial[i].FormaPago.Id)},
-				ValorBase:      ordenPagoCuentaEspecial[i].ValorBase,
-				FechaRegistro:  time.Now(),
-				Usuario:        usuario.Id,
-			}
-			_, err = o.Insert(&ordenPagoCuentaEspecialData)
-			if err != nil {
-				alerta.Type = "errorCuentaEspecial"
-				alerta.Code = "E_OPP_04"
-				alerta.Body = err.Error()
-				o.Rollback()
-				return
-			}
-		}
+
 
 	}
 	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
