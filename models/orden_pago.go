@@ -123,6 +123,7 @@ func GetAllOrdenPago(query map[string]string, fields []string, sortby []string, 
 			for _, v := range l {
 				o.LoadRelated(&v, "OrdenPagoEstadoOrdenPago", 5, 1, 0, "-Id")
 				o.LoadRelated(&v, "OrdenPagoRegistroPresupuestal", 2, -1, 0, "-Id")
+				o.LoadRelated(&v, "OrdenPagoCuentaEspecial", 2, -1, 0, "-Id")
 				ml = append(ml, v)
 			}
 		} else {
@@ -342,7 +343,7 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 				o.Rollback()
 				return
 			}
-		}		
+		}
 		_, err = o.Insert(&movimientoContableData)
 		if err != nil {
 			alerta.Type = "error"
@@ -371,12 +372,10 @@ func RegistrarOpProveedor(DataOpProveedor map[string]interface{}) (alerta Alert)
 					alerta.Body = err.Error()
 					o.Rollback()
 					return
-				}								
+				}
 
-			} 
-		} 
-
-
+			}
+		}
 
 	}
 	alerta = Alert{Type: "success", Code: "S_OPP_01", Body: consecutivoOp}
@@ -523,9 +522,9 @@ func ActualizarOpProveedor(DataActualizarOpProveedor map[string]interface{}) (al
 					alerta.Body = err.Error()
 					o.Rollback()
 					return
-				}								
+				}
 
-			} 
+			}
 		}
 	}
 	o.Commit()

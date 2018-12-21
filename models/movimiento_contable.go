@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -42,7 +43,7 @@ func AddMovimientoContable(m *MovimientoContable) (id int64, err error) {
 //AddMovimientoContableArray insert an array from MovimientoContable into database
 func AddMovimientoContableArray(m *[]MovimientoContable) (id int64, err error) {
 	o := orm.NewOrm()
-	id, err = o.InsertMulti(100,m)
+	id, err = o.InsertMulti(100, m)
 	return
 }
 
@@ -162,5 +163,27 @@ func DeleteMovimientoContable(id int) (err error) {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}
+	return
+}
+
+func GetSumMovimientos(tipoDocumento int, codigoDocumento int) (totalesMov []orm.Params, alerta Alert) {
+	o := orm.NewOrm()
+	o.Begin()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("sum(debito) as debito, sum(credito) as credito").
+		From("financiera.movimiento_contable").
+		Where("tipo_documento_afectante = ?").
+		And("codigo_documento_afectante = ?")
+	_, err := o.Raw(qb.String(), tipoDocumento, codigoDocumento).Values(&totalesMov)
+	beego.Info(totalesMov)
+	beego.Info(qb.String())
+	if err != nil {
+		alerta.Type = "error"
+		alerta.Code = "E_GetSumMovimientos_01"
+		alerta.Body = err.Error()
+		o.Rollback()
+		return
+	}
+	o.Commit()
 	return
 }
