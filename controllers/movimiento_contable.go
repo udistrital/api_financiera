@@ -3,12 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
-	"fmt"
+
 	"github.com/astaxie/beego"
 	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
 )
 
 // MovimientoContableController operations for MovimientoContable
@@ -59,13 +59,13 @@ func (c *MovimientoContableController) PostArray() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddMovimientoContableArray(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			alertdb:=structs.Map(err)
-			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err}
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err}
 		}
 	} else {
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err}
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
 }
@@ -142,7 +142,6 @@ func (c *MovimientoContableController) GetAll() {
 			query[k] = v
 		}
 	}
-	fmt.Println("hola soy movimiento",query)
 	l, err := models.GetAllMovimientoContable(query, fields, sortby, order, offset, limit)
 	if err != nil {
 		c.Data["json"] = err.Error()
@@ -192,4 +191,51 @@ func (c *MovimientoContableController) Delete() {
 		c.Data["json"] = err.Error()
 	}
 	c.ServeJSON()
+}
+
+// GetSumMovimientos ...
+// @Title GetSumMovimientos
+// @Description obtiene la Suma del los Movimientos
+// @Param	query	idordenpago	 int64	false	"Filter. e.g. col1:v1,col2:v2 ..."
+// @Success 200 {object} models.MovimientoContable
+// @Failure 403
+// @router /GetSumMovimientos/ [get]
+func (c *MovimientoContableController) GetSumMovimientos() {
+	var query = make(map[string]string)
+	var tipoDocumentoAfectante string
+	var codigoDocumentoAfectante string
+	// limit: 10 (default is 10)
+	if v := c.GetString("query"); v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid query key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			query[k] = v
+		}
+	}
+	for k, v := range query {
+		if k == "TipoDocumentoAfectante" {
+			tipoDocumentoAfectante = v
+		}
+		if k == "CodigoDocumentoAfectante" {
+			codigoDocumentoAfectante = v
+		}
+	}
+
+	beego.Info(codigoDocumentoAfectante)
+	tipoDoc, _ := strconv.Atoi(tipoDocumentoAfectante)
+	codDoc, _ := strconv.Atoi(codigoDocumentoAfectante)
+
+	l, mensaje := models.GetSumMovimientos(tipoDoc, codDoc)
+	if mensaje.Body != nil {
+		c.Data["json"] = mensaje
+	} else {
+		c.Data["json"] = l
+	}
+	c.ServeJSON()
+
 }
