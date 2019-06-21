@@ -1,4 +1,4 @@
-# Api Financiera
+# :no_entry: REPOSITORIO INACTIVO Api Financiera
 Api de funcionamiento CRUD para el sistema financiero de la OAS
 #Esta api se despliega en ECS de Amazon
 <br>
