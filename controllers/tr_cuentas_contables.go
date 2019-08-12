@@ -27,7 +27,7 @@ func (c *TrCuentasContablesController) URLMapping() {
 // @Description Post de cuentas contables mediante la transaccion que las crea y ubica en el plan de cuentas
 // @Param	body	body 	models.TrCuentaContable	true "body para la transaccion"
 // @Success 201 {int} models.TrCuentaContable
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *TrCuentasContablesController) Post() {
 
@@ -56,7 +56,7 @@ func (c *TrCuentasContablesController) Post() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.TrCuentaContable	true		"body for TrCuentaContable content"
 // @Success 200 {object} models.TrCuentaContable
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *TrCuentasContablesController) Put() {
 	idStr := c.Ctx.Input.Param(":id")

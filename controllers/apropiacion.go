@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/fatih/structs"
 	"github.com/manucorporat/try"
 	"github.com/udistrital/api_financiera/models"
@@ -37,7 +38,7 @@ func (c *ApropiacionController) URLMapping() {
 // @Description create Apropiacion
 // @Param	body		body 	models.Apropiacion	true		"body for Apropiacion content"
 // @Success 201 {int} models.Apropiacion
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *ApropiacionController) Post() {
 	var v models.Apropiacion
@@ -63,14 +64,17 @@ func (c *ApropiacionController) Post() {
 // @Description get Apropiacion by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.Apropiacion
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *ApropiacionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetApropiacionById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -87,7 +91,7 @@ func (c *ApropiacionController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.Apropiacion
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *ApropiacionController) GetAll() {
 	var fields []string
@@ -149,7 +153,7 @@ func (c *ApropiacionController) GetAll() {
 
 	l, err := models.GetAllApropiacion(query, exclude, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		c.Data["json"] = map[string]interface{}{"Data": err.Error()}
 	} else {
 		c.Data["json"] = l
 	}
@@ -162,7 +166,7 @@ func (c *ApropiacionController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.Apropiacion	true		"body for Apropiacion content"
 // @Success 200 {object} models.Apropiacion
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *ApropiacionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -189,15 +193,18 @@ func (c *ApropiacionController) Put() {
 // @Description delete the Apropiacion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *ApropiacionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteApropiacion(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }

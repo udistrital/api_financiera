@@ -3,11 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 )
 
 // SolicitudDevolucionEstadoDevolucionController operations for SolicitudDevolucionEstadoDevolucion
@@ -29,7 +31,7 @@ func (c *SolicitudDevolucionEstadoDevolucionController) URLMapping() {
 // @Description create SolicitudDevolucionEstadoDevolucion
 // @Param	body		body 	models.SolicitudDevolucionEstadoDevolucion	true		"body for SolicitudDevolucionEstadoDevolucion content"
 // @Success 201 {int} models.SolicitudDevolucionEstadoDevolucion
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *SolicitudDevolucionEstadoDevolucionController) Post() {
 	var v models.SolicitudDevolucionEstadoDevolucion
@@ -38,10 +40,16 @@ func (c *SolicitudDevolucionEstadoDevolucionController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -51,14 +59,17 @@ func (c *SolicitudDevolucionEstadoDevolucionController) Post() {
 // @Description get SolicitudDevolucionEstadoDevolucion by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *SolicitudDevolucionEstadoDevolucionController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetSolicitudDevolucionEstadoDevolucionById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -75,7 +86,7 @@ func (c *SolicitudDevolucionEstadoDevolucionController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *SolicitudDevolucionEstadoDevolucionController) GetAll() {
 	var fields []string
@@ -121,8 +132,14 @@ func (c *SolicitudDevolucionEstadoDevolucionController) GetAll() {
 
 	l, err := models.GetAllSolicitudDevolucionEstadoDevolucion(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -134,7 +151,7 @@ func (c *SolicitudDevolucionEstadoDevolucionController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.SolicitudDevolucionEstadoDevolucion	true		"body for SolicitudDevolucionEstadoDevolucion content"
 // @Success 200 {object} models.SolicitudDevolucionEstadoDevolucion
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *SolicitudDevolucionEstadoDevolucionController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -142,12 +159,18 @@ func (c *SolicitudDevolucionEstadoDevolucionController) Put() {
 	v := models.SolicitudDevolucionEstadoDevolucion{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateSolicitudDevolucionEstadoDevolucionById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -157,15 +180,18 @@ func (c *SolicitudDevolucionEstadoDevolucionController) Put() {
 // @Description delete the SolicitudDevolucionEstadoDevolucion
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *SolicitudDevolucionEstadoDevolucionController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteSolicitudDevolucionEstadoDevolucion(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }

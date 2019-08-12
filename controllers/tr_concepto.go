@@ -27,7 +27,7 @@ func (c *TrConceptoController) URLMapping() {
 // @Description create Concepto
 // @Param	body		body 	models.TrConcepto	true		"body for Concepto content"
 // @Success 201 {int} models.Alert
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *TrConceptoController) Post() {
 
@@ -62,7 +62,7 @@ func (c *TrConceptoController) Post() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.TrConcepto	true		"body for Concepto content"
 // @Success 200 {object} models.Alert
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *TrConceptoController) Put() {
 	fmt.Printf("actualizando...............................................................")

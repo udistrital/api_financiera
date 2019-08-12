@@ -10,7 +10,9 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/udistrital/ss_crud_api/models"
+
+	// "github.com/udistrital/ss_crud_api/models"
+	// "github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/utils_oas/formatdata"
 )
 
@@ -269,7 +271,7 @@ func GetCuentasEspeciales(id int64) (cuentas []orm.Params, alerta Alert) {
 }
 
 //funcion para recopilar valor de la cuenta especial de tipo endoso
-func GetValueEndoso(idCodigoDocumento int64, idCuentaEspecial int64) (res []orm.Params, alerta models.Alert) {
+func GetValueEndoso(idCodigoDocumento int64, idCuentaEspecial int64) (res []orm.Params, alerta Alert) {
 	o := orm.NewOrm()
 	o.Begin()
 	qb, _ := orm.NewQueryBuilder("mysql")

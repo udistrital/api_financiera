@@ -12,6 +12,7 @@ import (
 	"github.com/udistrital/utils_oas/formatdata"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 )
 
 // CompromisoController operations for Compromiso
@@ -33,7 +34,7 @@ func (c *CompromisoController) URLMapping() {
 // @Description create Compromiso
 // @Param	body		body 	models.Compromiso	true		"body for Compromiso content"
 // @Success 201 {int} models.Compromiso
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *CompromisoController) Post() {
 	var v models.Compromiso
@@ -62,14 +63,17 @@ func (c *CompromisoController) Post() {
 // @Description get Compromiso by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.Compromiso
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *CompromisoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetCompromisoById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -86,7 +90,7 @@ func (c *CompromisoController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.Compromiso
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *CompromisoController) GetAll() {
 	var fields []string
@@ -132,8 +136,14 @@ func (c *CompromisoController) GetAll() {
 
 	l, err := models.GetAllCompromiso(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -145,7 +155,7 @@ func (c *CompromisoController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.Compromiso	true		"body for Compromiso content"
 // @Success 200 {object} models.Compromiso
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *CompromisoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -196,7 +206,7 @@ func (c *CompromisoController) Put() {
 // @Description delete the Compromiso
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *CompromisoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")

@@ -9,6 +9,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/fatih/structs"
 	"github.com/udistrital/utils_oas/formatdata"
 )
@@ -32,7 +33,7 @@ func (c *DevolucionTributariaController) URLMapping() {
 // @Description create DevolucionTributaria
 // @Param	body		body 	models.DevolucionTributaria	true		"body for DevolucionTributaria content"
 // @Success 201 {int} models.DevolucionTributaria
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *DevolucionTributariaController) Post() {
 	var v models.DevolucionTributaria
@@ -41,10 +42,16 @@ func (c *DevolucionTributariaController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -54,14 +61,17 @@ func (c *DevolucionTributariaController) Post() {
 // @Description get DevolucionTributaria by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.DevolucionTributaria
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *DevolucionTributariaController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetDevolucionTributariaById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -78,7 +88,7 @@ func (c *DevolucionTributariaController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.DevolucionTributaria
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *DevolucionTributariaController) GetAll() {
 	var fields []string
@@ -124,8 +134,14 @@ func (c *DevolucionTributariaController) GetAll() {
 
 	l, err := models.GetAllDevolucionTributaria(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -137,7 +153,7 @@ func (c *DevolucionTributariaController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.DevolucionTributaria	true		"body for DevolucionTributaria content"
 // @Success 200 {object} models.DevolucionTributaria
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *DevolucionTributariaController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -145,12 +161,18 @@ func (c *DevolucionTributariaController) Put() {
 	v := models.DevolucionTributaria{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateDevolucionTributariaById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -160,15 +182,18 @@ func (c *DevolucionTributariaController) Put() {
 // @Description delete the DevolucionTributaria
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *DevolucionTributariaController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteDevolucionTributaria(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
@@ -178,7 +203,7 @@ func (c *DevolucionTributariaController) Delete() {
 // @Description insert tributary devolution wit all its relations
 // @Param	body		body 	models.DevolucionTributaria	true		"body for OrdenDevolucion content"
 // @Success 201 {int} models.OrdenDevolucion
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router /AddDevolucionTributaria [post]
 func (c *DevolucionTributariaController) AddDevolucionTributaria() {
 	var request map[string]interface{}
@@ -204,7 +229,6 @@ func (c *DevolucionTributariaController) AddDevolucionTributaria() {
 
 }
 
-
 // GetAll ...
 // @Title Get All
 // @Description get DevolucionTributaria
@@ -215,7 +239,7 @@ func (c *DevolucionTributariaController) AddDevolucionTributaria() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.DevolucionTributaria
-// @Failure 403
+// @Failure 404 not found resource
 // @router /GetDevolucionRecordsNumber/ [get]
 func (c *DevolucionTributariaController) GetDevolucionRecordsNumber() {
 	var query = make(map[string]string)
@@ -234,10 +258,10 @@ func (c *DevolucionTributariaController) GetDevolucionRecordsNumber() {
 	}
 	l, err := models.GetRecordsNumberDevolucion(query)
 	if err != nil {
-		alertdb := structs.Map(err);
-		c.Data["json"] = &models.Alert{Code:"E_"+alertdb["Code"].(string),Type:"error",Body:err.Error()}
+		alertdb := structs.Map(err)
+		c.Data["json"] = &models.Alert{Code: "E_" + alertdb["Code"].(string), Type: "error", Body: err.Error()}
 	} else {
-		c.Data["json"] = &models.Alert{Code:"E_S545",Type:"success",Body:l}
+		c.Data["json"] = &models.Alert{Code: "E_S545", Type: "success", Body: l}
 	}
 	c.ServeJSON()
 }

@@ -3,11 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/fatih/structs"
 	"github.com/udistrital/utils_oas/formatdata"
 )
@@ -31,7 +33,7 @@ func (c *ChequeController) URLMapping() {
 // @Description create Cheque
 // @Param	body		body 	models.Cheque	true		"body for Cheque content"
 // @Success 201 {int} models.Cheque
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *ChequeController) Post() {
 	var v models.Cheque
@@ -40,10 +42,16 @@ func (c *ChequeController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -53,14 +61,17 @@ func (c *ChequeController) Post() {
 // @Description get Cheque by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.Cheque
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *ChequeController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetChequeById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -77,7 +88,7 @@ func (c *ChequeController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.Cheque
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *ChequeController) GetAll() {
 	var fields []string
@@ -123,8 +134,14 @@ func (c *ChequeController) GetAll() {
 
 	l, err := models.GetAllCheque(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -160,14 +177,13 @@ func (c *ChequeController) GetChequeRecordsNumber() {
 
 	l, err := models.GetRecordsCheque(query)
 	if err != nil {
-		alertdb := structs.Map(err);
-		c.Data["json"] = &models.Alert{Code:"E_"+alertdb["Code"].(string),Type:"error",Body:err.Error()}
+		alertdb := structs.Map(err)
+		c.Data["json"] = &models.Alert{Code: "E_" + alertdb["Code"].(string), Type: "error", Body: err.Error()}
 	} else {
-		c.Data["json"] = &models.Alert{Code:"E_S545",Type:"succes",Body:l}
+		c.Data["json"] = &models.Alert{Code: "E_S545", Type: "succes", Body: l}
 	}
 	c.ServeJSON()
 }
-
 
 // Put ...
 // @Title Put
@@ -175,7 +191,7 @@ func (c *ChequeController) GetChequeRecordsNumber() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.Cheque	true		"body for Cheque content"
 // @Success 200 {object} models.Cheque
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *ChequeController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -183,12 +199,18 @@ func (c *ChequeController) Put() {
 	v := models.Cheque{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateChequeById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -198,15 +220,18 @@ func (c *ChequeController) Put() {
 // @Description delete the Cheque
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *ChequeController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteCheque(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
@@ -216,16 +241,16 @@ func (c *ChequeController) Delete() {
 // @Description get Cheque by idOP
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.Cheque
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /GetChequeSumaOP/:idOP [get]
 func (c *ChequeController) GetChequeSumaOP() {
 	idStr := c.Ctx.Input.Param(":idOP")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetChequeSumaOP(id)
 	if err == nil {
-		c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 	} else {
-		beego.Error("Error",err)
+		beego.Error("Error", err)
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
@@ -243,9 +268,9 @@ func (c *ChequeController) GetNextChequeNumber() {
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetNextChequeNumber(id)
 	if err == nil {
-		c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 	} else {
-		beego.Error("Error",err)
+		beego.Error("Error", err)
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 	c.ServeJSON()
@@ -265,16 +290,16 @@ func (c *ChequeController) CreateChequeEstado() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddChequeEstado(v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success",Code:"S_543",Body:v}
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			beego.Error("Error",err)
+			beego.Error("Error", err)
 			var code string
-			alertdb:=structs.Map(err)
-			formatdata.FillStruct(alertdb["Code"],&code)
-			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+code,Body:err}
+			alertdb := structs.Map(err)
+			formatdata.FillStruct(alertdb["Code"], &code)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + code, Body: err}
 		}
 	} else {
-		beego.Error("Error",err)
+		beego.Error("Error", err)
 		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err}
 	}
 
