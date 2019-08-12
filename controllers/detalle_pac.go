@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/api_financiera/models"
 	"github.com/udistrital/utils_oas/formatdata"
 )
@@ -16,6 +17,7 @@ import (
 type DetallePacController struct {
 	beego.Controller
 }
+
 // URLMapping ...
 func (c *DetallePacController) URLMapping() {
 	c.Mapping("Post", c.Post)
@@ -30,7 +32,7 @@ func (c *DetallePacController) URLMapping() {
 // @Description create DetallePac
 // @Param	body		body 	models.DetallePac	true		"body for DetallePac content"
 // @Success 201 {int} models.DetallePac
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *DetallePacController) Post() {
 	var v models.DetallePac
@@ -39,10 +41,16 @@ func (c *DetallePacController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -52,14 +60,17 @@ func (c *DetallePacController) Post() {
 // @Description get DetallePac by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.DetallePac
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *DetallePacController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetDetallePacById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -76,7 +87,7 @@ func (c *DetallePacController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.DetallePac
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *DetallePacController) GetAll() {
 	var fields []string
@@ -122,8 +133,14 @@ func (c *DetallePacController) GetAll() {
 
 	l, err := models.GetAllDetallePac(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -135,7 +152,7 @@ func (c *DetallePacController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.DetallePac	true		"body for DetallePac content"
 // @Success 200 {object} models.DetallePac
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *DetallePacController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -143,12 +160,18 @@ func (c *DetallePacController) Put() {
 	v := models.DetallePac{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateDetallePacById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -158,15 +181,18 @@ func (c *DetallePacController) Put() {
 // @Description delete the DetallePac
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *DetallePacController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteDetallePac(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
@@ -197,7 +223,7 @@ func (c *DetallePacController) InsertarRegistros() {
 		fmt.Println(mes)
 
 		beego.Error("imprime metodo insertar")
-		
+
 		if res, err := models.AddPacCierre(data, mes, vigencia); err != nil {
 			alert := models.Alert{Type: "success", Code: "S_543", Body: res}
 			c.Data["json"] = alert
@@ -211,4 +237,3 @@ func (c *DetallePacController) InsertarRegistros() {
 	}
 
 }
-

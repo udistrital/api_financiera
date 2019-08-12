@@ -9,6 +9,7 @@ import (
 	"github.com/udistrital/api_financiera/models"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 )
 
 // ConceptoAvanceLegalizacionTipoController operations for ConceptoAvanceLegalizacionTipo
@@ -30,7 +31,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) URLMapping() {
 // @Description create ConceptoAvanceLegalizacionTipo
 // @Param	body		body 	models.ConceptoAvanceLegalizacionTipo	true		"body for ConceptoAvanceLegalizacionTipo content"
 // @Success 201 {int} models.ConceptoAvanceLegalizacionTipo
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *ConceptoAvanceLegalizacionTipoController) Post() {
 	var v models.ConceptoAvanceLegalizacionTipo
@@ -39,10 +40,16 @@ func (c *ConceptoAvanceLegalizacionTipoController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -52,14 +59,17 @@ func (c *ConceptoAvanceLegalizacionTipoController) Post() {
 // @Description get ConceptoAvanceLegalizacionTipo by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.ConceptoAvanceLegalizacionTipo
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *ConceptoAvanceLegalizacionTipoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetConceptoAvanceLegalizacionTipoById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -77,7 +87,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetOne() {
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Param groupby  string	false	"fields to grop by,  e.g. col1,col2 ..."
 // @Success 200 {object} models.ConceptoAvanceLegalizacionTipo
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *ConceptoAvanceLegalizacionTipoController) GetAll() {
 	var fields []string
@@ -141,7 +151,7 @@ func (c *ConceptoAvanceLegalizacionTipoController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.ConceptoAvanceLegalizacionTipo	true		"body for ConceptoAvanceLegalizacionTipo content"
 // @Success 200 {object} models.ConceptoAvanceLegalizacionTipo
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *ConceptoAvanceLegalizacionTipoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -149,12 +159,18 @@ func (c *ConceptoAvanceLegalizacionTipoController) Put() {
 	v := models.ConceptoAvanceLegalizacionTipo{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateConceptoAvanceLegalizacionTipoById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -164,15 +180,18 @@ func (c *ConceptoAvanceLegalizacionTipoController) Put() {
 // @Description delete the ConceptoAvanceLegalizacionTipo
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *ConceptoAvanceLegalizacionTipoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteConceptoAvanceLegalizacionTipo(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }

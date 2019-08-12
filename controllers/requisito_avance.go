@@ -3,11 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/udistrital/api_financiera/models"
 	"strconv"
 	"strings"
 
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 )
 
 // RequisitoAvanceController operations for RequisitoAvance
@@ -29,7 +31,7 @@ func (c *RequisitoAvanceController) URLMapping() {
 // @Description create RequisitoAvance
 // @Param	body		body 	models.RequisitoAvance	true		"body for RequisitoAvance content"
 // @Success 201 {int} models.RequisitoAvance
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *RequisitoAvanceController) Post() {
 	var v models.RequisitoAvance
@@ -38,10 +40,16 @@ func (c *RequisitoAvanceController) Post() {
 			c.Ctx.Output.SetStatus(201)
 			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -51,14 +59,17 @@ func (c *RequisitoAvanceController) Post() {
 // @Description get RequisitoAvance by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.RequisitoAvance
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *RequisitoAvanceController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetRequisitoAvanceById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -75,7 +86,7 @@ func (c *RequisitoAvanceController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.RequisitoAvance
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *RequisitoAvanceController) GetAll() {
 	var fields []string
@@ -121,8 +132,14 @@ func (c *RequisitoAvanceController) GetAll() {
 
 	l, err := models.GetAllRequisitoAvance(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -134,7 +151,7 @@ func (c *RequisitoAvanceController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.RequisitoAvance	true		"body for RequisitoAvance content"
 // @Success 200 {object} models.RequisitoAvance
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *RequisitoAvanceController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -142,12 +159,18 @@ func (c *RequisitoAvanceController) Put() {
 	v := models.RequisitoAvance{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateRequisitoAvanceById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -157,15 +180,18 @@ func (c *RequisitoAvanceController) Put() {
 // @Description delete the RequisitoAvance
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *RequisitoAvanceController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteRequisitoAvance(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }

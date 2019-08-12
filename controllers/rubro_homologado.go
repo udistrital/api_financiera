@@ -1,17 +1,19 @@
 package controllers
 
 import (
-	"github.com/udistrital/api_financiera/models"
 	"encoding/json"
 	"errors"
-	"strconv"
-	"strings"
+	"fmt"
 	"io/ioutil"
 	"os"
-	"fmt"
+	"strconv"
+	"strings"
 
-	"github.com/fatih/structs"
+	"github.com/udistrital/api_financiera/models"
+
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"github.com/fatih/structs"
 )
 
 // RubroHomologadoController operations for RubroHomologado
@@ -33,21 +35,21 @@ func (c *RubroHomologadoController) URLMapping() {
 // @Description create RubroHomologado
 // @Param	body		body 	models.RubroHomologado	true		"body for RubroHomologado content"
 // @Success 201 {int} models.RubroHomologado
-// @Failure 403 body is empty
+// @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *RubroHomologadoController) Post() {
 	var v models.RubroHomologado
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddRubroHomologado(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		} else {
-			alertdb:=structs.Map(err)
-			c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
 		}
 	} else {
-		beego.Error("error ",err.Error())
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_0458",Body:err.Error()}
+		beego.Error("error ", err.Error())
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_0458", Body: err.Error()}
 	}
 	c.ServeJSON()
 }
@@ -57,14 +59,17 @@ func (c *RubroHomologadoController) Post() {
 // @Description get RubroHomologado by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.RubroHomologado
-// @Failure 403 :id is empty
+// @Failure 404 not found resource
 // @router /:id [get]
 func (c *RubroHomologadoController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetRubroHomologadoById(id)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
 		c.Data["json"] = v
 	}
@@ -81,7 +86,7 @@ func (c *RubroHomologadoController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.RubroHomologado
-// @Failure 403
+// @Failure 404 not found resource
 // @router / [get]
 func (c *RubroHomologadoController) GetAll() {
 	var fields []string
@@ -127,8 +132,14 @@ func (c *RubroHomologadoController) GetAll() {
 
 	l, err := models.GetAllRubroHomologado(query, fields, sortby, order, offset, limit)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	} else {
+		if l == nil {
+			l = append(l, map[string]interface{}{})
+		}
 		c.Data["json"] = l
 	}
 	c.ServeJSON()
@@ -140,7 +151,7 @@ func (c *RubroHomologadoController) GetAll() {
 // @Param	id		path 	string	true		"The id you want to update"
 // @Param	body		body 	models.RubroHomologado	true		"body for RubroHomologado content"
 // @Success 200 {object} models.RubroHomologado
-// @Failure 403 :id is not int
+// @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
 func (c *RubroHomologadoController) Put() {
 	idStr := c.Ctx.Input.Param(":id")
@@ -148,12 +159,18 @@ func (c *RubroHomologadoController) Put() {
 	v := models.RubroHomologado{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateRubroHomologadoById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.Data["json"] = v
 		} else {
-			c.Data["json"] = err.Error()
+			logs.Error(err)
+			//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = err
+			c.Abort("400")
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -163,15 +180,18 @@ func (c *RubroHomologadoController) Put() {
 // @Description delete the RubroHomologado
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
-// @Failure 403 id is empty
+// @Failure 404 not found resource
 // @router /:id [delete]
 func (c *RubroHomologadoController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
 	if err := models.DeleteRubroHomologado(id); err == nil {
-		c.Data["json"] = "OK"
+		c.Data["json"] = map[string]interface{}{"Id": id}
 	} else {
-		c.Data["json"] = err.Error()
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "000", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
@@ -188,10 +208,10 @@ func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoById() {
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetRecordsNumberRubroHomologadoById(id)
 	if err != nil {
-		alertdb:=structs.Map(err)
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+		alertdb := structs.Map(err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
 	} else {
-		c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 	}
 	c.ServeJSON()
 }
@@ -208,14 +228,13 @@ func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoRubroById() {
 	id, _ := strconv.Atoi(idStr)
 	v, err := models.GetRecordsNumberRubroHomologadoRubroById(id)
 	if err != nil {
-		alertdb:=structs.Map(err)
-		c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
+		alertdb := structs.Map(err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
 	} else {
-		c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 	}
 	c.ServeJSON()
 }
-
 
 // GetRecordsNumberByEntity...
 // @Title Get Records Number RubroHomologado By Entity
@@ -225,21 +244,19 @@ func (c *RubroHomologadoController) GetRecordsNumberRubroHomologadoRubroById() {
 // @Failure 403 :id is empty
 // @router /GetRecordsNumberByEntity [get]
 func (c *RubroHomologadoController) GetRecordsNumberByEntity() {
-	if idEntidad, err := c.GetInt("idEntidad");err==nil{
+	if idEntidad, err := c.GetInt("idEntidad"); err == nil {
 		v, err := models.GetRecordsNumberRubroByEntity(idEntidad)
-			if err != nil {
-				alertdb:=structs.Map(err)
-				c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
-				} else {
-					c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
-				}
-		}else{
-			c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+		if err != nil {
+			alertdb := structs.Map(err)
+			c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+		} else {
+			c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
 		}
+	} else {
+		c.Data["json"] = models.Alert{Code: "E_0458", Body: "Not enough parameter", Type: "error"}
+	}
 	c.ServeJSON()
 }
-
-
 
 // GetParentHomologation...
 // @Title Get Parent Item Homologation
@@ -249,20 +266,19 @@ func (c *RubroHomologadoController) GetRecordsNumberByEntity() {
 // @Failure 403 Rubro is empty
 // @router GetParentHomologation/ [get]
 func (c *RubroHomologadoController) GetParentHomologation() {
-	
- idRubro := c.GetString("idRubro")
-		beego.Error(" GetParentHomologation id rubro",idRubro)
-		v, err := models.GetParentHomologation(idRubro)
-			if err != nil {
-				alertdb:=structs.Map(err)
-				c.Data["json"] = models.Alert{Type:"error",Code:"E_"+alertdb["Code"].(string),Body:err.Error()}
-				} else {
-					c.Data["json"] = models.Alert{Type:"success", Code: "S_543",Body:v}
-				}
+
+	idRubro := c.GetString("idRubro")
+	beego.Error(" GetParentHomologation id rubro", idRubro)
+	v, err := models.GetParentHomologation(idRubro)
+	if err != nil {
+		alertdb := structs.Map(err)
+		c.Data["json"] = models.Alert{Type: "error", Code: "E_" + alertdb["Code"].(string), Body: err.Error()}
+	} else {
+		c.Data["json"] = models.Alert{Type: "success", Code: "S_543", Body: v}
+	}
 
 	c.ServeJSON()
 }
-
 
 // ArbolRubros ...
 // @Title ArbolRubros
@@ -277,13 +293,13 @@ func (c *RubroHomologadoController) ArbolRubros() {
 	idPadre, err := c.GetInt("idPadre")
 	if err == nil {
 		if _, err := os.Stat("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json"); os.IsNotExist(err) {
-			v, err := models.ArbolRubrosHomologados(idPadre,idEntidad)
+			v, err := models.ArbolRubrosHomologados(idPadre, idEntidad)
 			if err != nil {
 				c.Data["json"] = err.Error()
 				beego.Error(err)
 			} else {
 				rankingsJson, _ := json.Marshal(v)
-				err = ioutil.WriteFile("HomologateTreeUe" + strconv.Itoa(idEntidad) + ".json", rankingsJson, 0644)
+				err = ioutil.WriteFile("HomologateTreeUe"+strconv.Itoa(idEntidad)+".json", rankingsJson, 0644)
 				fmt.Println("err ", err)
 				c.Data["json"] = v
 			}
