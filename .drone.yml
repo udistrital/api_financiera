@@ -6,6 +6,16 @@ workspace:
     
 pipeline:
 
+  # Beego migrate for DB
+  beego_migrate:
+    image: golang:1.9
+    secrets: [ pg_core_url, pg_core_user, pg_core_password]
+    commands:
+     - go get -t
+     - GOOS=linux GOARCH=amd64 go build -o main
+    when:
+      branch: [test]
+  
   # build and test the go program
   go:
     image: golang:1.9
