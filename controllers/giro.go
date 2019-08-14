@@ -298,10 +298,10 @@ func (c *GiroController) GetValueEndoso() {
 // RegistrarGiroDescuentos ...
 // @Title RegistrarGiroDescuentos
 // @Description RegistrarGiroDescuentos orden_pago de proveedor, concepto_ordenpago, movimientos contables
-// @Param	body		body 	"body for giro descuentos content"
+// @Param	body			body 	models.Goru true "body for giro descuentos content"
 // @Param	idcuenta		query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	idordenpago		query	string	false	"Limit the size of result set. Must be an integer"
-// @Param	idgiro		query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	idgiro			query	string	false	"Limit the size of result set. Must be an integer"
 // @Success 201 {int} models.Giro
 // @Failure 403 body is empty
 // @router /RegistrarGiroDescuentos [post]
